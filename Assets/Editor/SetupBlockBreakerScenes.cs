@@ -275,12 +275,29 @@ namespace Arcade.Editor
             camGo.tag = "MainCamera";
             var cam = camGo.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = new Color(0.047f, 0.051f, 0.086f, 1f); // #0c0d16
+            cam.backgroundColor = new Color(0.01f, 0.015f, 0.035f, 1f);
             cam.fieldOfView = 38f;
             cam.transform.position = new Vector3(0f, 6.0f, -32f);
             cam.transform.rotation = Quaternion.identity;
             camGo.AddComponent<AudioListener>();
             camGo.AddComponent<ResponsiveCameraController>();
+
+            var cameraData = camGo.AddComponent<UniversalAdditionalCameraData>();
+            cameraData.renderPostProcessing = true;
+            cameraData.volumeLayerMask = ~0;
+            cameraData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+            cameraData.antialiasingQuality = AntialiasingQuality.High;
+            cameraData.requiresColorTexture = true;
+            cameraData.requiresDepthTexture = true;
+
+            RenderSettings.skybox = null;
+            RenderSettings.ambientMode = AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.04f, 0.06f, 0.12f);
+            RenderSettings.ambientEquatorColor = new Color(0.02f, 0.03f, 0.06f);
+            RenderSettings.ambientGroundColor = new Color(0.005f, 0.005f, 0.01f);
+            RenderSettings.ambientIntensity = 1.0f;
+            RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
+            RenderSettings.customReflectionTexture = null;
 
             // 2. Post-Processing Volume with Bloom
             var volGo = new GameObject("Global Volume");
@@ -344,12 +361,29 @@ namespace Arcade.Editor
             camGo.tag = "MainCamera";
             var cam = camGo.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = new Color(0.047f, 0.051f, 0.086f, 1f); // #0c0d16
+            cam.backgroundColor = new Color(0.01f, 0.015f, 0.035f, 1f);
             cam.fieldOfView = 38f; // Perspective with tactile 3D depth and complete arena framing
             cam.transform.position = new Vector3(0f, 6.0f, -32f);
             cam.transform.rotation = Quaternion.identity;
             camGo.AddComponent<AudioListener>();
             camGo.AddComponent<ResponsiveCameraController>();
+
+            var cameraData = camGo.AddComponent<UniversalAdditionalCameraData>();
+            cameraData.renderPostProcessing = true;
+            cameraData.volumeLayerMask = ~0;
+            cameraData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+            cameraData.antialiasingQuality = AntialiasingQuality.High;
+            cameraData.requiresColorTexture = true;
+            cameraData.requiresDepthTexture = true;
+
+            RenderSettings.skybox = null;
+            RenderSettings.ambientMode = AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.04f, 0.06f, 0.12f);
+            RenderSettings.ambientEquatorColor = new Color(0.02f, 0.03f, 0.06f);
+            RenderSettings.ambientGroundColor = new Color(0.005f, 0.005f, 0.01f);
+            RenderSettings.ambientIntensity = 1.0f;
+            RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
+            RenderSettings.customReflectionTexture = null;
 
             // 2. Studio Lighting
             var keyLightGo = new GameObject("Key Light");
