@@ -19,10 +19,13 @@ Use this skill when:
 - Managing arcade game scenes (`LV_` prefix), game state, and UI Toolkit menus/HUDs.
 - Implementing responsive multi-aspect ratio camera framing (`ResponsiveCameraController`).
 - Integrating iOS Safe Area insets with extra breathing room margins (`SafeAreaController`).
+- Calibrating child socket scales ($X=0.20\text{f}$) for imported 3D models under scaled parent prefabs.
+- Configuring `UniversalAdditionalCameraData` on URP cameras for post-processing and isolating dark cosmic skybox reflections.
+- Non-destructive workflows: preserving user-crafted scene hierarchies and materials without executing destructive scene generators.
 - Implementing dual-layer stacked tapering trails and multi-ball dynamic VFX (`BallTrail`).
 - Binding Unity 6 UI Toolkit `PanelRenderer` components safely at runtime with fallback reflection and execution order coordination.
 - Managing persistent high score leaderboards (`HighScoreManager`), card guides, and interactive credits.
-- Writing and executing automated EditMode/PlayMode tests via Unity Test Framework.
+- Writing and executing automated EditMode/PlayMode tests via Unity Test Framework (272 tests passing).
 
 ## Reference Documentation
 For complete workflow recipes, code examples, and MCP tool patterns, refer to [skills.md](skills.md) and [AGENTS.md](AGENTS.md).

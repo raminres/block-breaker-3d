@@ -17,6 +17,7 @@ namespace Arcade.Editor
         public const string MAT_FROST_PATH = "Assets/Materials/BlockBreaker/MI_Block_Glass.mat";
         public const string MAT_HYPERBEAM_PATH = "Assets/Materials/BlockBreaker/MI_LaserHyperBeam.mat";
         public const string PHYS_BOUNCE_PATH = "Assets/Materials/BlockBreaker/PM_ArcadeBounce.physicMaterial";
+        public const string MODEL_PADDLE_PATH = "Assets/Models/SM_Paddle.fbx";
 
         [MenuItem("Tools/Arcade/Generate Paddle Prefabs")]
         public static void GeneratePaddlePrefabs()
@@ -54,68 +55,167 @@ namespace Arcade.Editor
             var paddleCtrl = rootGo.AddComponent<PaddleController>();
             var laserCtrl = rootGo.AddComponent<PaddleLaserController>();
 
+            var modelGo = AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PADDLE_PATH);
+            Object[] modelAssets = modelGo != null ? AssetDatabase.LoadAllAssetsAtPath(MODEL_PADDLE_PATH) : null;
+            Mesh meshDeck = FindMesh(modelAssets, "Deck");
+            Mesh meshChassis = FindMesh(modelAssets, "Chassis");
+            Mesh meshKeel = FindMesh(modelAssets, "Keel");
+            Mesh meshGunLeft = FindMesh(modelAssets, "Gun_Left");
+            Mesh meshGunRight = FindMesh(modelAssets, "Gun_Right");
+            Mesh meshAperture = FindMesh(modelAssets, "Aperture");
+            Mesh meshIceShell = FindMesh(modelAssets, "Ice_Shell");
+
+            bool useFbxModel = meshDeck != null && meshChassis != null && meshKeel != null;
+
             // 4. Child 'visuals' (Stepped Pyramid Tiers - pure meshes, no colliders)
             GameObject visualsGo = new GameObject("visuals");
             visualsGo.transform.SetParent(rootGo.transform, false);
+            visualsGo.transform.localScale = useFbxModel ? new Vector3(0.2f, 1.0f, 1.0f) : Vector3.one;
 
             // Tier 1: Deck (paddle top)
-            GameObject deckGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            deckGo.name = "deck";
-            deckGo.transform.SetParent(visualsGo.transform, false);
-            deckGo.transform.localPosition = new Vector3(0f, 0.38f, 0f);
-            deckGo.transform.localScale = new Vector3(1.0f, 0.24f, 1.0f);
-            Object.DestroyImmediate(deckGo.GetComponent<Collider>());
-            if (matDeck != null) deckGo.GetComponent<MeshRenderer>().sharedMaterial = matDeck;
+            GameObject deckGo;
+            if (useFbxModel)
+            {
+                deckGo = new GameObject("deck");
+                deckGo.transform.SetParent(visualsGo.transform, false);
+                deckGo.transform.localPosition = new Vector3(0f, 0.38f, 0f);
+                deckGo.transform.localScale = Vector3.one;
+                var mf = deckGo.AddComponent<MeshFilter>();
+                mf.sharedMesh = meshDeck;
+                var mr = deckGo.AddComponent<MeshRenderer>();
+                if (matDeck != null) mr.sharedMaterial = matDeck;
+            }
+            else
+            {
+                deckGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                deckGo.name = "deck";
+                deckGo.transform.SetParent(visualsGo.transform, false);
+                deckGo.transform.localPosition = new Vector3(0f, 0.38f, 0f);
+                deckGo.transform.localScale = new Vector3(1.0f, 0.24f, 1.0f);
+                Object.DestroyImmediate(deckGo.GetComponent<Collider>());
+                if (matDeck != null) deckGo.GetComponent<MeshRenderer>().sharedMaterial = matDeck;
+            }
 
             // Tier 2: Chassis (paddle mid)
-            GameObject chassisGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            chassisGo.name = "chassis";
-            chassisGo.transform.SetParent(visualsGo.transform, false);
-            chassisGo.transform.localPosition = new Vector3(0f, 0.16f, 0f);
-            chassisGo.transform.localScale = new Vector3(0.72f, 0.20f, 0.88f);
-            Object.DestroyImmediate(chassisGo.GetComponent<Collider>());
-            if (matMid != null) chassisGo.GetComponent<MeshRenderer>().sharedMaterial = matMid;
+            GameObject chassisGo;
+            if (useFbxModel)
+            {
+                chassisGo = new GameObject("chassis");
+                chassisGo.transform.SetParent(visualsGo.transform, false);
+                chassisGo.transform.localPosition = new Vector3(0f, 0.25f, 0f);
+                chassisGo.transform.localScale = Vector3.one;
+                var mf = chassisGo.AddComponent<MeshFilter>();
+                mf.sharedMesh = meshChassis;
+                var mr = chassisGo.AddComponent<MeshRenderer>();
+                if (matMid != null) mr.sharedMaterial = matMid;
+            }
+            else
+            {
+                chassisGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                chassisGo.name = "chassis";
+                chassisGo.transform.SetParent(visualsGo.transform, false);
+                chassisGo.transform.localPosition = new Vector3(0f, 0.16f, 0f);
+                chassisGo.transform.localScale = new Vector3(0.72f, 0.20f, 0.88f);
+                Object.DestroyImmediate(chassisGo.GetComponent<Collider>());
+                if (matMid != null) chassisGo.GetComponent<MeshRenderer>().sharedMaterial = matMid;
+            }
 
             // Tier 3: Keel (paddle bottom)
-            GameObject keelGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            keelGo.name = "keel";
-            keelGo.transform.SetParent(visualsGo.transform, false);
-            keelGo.transform.localPosition = new Vector3(0f, -0.02f, 0f);
-            keelGo.transform.localScale = new Vector3(0.44f, 0.16f, 0.72f);
-            Object.DestroyImmediate(keelGo.GetComponent<Collider>());
-            if (matCore != null) keelGo.GetComponent<MeshRenderer>().sharedMaterial = matCore;
+            GameObject keelGo;
+            if (useFbxModel)
+            {
+                keelGo = new GameObject("keel");
+                keelGo.transform.SetParent(visualsGo.transform, false);
+                keelGo.transform.localPosition = new Vector3(0f, 0.01f, 0f);
+                keelGo.transform.localScale = Vector3.one;
+                var mf = keelGo.AddComponent<MeshFilter>();
+                mf.sharedMesh = meshKeel;
+                var mr = keelGo.AddComponent<MeshRenderer>();
+                if (matCore != null) mr.sharedMaterial = matCore;
+            }
+            else
+            {
+                keelGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                keelGo.name = "keel";
+                keelGo.transform.SetParent(visualsGo.transform, false);
+                keelGo.transform.localPosition = new Vector3(0f, -0.02f, 0f);
+                keelGo.transform.localScale = new Vector3(0.44f, 0.16f, 0.72f);
+                Object.DestroyImmediate(keelGo.GetComponent<Collider>());
+                if (matCore != null) keelGo.GetComponent<MeshRenderer>().sharedMaterial = matCore;
+            }
 
             // 5. Child 'guns' (Twin Laser Blasters - active during Laser Blaster powerup)
             GameObject gunsGo = new GameObject("guns");
             gunsGo.transform.SetParent(rootGo.transform, false);
+            gunsGo.transform.localScale = useFbxModel ? new Vector3(0.2f, 1.0f, 1.0f) : Vector3.one;
 
             // Left Gun
-            GameObject gunLeft = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            gunLeft.name = "Gun_Left";
-            gunLeft.transform.SetParent(gunsGo.transform, false);
-            gunLeft.transform.localPosition = new Vector3(-0.42f, 0.38f, 0f);
-            gunLeft.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            gunLeft.transform.localScale = new Vector3(0.10f, 0.22f, 0.10f);
-            Object.DestroyImmediate(gunLeft.GetComponent<Collider>());
-            if (matDeck != null) gunLeft.GetComponent<MeshRenderer>().sharedMaterial = matDeck;
+            GameObject gunLeft;
+            GameObject muzzleLeft;
+            if (useFbxModel && meshGunLeft != null)
+            {
+                gunLeft = new GameObject("Gun_Left");
+                gunLeft.transform.SetParent(gunsGo.transform, false);
+                gunLeft.transform.localPosition = new Vector3(-1.85f, 0.50f, 0f);
+                gunLeft.transform.localScale = Vector3.one;
+                var mf = gunLeft.AddComponent<MeshFilter>();
+                mf.sharedMesh = meshGunLeft;
+                var mr = gunLeft.AddComponent<MeshRenderer>();
+                mr.sharedMaterials = new Material[] { matCore, matDeck };
 
-            GameObject muzzleLeft = new GameObject("Muzzle_Left");
-            muzzleLeft.transform.SetParent(gunLeft.transform, false);
-            muzzleLeft.transform.localPosition = new Vector3(0f, 0.24f, 0f);
+                muzzleLeft = new GameObject("Muzzle_Left");
+                muzzleLeft.transform.SetParent(gunLeft.transform, false);
+                muzzleLeft.transform.localPosition = new Vector3(0f, 0.15f, 0f);
+            }
+            else
+            {
+                gunLeft = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                gunLeft.name = "Gun_Left";
+                gunLeft.transform.SetParent(gunsGo.transform, false);
+                gunLeft.transform.localPosition = new Vector3(-0.42f, 0.38f, 0f);
+                gunLeft.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                gunLeft.transform.localScale = new Vector3(0.10f, 0.22f, 0.10f);
+                Object.DestroyImmediate(gunLeft.GetComponent<Collider>());
+                if (matDeck != null) gunLeft.GetComponent<MeshRenderer>().sharedMaterial = matDeck;
+
+                muzzleLeft = new GameObject("Muzzle_Left");
+                muzzleLeft.transform.SetParent(gunLeft.transform, false);
+                muzzleLeft.transform.localPosition = new Vector3(0f, 0.24f, 0f);
+            }
 
             // Right Gun
-            GameObject gunRight = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            gunRight.name = "Gun_Right";
-            gunRight.transform.SetParent(gunsGo.transform, false);
-            gunRight.transform.localPosition = new Vector3(0.42f, 0.38f, 0f);
-            gunRight.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            gunRight.transform.localScale = new Vector3(0.10f, 0.22f, 0.10f);
-            Object.DestroyImmediate(gunRight.GetComponent<Collider>());
-            if (matDeck != null) gunRight.GetComponent<MeshRenderer>().sharedMaterial = matDeck;
+            GameObject gunRight;
+            GameObject muzzleRight;
+            if (useFbxModel && meshGunRight != null)
+            {
+                gunRight = new GameObject("Gun_Right");
+                gunRight.transform.SetParent(gunsGo.transform, false);
+                gunRight.transform.localPosition = new Vector3(1.85f, 0.50f, 0f);
+                gunRight.transform.localScale = Vector3.one;
+                var mf = gunRight.AddComponent<MeshFilter>();
+                mf.sharedMesh = meshGunRight;
+                var mr = gunRight.AddComponent<MeshRenderer>();
+                mr.sharedMaterials = new Material[] { matCore, matDeck };
 
-            GameObject muzzleRight = new GameObject("Muzzle_Right");
-            muzzleRight.transform.SetParent(gunRight.transform, false);
-            muzzleRight.transform.localPosition = new Vector3(0f, 0.24f, 0f);
+                muzzleRight = new GameObject("Muzzle_Right");
+                muzzleRight.transform.SetParent(gunRight.transform, false);
+                muzzleRight.transform.localPosition = new Vector3(0f, 0.15f, 0f);
+            }
+            else
+            {
+                gunRight = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                gunRight.name = "Gun_Right";
+                gunRight.transform.SetParent(gunsGo.transform, false);
+                gunRight.transform.localPosition = new Vector3(0.42f, 0.38f, 0f);
+                gunRight.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                gunRight.transform.localScale = new Vector3(0.10f, 0.22f, 0.10f);
+                Object.DestroyImmediate(gunRight.GetComponent<Collider>());
+                if (matDeck != null) gunRight.GetComponent<MeshRenderer>().sharedMaterial = matDeck;
+
+                muzzleRight = new GameObject("Muzzle_Right");
+                muzzleRight.transform.SetParent(gunRight.transform, false);
+                muzzleRight.transform.localPosition = new Vector3(0f, 0.24f, 0f);
+            }
 
             gunsGo.SetActive(false);
 
@@ -123,18 +223,33 @@ namespace Arcade.Editor
             GameObject laserGunGo = new GameObject("laser_gun");
             laserGunGo.transform.SetParent(rootGo.transform, false);
 
-            GameObject apertureGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            apertureGo.name = "Aperture";
-            apertureGo.transform.SetParent(laserGunGo.transform, false);
-            apertureGo.transform.localPosition = new Vector3(0f, 0.42f, 0f);
-            apertureGo.transform.localScale = new Vector3(0.20f, 0.12f, 0.32f);
-            Object.DestroyImmediate(apertureGo.GetComponent<Collider>());
-            if (matDeck != null) apertureGo.GetComponent<MeshRenderer>().sharedMaterial = matDeck;
+            GameObject apertureGo;
+            if (useFbxModel && meshAperture != null)
+            {
+                apertureGo = new GameObject("Aperture");
+                apertureGo.transform.SetParent(laserGunGo.transform, false);
+                apertureGo.transform.localPosition = new Vector3(0f, 0.50f, 0f);
+                apertureGo.transform.localScale = new Vector3(0.2f, 1.0f, 1.0f);
+                var mf = apertureGo.AddComponent<MeshFilter>();
+                mf.sharedMesh = meshAperture;
+                var mr = apertureGo.AddComponent<MeshRenderer>();
+                mr.sharedMaterials = new Material[] { matDeck, matCore };
+            }
+            else
+            {
+                apertureGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                apertureGo.name = "Aperture";
+                apertureGo.transform.SetParent(laserGunGo.transform, false);
+                apertureGo.transform.localPosition = new Vector3(0f, 0.42f, 0f);
+                apertureGo.transform.localScale = new Vector3(0.20f, 0.12f, 0.32f);
+                Object.DestroyImmediate(apertureGo.GetComponent<Collider>());
+                if (matDeck != null) apertureGo.GetComponent<MeshRenderer>().sharedMaterial = matDeck;
+            }
 
             GameObject beamGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
             beamGo.name = "VFX_Railgun_HyperBeam";
             beamGo.transform.SetParent(laserGunGo.transform, false);
-            beamGo.transform.localPosition = new Vector3(0f, 15.88f, -0.3f);
+            beamGo.transform.localPosition = new Vector3(0f, 15.88f, 0f);
             beamGo.transform.localScale = new Vector3(3.2f, 31f, 1f);
             Object.DestroyImmediate(beamGo.GetComponent<Collider>());
             var beamRend = beamGo.GetComponent<MeshRenderer>();
@@ -150,14 +265,30 @@ namespace Arcade.Editor
             // 7. Child 'frost' (Ice encasement shell - active during PaddleFreezer hazard)
             GameObject frostGo = new GameObject("frost");
             frostGo.transform.SetParent(rootGo.transform, false);
+            frostGo.transform.localScale = useFbxModel ? new Vector3(0.2f, 1.0f, 1.0f) : Vector3.one;
 
-            GameObject frostMeshGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            frostMeshGo.name = "Ice_Shell";
-            frostMeshGo.transform.SetParent(frostGo.transform, false);
-            frostMeshGo.transform.localPosition = new Vector3(0f, 0.20f, 0f);
-            frostMeshGo.transform.localScale = new Vector3(1.04f, 0.62f, 1.08f);
-            Object.DestroyImmediate(frostMeshGo.GetComponent<Collider>());
-            if (matFrost != null) frostMeshGo.GetComponent<MeshRenderer>().sharedMaterial = matFrost;
+            GameObject frostMeshGo;
+            if (useFbxModel && meshIceShell != null)
+            {
+                frostMeshGo = new GameObject("Ice_Shell");
+                frostMeshGo.transform.SetParent(frostGo.transform, false);
+                frostMeshGo.transform.localPosition = new Vector3(0f, 0.20f, 0f);
+                frostMeshGo.transform.localScale = Vector3.one;
+                var mf = frostMeshGo.AddComponent<MeshFilter>();
+                mf.sharedMesh = meshIceShell;
+                var mr = frostMeshGo.AddComponent<MeshRenderer>();
+                if (matFrost != null) mr.sharedMaterial = matFrost;
+            }
+            else
+            {
+                frostMeshGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                frostMeshGo.name = "Ice_Shell";
+                frostMeshGo.transform.SetParent(frostGo.transform, false);
+                frostMeshGo.transform.localPosition = new Vector3(0f, 0.20f, 0f);
+                frostMeshGo.transform.localScale = new Vector3(1.04f, 0.62f, 1.08f);
+                Object.DestroyImmediate(frostMeshGo.GetComponent<Collider>());
+                if (matFrost != null) frostMeshGo.GetComponent<MeshRenderer>().sharedMaterial = matFrost;
+            }
 
             frostGo.SetActive(false);
 
@@ -215,6 +346,19 @@ namespace Arcade.Editor
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log($"[SetupPaddlePrefabs] Successfully generated PF_Paddle prefab at: {PADDLE_PREFAB_PATH}");
+        }
+
+        private static Mesh FindMesh(Object[] assets, string meshName)
+        {
+            if (assets == null) return null;
+            foreach (var a in assets)
+            {
+                if (a is Mesh m && m.name.Equals(meshName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return m;
+                }
+            }
+            return null;
         }
     }
 }

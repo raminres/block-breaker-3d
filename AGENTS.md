@@ -10,7 +10,7 @@ High-density technical context and architectural rules for BlockBreaker.
 - **Scenes**:
   1. `Assets/Scenes/LV_BlockBreaker_MainMenu.unity` (Build Index 0, Start Scene configured via [PlayModeSceneSetup.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Editor/PlayModeSceneSetup.cs))
   2. `Assets/Scenes/LV_BlockBreaker.unity` (Build Index 1, Primary Gameplay)
-- **Repository**: `https://github.com/raminres/unity-cli-mcp-test.git` (Active Branch: `feature/ui-touch-visual-improvements`, Git LFS enabled)
+- **Repository**: `https://github.com/raminres/unity-cli-mcp-test.git` (Active Branch: `feature/3d-models-and-scale-fixes`, Git LFS enabled)
 
 ---
 
@@ -25,8 +25,10 @@ High-density technical context and architectural rules for BlockBreaker.
 ---
 
 ## 3. Core Gameplay Architecture & Physics
-- **3-Tier Inverted Stepped Pyramid Paddle**:
-  - **Tier 1 (Strike Deck)**: $100\%$ width ($W = 5.0$), ultra-thin ($H = 0.24, Z = 1.0$), glowing neon cyan rim ([MI_Paddle_Deck.mat](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Materials/BlockBreaker/MI_Paddle_Deck.mat)). Top surface at $Y = -6.0$ for ball docking.
+- **3-Tier Stepped Pyramid Paddle & 3D Model Scale Calibration**:
+  - **Custom 3D Model Integration**: Uses custom FBX mesh (`SM_Paddle.fbx`) with child parts `Deck`, `Chassis`, `Keel` attached to `PF_Paddle.prefab`.
+  - **Scale Calibration on Child Sockets**: Because the root paddle is scaled horizontally to $5.5\text{u}$ ($5.0\text{u}–5.5\text{u}$) and expands dynamically via Expander powerups, child sockets (`visuals`, `frost`, `guns`, `Aperture`) are calibrated with a local scale of $X = 0.20\text{f}$ (`Vector3(0.20f, 1.0f, 1.0f)`). This mathematical compensation prevents double scaling, allowing the 3D model meshes to render at true 1:1 proportions while the parent controls the physical collision boundary and dynamic expansion.
+  - **Tier 1 (Strike Deck)**: $100\%$ width ($W = 5.0$), ultra-thin ($H = 0.24, Z = 1.0$), glowing neon cyan rim ([MI_Paddle_Deck.mat](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Materials/BlockBreaker/MI_Paddle_Deck.mat)). Top surface at $Y = -6.0$ for ball docking (`dock_point` at `(0, 0.88f, 0)`).
   - **Tier 2 (Mid Chassis)**: $72\%$ width ($W = 3.6, H = 0.20, Z = 0.88$) in dark brushed titanium ([MI_Paddle.mat](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Materials/BlockBreaker/MI_Paddle.mat)).
   - **Tier 3 (Keel / Thrusters)**: $44\%$ width ($W = 2.2, H = 0.16, Z = 0.72$) with engine vent glow ([MI_Paddle_Core.mat](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Materials/BlockBreaker/MI_Paddle_Core.mat)).
   - Total vertical profile: $0.60$ (lower sides stepped inward $\le 1.4\text{u}$/side to eliminate phantom side catches).
@@ -89,15 +91,19 @@ High-density technical context and architectural rules for BlockBreaker.
 ---
 
 ## 6. Graphics, UI & Systems Architecture
+- **URP Camera Post-Processing Pipeline**:
+  - `Main Camera` requires `UniversalAdditionalCameraData` with `renderPostProcessing = true` and `volumeLayerMask = ~0`. Without this component, Unity 6 ignores Volume Profiles and Bloom in Game view during Play Mode.
+  - **Atmosphere & Skybox Isolation**: `RenderSettings.skybox = null` and `RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom`. Completely eliminates the default Unity skybox horizon reflection on the metallic ball and walls, producing a pure dark cosmic void.
 - **VFX System ([BlockVFXManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/BlockVFXManager.cs))**: Pooled bursts under `_Pool_VFX` ($Y = -500\text{f}$). Zero-allocation `MaterialPropertyBlock` tinting. Frame-0 prewarming in `Start()` compiles PSOs upfront on Metal/Vulkan/DX12/WebGPU.
-- **Background**: Quad at $Z = 6.0\text{f}$ ($40 \times 80$) with `Universal Render Pipeline/Unlit` cosmic gradients ([LevelBackgroundController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/LevelBackgroundController.cs)).
+- **Background**: Quad at $Z = 6.0\text{f}$ ($40 \times 80$) with `Universal Render Pipeline/Unlit` cosmic gradients ([LevelBackgroundController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/LevelBackgroundController.cs)). Gradient textures `TX_Background_Gradient_A` through `E` are user-managed.
 - **UI Toolkit & Screen Harmonization**:
   - Unity 6 `PanelRenderer` on `UI_HUD` and `UI_MainMenu` scaled for iPhone portrait reference resolution (`1170x2532`).
   - **Mobile Safe Area & Dynamic Island Adaptation**: [SafeAreaController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/UI/SafeAreaController.cs) calculates Yoga width-relative insets (`CalculateYogaInsets`), preventing Dynamic Island and notch occlusion on iPhone 15/15 Pro in physical builds and Unity Device Simulator. `#safe-area-content` wraps top bar dashboard pods and powerup rows, while modals maintain full-bleed coverage.
   - **Touch Ergonomics & System Gesture Deferral**: `PlayerSettings.iOS.deferSystemGesturesMode = UnityEngine.iOS.SystemGestureDeferMode.All` configures iOS to require a deliberate double-swipe for Home bar navigation, preventing edge gesture drops. Input position clamps to $Y \ge 4\text{px}$ and a minimal, transparent touch guideline (`#touch-guideline`, `opacity: 0.16`, `pickingMode: Ignore`) sits comfortably above the iOS Home bar indicator.
-  - **Tactile 3D Extruded Gradient Design System**:
-    - Discarded transparent/liquid glass in favor of solid opaque obsidian navy backgrounds (`rgb(18, 24, 40)`) with 4 procedural vertical gradient sprites in `Assets/UI/Textures/Gradients/` (`TX_Grad_Card_Bg`, `TX_Grad_Ruby_Btn`, `TX_Grad_Emerald_Btn`, `TX_Grad_Titanium_Btn`).
+  - **Tactile 3D Extruded Gradient Design System & Radiant Glow**:
+    - Solid opaque obsidian navy backgrounds (`rgb(18, 24, 40)`) with 4 procedural vertical gradient sprites in `Assets/UI/Textures/Gradients/` (`TX_Grad_Card_Bg`, `TX_Grad_Ruby_Btn`, `TX_Grad_Emerald_Btn`, `TX_Grad_Titanium_Btn`).
     - Mechanical 3D extruded button geometry: resting 7px bottom shelf (`border-bottom-width: 7px;`), 2px top/side bevels, and active physical depression (`translate: 0 5px; border-bottom-width: 2px; border-top-width: 4px;`).
+    - Radiant neon HUD pod glows (`box-shadow`), neon cyan/magenta dashboard contrast, and radiant `TAP TO LAUNCH` pill banner.
     - Propagated across all modal cards (`.modal-card`, `.level-modal-card`, `.scorecard-card`) and button styles (`.arcade-btn`, `.arcade-button`, `.btn-primary`, `.btn-secondary`, `.btn-default`, `.warning-btn`) across both Main Menu and Gameplay HUD.
   - **Menu Parity**: Pause Menu sub-screens (How to Play, Credits, Level Select, and Options) share visual design, responsive layouts, and button hierarchies with Main Menu.
   - **Custom Animated Mute Toggles**: Both Main Menu and In-Game Pause Options screens feature custom checkmark toggles for SFX and Music (`68px × 68px`). Toggles dynamically swap between speaker and mute icons, transitioning between cyan (`#21d4fd`) and crimson (`#ff3b56`) tints.
@@ -116,12 +122,24 @@ High-density technical context and architectural rules for BlockBreaker.
 ## 7. Modular Prefab Suite & Runtime Architecture
 - **Complete Prefab Suite (`Assets/Prefabs/`)**:
   - `Arena/`: `PF_Walls` (left/right/top walls, 45° chamfers, kill zone), `PF_Background` (quad mesh + `LevelBackgroundController`), `PF_ShieldWall` (decoupled physics, visual model, electric energy barrier).
-  - `Paddle/`: `PF_Paddle` (deck, chassis, keel, blaster cannons, laser aperture, frost shell, hit sparks).
+  - `Paddle/`: `PF_Paddle` (deck, chassis, keel from `SM_Paddle.fbx`, blaster cannons, laser aperture, frost shell, hit sparks; child sockets scale $X=0.20\text{f}$).
   - `Balls/`: `PF_Ball_Standard` (decoupled sphere mesh, TrailRenderer, BallController).
   - `Blocks/`: `PF_Block_Base`, `PF_Block_Red`, `PF_Block_Green`, `PF_Block_Blue`, `PF_Block_Bomb`, `PF_Block_Glass` (4 child sockets: `brick`, `brick frost`, `brick special`, `brick vfx`).
   - `Powerups/`: `PF_Drop_Powerup` (cyan capsule), `PF_Drop_Hazard` (crimson diamond).
 - **Zero Runtime Primitives**: All legacy procedural cube/quad fallbacks (`GameObject.CreatePrimitive`) removed from runtime and scene setups.
-- **Automated Tests**: 270 EditMode tests passing across core physics, prefabs, boundaries, powerups, hazards, UI harmonization, localization tables, touch ergonomics, and level scaling:
+- **Automated Tests**: 272 EditMode tests passing across core physics, paddle prefab socket calibration, boundaries, powerups, hazards, UI harmonization, localization tables, touch ergonomics, and level scaling:
   ```bash
   unity cmd run_tests --mode editor
   ```
+
+---
+
+## 8. Critical Architectural Mandate: Preservation of User-Authored Scene & Assets
+- **STRICT MANDATE**: The user actively customizes and hand-tunes scene lighting, materials, post-processing volume profiles, gradient textures, and prefabs in the Unity Editor:
+  - `Assets/Scenes/LV_BlockBreaker.unity`
+  - `Assets/Materials/BlockBreaker/` (`MI_Ball.mat`, `MI_Block_*.mat`, `MI_Paddle*.mat`, `MI_Playfield_Border.mat`, etc.)
+  - `Assets/Prefabs/Arena/` (`PF_Background.prefab`, `PF_Walls.prefab`)
+  - `Assets/Settings/SampleSceneProfile.asset`
+  - `Assets/Textures/Backgrounds/` (`TX_Background_Gradient_*.png`)
+- **NEVER OVERWRITE USER WORK**: Agents must **NEVER** run automated scene reconstruction scripts (such as `Tools > Arcade > Setup All Block Breaker Scenes`) or overwrite these files.
+- Scene generator scripts (e.g. [SetupBlockBreakerScenes.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Editor/SetupBlockBreakerScenes.cs)) exist solely as reference builders; do NOT execute them destructively across sessions. All modifications must be targeted and respect user craftsmanship.

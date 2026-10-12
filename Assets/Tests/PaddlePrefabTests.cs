@@ -49,12 +49,12 @@ namespace Arcade.Tests
             // 1. visuals
             var visuals = go.transform.Find("visuals");
             Assert.IsNotNull(visuals, "Paddle must have 'visuals' container child.");
-            var deck = visuals.Find("deck");
-            var chassis = visuals.Find("chassis");
-            var keel = visuals.Find("keel");
-            Assert.IsNotNull(deck, "visuals must contain 'deck' (paddle top).");
-            Assert.IsNotNull(chassis, "visuals must contain 'chassis' (paddle mid).");
-            Assert.IsNotNull(keel, "visuals must contain 'keel' (paddle bottom).");
+            var deck = visuals.Find("deck") ?? visuals.Find("Deck");
+            var chassis = visuals.Find("chassis") ?? visuals.Find("Chassis");
+            var keel = visuals.Find("keel") ?? visuals.Find("Keel");
+            Assert.IsNotNull(deck, "visuals must contain 'deck' or 'Deck' (paddle top).");
+            Assert.IsNotNull(chassis, "visuals must contain 'chassis' or 'Chassis' (paddle mid).");
+            Assert.IsNotNull(keel, "visuals must contain 'keel' or 'Keel' (paddle bottom).");
 
             Assert.IsNull(deck.GetComponent<Collider>(), "deck must not have collider.");
             Assert.IsNull(chassis.GetComponent<Collider>(), "chassis must not have collider.");
@@ -194,6 +194,94 @@ namespace Arcade.Tests
                 Assert.IsNotNull(paddleCtrl);
                 Assert.IsNotNull(paddleCtrl.DockPoint, "DockPoint must be wired.");
                 Assert.Greater(paddleCtrl.DockPoint.localPosition.y, 0.38f, "DockPoint must be positioned above top strike deck (Y = 0.38).");
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+            }
+        }
+
+        [Test]
+        public void PaddlePrefab_VisualsAndColliders_ScaleCorrectlyWithPowerups_WithoutDoubleScaling()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PaddlePrefabPath);
+            Assert.IsNotNull(prefab, "Prefab must exist.");
+
+            var instance = Object.Instantiate(prefab);
+            try
+            {
+                var paddleCtrl = instance.GetComponent<PaddleController>();
+                Assert.IsNotNull(paddleCtrl);
+
+                // Initialize paddle to base width 5.0
+                paddleCtrl.ResetWidth(5.0f);
+                Assert.AreEqual(5.0f, paddleCtrl.Width, 0.01f);
+                Assert.AreEqual(5.0f, instance.transform.localScale.x, 0.01f);
+
+                // BoxCollider world width must be 5.0f
+                var col = instance.GetComponent<BoxCollider>();
+                Assert.IsNotNull(col);
+                float colWorldWidth = col.size.x * instance.transform.lossyScale.x;
+                Assert.AreEqual(5.0f, colWorldWidth, 0.01f, "BoxCollider world width must match paddle width 5.0f.");
+
+                // Strike deck visual world width must be 5.0f (NOT 25.0f or 27.5f)
+                var deck = instance.transform.Find("visuals/deck") ?? instance.transform.Find("visuals/Deck");
+                Assert.IsNotNull(deck, "visuals/deck or visuals/Deck must exist.");
+                var deckMf = deck.GetComponent<MeshFilter>();
+                Assert.IsNotNull(deckMf, "deck must have MeshFilter.");
+                float deckMeshWidth = deckMf.sharedMesh.bounds.size.x;
+                float deckWorldWidth = deckMeshWidth * deck.lossyScale.x;
+                Assert.AreEqual(5.0f, deckWorldWidth, 0.05f, "Visual strike deck world width must match 5.0f without double scaling.");
+
+                // Expand width by +10% (Expander powerup)
+                paddleCtrl.ExpandWidth(0.10f);
+                float expectedExpandedWidth = 5.0f * 1.10f; // 5.50f
+                Assert.AreEqual(expectedExpandedWidth, paddleCtrl.Width, 0.01f);
+                colWorldWidth = col.size.x * instance.transform.lossyScale.x;
+                Assert.AreEqual(expectedExpandedWidth, colWorldWidth, 0.01f, "BoxCollider world width must expand with powerup.");
+                deckWorldWidth = deckMeshWidth * deck.lossyScale.x;
+                Assert.AreEqual(expectedExpandedWidth, deckWorldWidth, 0.05f, "Visual strike deck world width must expand with powerup without double scaling.");
+
+                // Shrink width by -18% (Shortener hazard)
+                paddleCtrl.ShrinkWidth(0.18f);
+                float expectedShrunkWidth = expectedExpandedWidth * (1.0f - 0.18f); // ~4.51f
+                Assert.AreEqual(expectedShrunkWidth, paddleCtrl.Width, 0.01f);
+                colWorldWidth = col.size.x * instance.transform.lossyScale.x;
+                Assert.AreEqual(expectedShrunkWidth, colWorldWidth, 0.01f, "BoxCollider world width must shrink with hazard.");
+                deckWorldWidth = deckMeshWidth * deck.lossyScale.x;
+                Assert.AreEqual(expectedShrunkWidth, deckWorldWidth, 0.05f, "Visual strike deck world width must shrink with hazard.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+            }
+        }
+
+        [Test]
+        public void PaddlePrefab_Level1Width5Point5_CalibratesAccurately()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PaddlePrefabPath);
+            Assert.IsNotNull(prefab, "Prefab must exist.");
+
+            var instance = Object.Instantiate(prefab);
+            try
+            {
+                var paddleCtrl = instance.GetComponent<PaddleController>();
+                Assert.IsNotNull(paddleCtrl);
+
+                // Level 1 starts with initialPaddleWidth = 5.5f
+                paddleCtrl.ResetWidth(5.5f);
+                Assert.AreEqual(5.5f, paddleCtrl.Width, 0.01f);
+                Assert.AreEqual(5.5f, instance.transform.localScale.x, 0.01f);
+
+                var col = instance.GetComponent<BoxCollider>();
+                float colWorldWidth = col.size.x * instance.transform.lossyScale.x;
+                Assert.AreEqual(5.5f, colWorldWidth, 0.01f);
+
+                var deck = instance.transform.Find("visuals/deck") ?? instance.transform.Find("visuals/Deck");
+                var deckMf = deck.GetComponent<MeshFilter>();
+                float deckWorldWidth = deckMf.sharedMesh.bounds.size.x * deck.lossyScale.x;
+                Assert.AreEqual(5.5f, deckWorldWidth, 0.05f, "Level 1 paddle must be exactly 5.5 units wide visually and physically, never 27.5u.");
             }
             finally
             {

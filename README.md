@@ -2,7 +2,7 @@
 
 [![Unity Version](https://img.shields.io/badge/Unity-6%20(6000.6.0f1)-black.svg?style=flat&logo=unity)](https://unity.com/)
 [![Render Pipeline](https://img.shields.io/badge/Render%20Pipeline-URP-blue.svg)](https://unity.com/srp/universal-render-pipeline)
-[![Automated Tests](https://img.shields.io/badge/Tests-270%2F270%20Passing%20(100%25)-brightgreen.svg)]()
+[![Automated Tests](https://img.shields.io/badge/Tests-272%2F272%20Passing%20(100%25)-brightgreen.svg)]()
 [![Platforms](https://img.shields.io/badge/Platforms-iOS%20(Swift)%20%7C%20WebGPU%20%7C%20PC-purple.svg)]()
 [![Git LFS](https://img.shields.io/badge/Git-LFS%20Enabled-orange.svg)](https://git-lfs.github.com/)
 [![AI Integration](https://img.shields.io/badge/AI%20Assistant-Google%20Antigravity-green.svg)]()
@@ -15,14 +15,14 @@ Acts as a production testbed for **Google Antigravity**, **Unity MCP (Model Cont
 
 ## 🎮 Highlights & Mechanics
 
-- **Inverted Stepped Pyramid Paddle**: 3-tier structure ($0.60$ total vertical profile) with strike deck ($W = 5.0$), mid chassis ($W = 3.6$), and keel thrusters ($W = 2.2$). Low profile and inward stepping eliminate side clipping.
+- **Inverted Stepped Pyramid Paddle & 3D Model Calibration**: 3-tier structure ($0.60$ total vertical profile) with strike deck ($W = 5.0$), mid chassis ($W = 3.6$), and keel thrusters ($W = 2.2$) powered by custom 3D model `SM_Paddle.fbx`. Child sockets feature $0.20\text{f}$ scale calibration to prevent double scaling under the parent's $5.5\text{u}$ horizontal profile and dynamic expander buffs.
 - **Dynamic Deflection & Kinetic Strikes**: Paddle velocity imparts tangential steer ($\pm 45^\circ$), allowing counter-swipes (reversal cuts). Moving paddle strikes ($|V_x| \ge 3.5\text{ u/s}$) trigger a $+8\%$ kinetic speed pop, high-pitch audio ($1.22\times$), and cyan spark bursts.
 - **Anti-Trap Trajectory Guards**: Mathematical vertical floor ($|v_y| \ge v \cdot \sin(20^\circ)$), consecutive wall steepening ($\ge 35^\circ$), vertical deadzone exclusion ($[85^\circ, 95^\circ]$), and $45^\circ$ top corner chamfers eliminate trajectory loops.
 - **Model A Tactile Brick Behaviors**:
   - 🔴 **Red**: Kinetic dampener ($-1.2\text{ u/s}$, floored at $14\text{ u/s}$).
   - 🟢 **Green**: Kinetic turbo ($+10\%$ speed impulse, capped at $22\text{ u/s}$).
   - 🔵 **Blue**: Optical scatter ($\pm 18^\circ$ to $\pm 28^\circ$ exit refraction).
-- **Tactile 3D Extruded Gradient UI**: Solid opaque obsidian navy cards (`rgb(18, 24, 40)`) with procedural vertical gradients (`TX_Grad_Card_Bg`, `TX_Grad_Ruby_Btn`, `TX_Grad_Emerald_Btn`, `TX_Grad_Titanium_Btn`), mechanical 7px extruded bottom shelf (`border-bottom-width: 7px;`), and tactile depression on click (`:active` shifts `translate: 0 5px; border-bottom-width: 2px; border-top-width: 4px;`).
+- **Tactile 3D Extruded Gradient UI & Radiant Glow**: Solid opaque obsidian navy cards (`rgb(18, 24, 40)`) with procedural vertical gradients (`TX_Grad_Card_Bg`, `TX_Grad_Ruby_Btn`, `TX_Grad_Emerald_Btn`, `TX_Grad_Titanium_Btn`), mechanical 7px extruded bottom shelf (`border-bottom-width: 7px;`), tactile depression on click (`:active` shifts `translate: 0 5px; border-bottom-width: 2px; border-top-width: 4px;`), and radiant neon HUD pod glows (`box-shadow`).
 - **Mobile Safe Area & Dynamic Island Adaptation**: `SafeAreaController.cs` calculates Yoga width-relative percentage insets (`CalculateYogaInsets`), preventing Dynamic Island and notch occlusion on iPhone 15/15 Pro in physical builds and Unity Device Simulator. `#safe-area-content` wraps top bar dashboard pods, while modals maintain full-bleed coverage.
 - **iOS System Gesture Deferral & Touch Ergonomics**: `PlayerSettings.iOS.deferSystemGesturesMode = All` configures iOS to require a deliberate double-swipe for Home bar navigation, preventing edge gesture drops. Input position clamps to $Y \ge 4\text{px}$ and a minimal, transparent touch guideline (`#touch-guideline`, `opacity: 0.16`, `pickingMode: Ignore`) sits comfortably above the iOS Home bar indicator.
 - **Onboarding Block Scale (+20% on Levels 1–3)**: Levels 1, 2, and 3 (`SO_Level_01`, `SO_Level_02`, `SO_Level_03`) feature enlarged blocks (`blockSize = 1.20f`) with adjusted horizontal spacing ($1.50\text{u}, 1.45\text{u}, 1.40\text{u}$) to maximize readability and touch targeting comfort while strictly preserving $> 1.0\text{u}$ clearance to arena walls ($X = \pm 10.25$).
@@ -81,11 +81,11 @@ The campaign features 15 ScriptableObject levels (`SO_Level_01` through `SO_Leve
 - **Gameplay Scene**: `Assets/Scenes/LV_BlockBreaker.unity` (Build Index 1)
 - **Modular Prefab Architecture**: 100% prefab-driven (`Assets/Prefabs/`), eliminating all runtime procedural primitives (`GameObject.CreatePrimitive`):
   - `Arena/`: `PF_Walls` (side/top walls, 45° chamfers, kill zone), `PF_Background` (cosmic gradient quad + `LevelBackgroundController`), `PF_ShieldWall` (decoupled physics, visual model, electric cyan particle barrier).
-  - `Paddle/`: `PF_Paddle` (3-tier stepped hierarchy, twin blaster cannons, laser railgun aperture, frost shell, hit sparks).
+  - `Paddle/`: `PF_Paddle` (custom 3D model `SM_Paddle.fbx` with deck, chassis, keel, calibrated $X=0.20\text{f}$ child sockets, twin blaster cannons, laser railgun aperture, frost shell, hit sparks).
   - `Balls/`: `PF_Ball_Standard` (decoupled visual sphere, TrailRenderer, and BallController).
   - `Blocks/`: `PF_Block_Base`, `PF_Block_Red`, `PF_Block_Green`, `PF_Block_Blue`, `PF_Block_Bomb`, `PF_Block_Glass` (4 modular child sockets: `brick`, `brick frost`, `brick special`, `brick vfx`).
   - `Powerups/`: `PF_Drop_Powerup` (cyan capsule), `PF_Drop_Hazard` (crimson diamond).
-- **UI Toolkit & Screen Harmonization**: Native Unity 6 `PanelRenderer` scaled for iPhone portrait reference resolution (`1170x2532`). Features 1:1 design parity across Main Menu and Pause Menu sub-screens, tactile 3D extruded push-button geometry with procedural gradients, custom animated checkmark mute toggles for SFX and Music (`68px × 68px`) with cyan/crimson audio feedback, and `SafeAreaController` handling mobile device insets.
+- **UI Toolkit & Screen Harmonization**: Native Unity 6 `PanelRenderer` scaled for iPhone portrait reference resolution (`1170x2532`). Features 1:1 design parity across Main Menu and Pause Menu sub-screens, tactile 3D extruded push-button geometry with procedural gradients, radiant neon pod glows, custom animated checkmark mute toggles for SFX and Music (`68px × 68px`) with cyan/crimson audio feedback, and `SafeAreaController` handling mobile device insets.
 - **Unity Localization Tables (`com.unity.localization` 1.5.13)**: Multi-language `StringTableCollection` under `Assets/Localization/Tables/` supporting English (`en`) and Turkish (`tr`). Localized strings can be modified dynamically via Unity Editor table windows without code changes, backed by an instant-access fallback dictionary.
 - **Rendering & VFX**: Zero-allocation `MaterialPropertyBlock` pooling under `_Pool_VFX` with frame-0 shader prewarming for stutter-free execution on Apple Metal, DX12, Vulkan, and WebGPU.
 - **Audio Engine**: `ArcadeAudioManager.cs` with custom SFX and automatic procedural synthesizer fallback.
@@ -94,7 +94,7 @@ The campaign features 15 ScriptableObject levels (`SO_Level_01` through `SO_Leve
 
 ## 🧪 Automated Testing
 
-The project includes **270 automated NUnit EditMode tests** covering physics deflection math, boundary clamps, powerup & hazard lifecycles, diamond falling geometries, shield wall mechanics, modular prefab hierarchies, anti-trap passthrough, UI menu parity, custom mute toggles, localization tables, touch ergonomics, and level scaling:
+The project includes **272 automated NUnit EditMode tests** covering physics deflection math, boundary clamps, powerup & hazard lifecycles, diamond falling geometries, shield wall mechanics, modular prefab hierarchies, paddle 3D model socket calibration, anti-trap passthrough, UI menu parity, custom mute toggles, localization tables, touch ergonomics, and level scaling:
 
 ```bash
 unity cmd run_tests --mode editor

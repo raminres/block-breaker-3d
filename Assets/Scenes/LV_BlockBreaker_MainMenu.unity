@@ -20,19 +20,19 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
-  m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
-  m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
+  m_AmbientSkyColor: {r: 0.04, g: 0.06, b: 0.12, a: 1}
+  m_AmbientEquatorColor: {r: 0.02, g: 0.03, b: 0.06, a: 1}
+  m_AmbientGroundColor: {r: 0.005, g: 0.005, b: 0.01, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 0
+  m_AmbientMode: 1
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
   m_HaloTexture: {fileID: 0}
   m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
-  m_DefaultReflectionMode: 0
+  m_DefaultReflectionMode: 1
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
   m_ReflectionIntensity: 1
@@ -155,6 +155,7 @@ MonoBehaviour:
   extraBottomPercent: 2.5
   extraSidePercent: 2
   simulateInEditor: 1
+  forceEditorSimulation: 0
   simulatedTopInsetPixels: 160
   simulatedBottomInsetPixels: 80
   simulatedSideInsetPixels: 16
@@ -186,6 +187,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f7d398200b0ad1648ad39ac2921e3637, type: 2}
   - {fileID: 11400000, guid: 3dcd60ff99156594ca00e421fc58cbb3, type: 2}
   - {fileID: 11400000, guid: 9f193029f0926044caf5e4f530ecdb91, type: 2}
+  volumeUpSprite: {fileID: 0}
+  volumeMuteSprite: {fileID: 0}
 --- !u!1931382934 &207943556
 PanelRenderer:
   m_ObjectHideFlags: 0
@@ -291,6 +294,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Arcade.Gameplay::Arcade.Audio.ArcadeAudioManager
   sfxVolume: 0.8
   isMuted: 0
+  musicVolume: 0.7
+  isMusicMuted: 0
   clipPop: {fileID: 8300000, guid: 72579e2a14739d64383c79e6c4f9045b, type: 3}
   clipBreak: {fileID: 8300000, guid: 28f9da65d6050544381fd13055535cb7, type: 3}
   clipPowerup: {fileID: 8300000, guid: b28e8ebbc8f9a7742905b4feb2e680f0, type: 3}
@@ -539,6 +544,7 @@ GameObject:
   - component: {fileID: 1935455853}
   - component: {fileID: 1935455852}
   - component: {fileID: 1935455851}
+  - component: {fileID: 1935455855}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -582,7 +588,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.047, g: 0.051, b: 0.086, a: 1}
+  m_BackGroundColor: {r: 0.01, g: 0.015, b: 0.035, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -632,12 +638,56 @@ Transform:
   m_GameObject: {fileID: 1935455850}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 8.5, z: -78.56803}
+  m_LocalPosition: {x: 0, y: 8.5, z: -78.54262}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1935455855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1935455850}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 1
+  m_RequiresOpaqueTextureOption: 1
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 1
+  m_Antialiasing: 2
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
