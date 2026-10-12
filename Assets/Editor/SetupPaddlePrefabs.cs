@@ -55,7 +55,8 @@ namespace Arcade.Editor
             var paddleCtrl = rootGo.AddComponent<PaddleController>();
             var laserCtrl = rootGo.AddComponent<PaddleLaserController>();
 
-            Object[] modelAssets = File.Exists(MODEL_PADDLE_PATH) ? AssetDatabase.LoadAllAssetsAtPath(MODEL_PADDLE_PATH) : null;
+            var modelGo = AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PADDLE_PATH);
+            Object[] modelAssets = modelGo != null ? AssetDatabase.LoadAllAssetsAtPath(MODEL_PADDLE_PATH) : null;
             Mesh meshDeck = FindMesh(modelAssets, "Deck");
             Mesh meshChassis = FindMesh(modelAssets, "Chassis");
             Mesh meshKeel = FindMesh(modelAssets, "Keel");
