@@ -128,18 +128,57 @@ namespace Arcade.BlockBreaker
 
             if (stepTop == null)
             {
-                stepTop = visualsRoot != null ? visualsRoot.transform.Find("deck") : null;
+                stepTop = visualsRoot != null ? (visualsRoot.transform.Find("deck") ?? visualsRoot.transform.Find("Deck")) : null;
                 if (stepTop == null) stepTop = transform.Find("Step_Top");
             }
             if (stepMid == null)
             {
-                stepMid = visualsRoot != null ? visualsRoot.transform.Find("chassis") : null;
+                stepMid = visualsRoot != null ? (visualsRoot.transform.Find("chassis") ?? visualsRoot.transform.Find("Chassis")) : null;
                 if (stepMid == null) stepMid = transform.Find("Step_Mid");
             }
             if (stepBottom == null)
             {
-                stepBottom = visualsRoot != null ? visualsRoot.transform.Find("keel") : null;
+                stepBottom = visualsRoot != null ? (visualsRoot.transform.Find("keel") ?? visualsRoot.transform.Find("Keel")) : null;
                 if (stepBottom == null) stepBottom = transform.Find("Step_Bottom");
+            }
+
+            // If the visual model mesh was authored at a full base width of ~5.0u (instead of a normalized 1.0u cube),
+            // ensure the visuals container scale is calibrated to 0.2f (1/5) so that paddle root scale (paddleWidth)
+            // matches world width 1:1 without double-scaling.
+            if (stepTop != null)
+            {
+                var filter = stepTop.GetComponent<MeshFilter>();
+                if (filter != null && filter.sharedMesh != null && filter.sharedMesh.bounds.size.x >= 4.0f)
+                {
+                    if (visualsRoot != null && Mathf.Approximately(visualsRoot.transform.localScale.x, 1.0f))
+                    {
+                        Vector3 vs = visualsRoot.transform.localScale;
+                        vs.x = 0.2f;
+                        visualsRoot.transform.localScale = vs;
+                    }
+                    if (frostRoot != null && Mathf.Approximately(frostRoot.transform.localScale.x, 1.0f))
+                    {
+                        Vector3 fs = frostRoot.transform.localScale;
+                        fs.x = 0.2f;
+                        frostRoot.transform.localScale = fs;
+                    }
+                    if (gunsRoot != null && Mathf.Approximately(gunsRoot.transform.localScale.x, 1.0f))
+                    {
+                        Vector3 gs = gunsRoot.transform.localScale;
+                        gs.x = 0.2f;
+                        gunsRoot.transform.localScale = gs;
+                    }
+                    if (laserGunRoot != null)
+                    {
+                        var ap = laserGunRoot.transform.Find("Aperture");
+                        if (ap != null && Mathf.Approximately(ap.localScale.x, 1.0f))
+                        {
+                            Vector3 aps = ap.localScale;
+                            aps.x = 0.2f;
+                            ap.localScale = aps;
+                        }
+                    }
+                }
             }
 
             // Remove legacy root mesh renderer if single-cube legacy model is attached

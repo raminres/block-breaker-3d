@@ -155,6 +155,7 @@ MonoBehaviour:
   extraBottomPercent: 2.5
   extraSidePercent: 2
   simulateInEditor: 1
+  forceEditorSimulation: 0
   simulatedTopInsetPixels: 160
   simulatedBottomInsetPixels: 80
   simulatedSideInsetPixels: 16
@@ -186,6 +187,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f7d398200b0ad1648ad39ac2921e3637, type: 2}
   - {fileID: 11400000, guid: 3dcd60ff99156594ca00e421fc58cbb3, type: 2}
   - {fileID: 11400000, guid: 9f193029f0926044caf5e4f530ecdb91, type: 2}
+  volumeUpSprite: {fileID: 0}
+  volumeMuteSprite: {fileID: 0}
 --- !u!1931382934 &207943556
 PanelRenderer:
   m_ObjectHideFlags: 0
@@ -291,6 +294,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Arcade.Gameplay::Arcade.Audio.ArcadeAudioManager
   sfxVolume: 0.8
   isMuted: 0
+  musicVolume: 0.7
+  isMusicMuted: 0
   clipPop: {fileID: 8300000, guid: 72579e2a14739d64383c79e6c4f9045b, type: 3}
   clipBreak: {fileID: 8300000, guid: 28f9da65d6050544381fd13055535cb7, type: 3}
   clipPowerup: {fileID: 8300000, guid: b28e8ebbc8f9a7742905b4feb2e680f0, type: 3}
@@ -632,7 +637,7 @@ Transform:
   m_GameObject: {fileID: 1935455850}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 8.5, z: -78.56803}
+  m_LocalPosition: {x: 0, y: 8.5, z: -78.54262}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
