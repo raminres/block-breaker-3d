@@ -1,6 +1,6 @@
 # BlockBreaker: Game Design Document (GDD)
 
-**Version**: 4.3  
+**Version**: 4.4  
 **Project**: BlockBreaker (`com.RaminRasulzade.BlockBreaker`)  
 **Engine**: Unity 6 (`6000.6.0f1`), Universal Render Pipeline (`URP 17.6.0`)  
 
@@ -130,15 +130,17 @@ Dense layouts (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with side b
 
 ## 6. Technical Architecture & UI
 
-- **Arena & Camera**: Perspective camera at $38^\circ$ FOV with dynamic distance scaling (`ResponsiveCameraController`) for 16:9, 9:16, and 9:19.5 visibility. Arena walls: Top $Y = 24.25$, Sides $X = \pm 10.25$, Kill Zone $Y = -9.0$.
-- **Modular Prefab Architecture**: 100% prefab-driven (`Assets/Prefabs/` for `Arena/`, `Paddle/`, `Balls/`, `Blocks/`, `Powerups/`), eliminating runtime procedural primitives (`GameObject.CreatePrimitive`).
+- **Arena & Camera**: Perspective camera at $38^\circ$ FOV with dynamic distance scaling (`ResponsiveCameraController`) for 16:9, 9:16, and 9:19.5 visibility. Arena walls: Top $Y = 24.25$, Sides $X = \pm 10.25$, Kill Zone $Y = -9.0$. `Main Camera` incorporates `UniversalAdditionalCameraData` (`renderPostProcessing = true`) for URP Volume Profiles and Bloom, while `RenderSettings.skybox = null` isolates reflections to the dark cosmic arena.
+- **Modular Prefab Architecture**: 100% prefab-driven (`Assets/Prefabs/` for `Arena/`, `Paddle/`, `Balls/`, `Blocks/`, `Powerups/`), eliminating runtime procedural primitives (`GameObject.CreatePrimitive`):
+  - `Paddle/`: Custom 3D model `SM_Paddle.fbx` with `Deck`, `Chassis`, `Keel` in child sockets calibrated to local scale $X=0.20\text{f}$ to prevent double-scaling under the $5.5\text{u}$ parent root.
 - **UI Toolkit & Screen Harmonization**:
   - Unity 6 `PanelRenderer` HUD and Main Menu scaled to mobile portrait resolution (`1170x2532`).
   - **Mobile Safe Area & Dynamic Island Adaptation**: `SafeAreaController.cs` calculates Yoga width-relative percentage insets (`CalculateYogaInsets`), preventing Dynamic Island and notch occlusion on iPhone 15/15 Pro in physical builds and Unity Device Simulator. `#safe-area-content` wraps top bar dashboard pods and powerup rows, while modals maintain full-bleed coverage.
   - **Touch Ergonomics & System Gesture Deferral**: `PlayerSettings.iOS.deferSystemGesturesMode = UnityEngine.iOS.SystemGestureDeferMode.All` configures iOS to require a deliberate double-swipe for Home bar navigation, preventing edge gesture drops. Input position clamps to $Y \ge 4\text{px}$ and a minimal, transparent touch guideline (`#touch-guideline`, `opacity: 0.16`, `pickingMode: Ignore`) sits comfortably above the iOS Home bar indicator.
-  - **Tactile 3D Extruded Gradient Design System**:
-    - Discarded transparent/liquid glass in favor of solid opaque obsidian navy backgrounds (`rgb(18, 24, 40)`) with 4 procedural vertical gradient sprites in `Assets/UI/Textures/Gradients/` (`TX_Grad_Card_Bg`, `TX_Grad_Ruby_Btn`, `TX_Grad_Emerald_Btn`, `TX_Grad_Titanium_Btn`).
+  - **Tactile 3D Extruded Gradient Design System & Radiant Glow**:
+    - Solid opaque obsidian navy backgrounds (`rgb(18, 24, 40)`) with 4 procedural vertical gradient sprites in `Assets/UI/Textures/Gradients/` (`TX_Grad_Card_Bg`, `TX_Grad_Ruby_Btn`, `TX_Grad_Emerald_Btn`, `TX_Grad_Titanium_Btn`).
     - Mechanical 3D extruded button geometry: resting 7px bottom shelf (`border-bottom-width: 7px;`), 2px top/side bevels, and active physical depression (`translate: 0 5px; border-bottom-width: 2px; border-top-width: 4px;`).
+    - Radiant neon HUD pod glows (`box-shadow`), neon cyan/magenta dashboard contrast, and radiant `TAP TO LAUNCH` pill banner.
     - Propagated across all modal cards (`.modal-card`, `.level-modal-card`, `.scorecard-card`) and button styles (`.arcade-btn`, `.arcade-button`, `.btn-primary`, `.btn-secondary`, `.btn-default`, `.warning-btn`) across both Main Menu and Gameplay HUD.
   - **Menu Parity**: In-Game Pause Menu sub-screens (How to Play, Credits, Level Select, Options) match Main Menu in layout structure, fonts, button styling, and responsive proportions.
   - **Custom Animated Mute Toggles**: Both Main Menu and In-Game Pause Options panels feature custom checkmark toggles for SFX and Music sliders (`68px × 68px`). Toggles dynamically switch between speaker/mute icons with glowing cyan (`#21d4fd`) and crimson (`#ff3b56`) tints.
@@ -149,4 +151,4 @@ Dense layouts (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with side b
   - Dynamic runtime lookup through `LocalizationManager.cs` with synchronous fallback dictionary for offline/unit test resilience.
 - **Audio Engine**: `ArcadeAudioManager.cs` with custom clips (`AU_`) and procedural synthesizer fallback.
 - **Controls**: Desktop (mouse 1:1 or A/D / Arrow keys, Space launch), Mobile (touch drag paddle, tap launch).
-- **Tests**: 270 EditMode unit and integration tests via `unity cmd run_tests --mode editor`.
+- **Tests**: 272 EditMode unit and integration tests via `unity cmd run_tests --mode editor`.

@@ -193,3 +193,38 @@ In Unity 6 / Cinemachine 3.x:
    - Trails automatically clear and disable emission when docked atop the paddle in `ReadyToLaunch`, paused, or reset.
    - Emission resumes seamlessly upon launch and game unpause.
 
+---
+
+## 11. 3D Model Scale Compensation in Modular Prefabs
+1. **The Double-Scaling Problem**:
+   - When a parent prefab GameObject has a scaled root (e.g. `PF_Paddle` scaled horizontally to $5.5\text{u}$ to define the paddle collision bounds and enable dynamic Expander powerup growth), dropping a true-scale 3D mesh (`SM_Paddle.fbx`) into a child GameObject causes it to be stretched by $5.5\times$.
+2. **Child Socket Scale Calibration Pattern**:
+   - Calibrate the intermediate child sockets (`visuals`, `frost`, `guns`, `Aperture`) with a reciprocal local scale: `new Vector3(0.20f, 1.0f, 1.0f)`.
+   - Child 3D models (`Deck`, `Chassis`, `Keel`) reside under `visuals` at local scale $(1, 1, 1)$ and render at true 1:1 proportions without distortion.
+   - The root object continues to manage `BoxCollider` width, ball docking, and Expander buffs seamlessly.
+
+---
+
+## 12. Unity 6 URP Camera Post-Processing & Reflection Isolation
+1. **UniversalAdditionalCameraData Requirement**:
+   - In Unity 6 URP, adding a `Volume` with Bloom does not automatically render in Game view during Play Mode unless the Camera GameObject has a `UniversalAdditionalCameraData` component.
+   - Ensure `cameraData.renderPostProcessing = true` and `cameraData.volumeLayerMask = ~0`.
+2. **Dark Void / Cosmic Arena Reflection Isolation**:
+   - Default Unity scenes use the Procedural Skybox as default reflection probe source, which paints a bright blue/grey horizon line onto metallic/glossy materials (such as the ball and arena walls).
+   - Fix:
+     ```csharp
+     RenderSettings.skybox = null;
+     RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
+     RenderSettings.customReflectionTexture = null;
+     ```
+   - This ensures metallic surfaces reflect the dark cosmic void with zero distracting default skybox artifacts.
+
+---
+
+## 13. Preservation of User-Crafted Scenes & Non-Destructive Workflow
+1. **User Authority Over Scene & Materials**:
+   - The user hand-tunes lighting, camera positions, materials (`MI_*`), post-processing volume profiles (`SampleSceneProfile.asset`), and gradient textures (`TX_Background_Gradient_*.png`) directly in the Unity Editor.
+2. **Never Run Destructive Scene Rebuilds**:
+   - Scene setup scripts (e.g. `SetupBlockBreakerScenes.cs` / `Tools > Arcade > Setup All Block Breaker Scenes`) are bootstrapping tools. They must **NEVER** be run across sessions once the user has customized the scene.
+   - Any automation work must be non-destructive, targeted at prefabs or scripts, and validated through EditMode unit tests.
+
