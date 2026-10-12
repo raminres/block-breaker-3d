@@ -355,18 +355,18 @@ namespace Arcade.Editor
             var keyLightGo = new GameObject("Key Light");
             var keyLight = keyLightGo.AddComponent<Light>();
             keyLight.type = LightType.Directional;
-            keyLight.color = new Color(1.0f, 0.92f, 0.78f, 1f);
-            keyLight.intensity = 1.6f;
+            keyLight.color = new Color(0.95f, 0.98f, 1.0f, 1f);
+            keyLight.intensity = 1.8f;
             keyLight.shadows = LightShadows.Soft;
-            keyLightGo.transform.rotation = Quaternion.Euler(45f, -30f, 0f);
+            keyLightGo.transform.rotation = Quaternion.Euler(50f, 340f, 0f);
 
             var fillLightGo = new GameObject("Fill Light");
             var fillLight = fillLightGo.AddComponent<Light>();
             fillLight.type = LightType.Directional;
-            fillLight.color = new Color(0.35f, 0.65f, 1.0f, 1f);
-            fillLight.intensity = 0.8f;
+            fillLight.color = new Color(0.15f, 0.75f, 1.0f, 1f);
+            fillLight.intensity = 0.75f;
             fillLight.shadows = LightShadows.None;
-            fillLightGo.transform.rotation = Quaternion.Euler(30f, 140f, 0f);
+            fillLightGo.transform.rotation = Quaternion.Euler(30f, 160f, 0f);
 
             // 3. Post-Processing Volume with Bloom
             var volGo = new GameObject("Global Volume");
@@ -378,9 +378,9 @@ namespace Arcade.Editor
                 vol.sharedProfile = profile;
                 if (profile.TryGet<Bloom>(out var bloom))
                 {
-                    bloom.intensity.value = 1.3f;
-                    bloom.threshold.value = 0.85f;
-                    bloom.scatter.value = 0.7f;
+                    bloom.intensity.value = 2.4f;
+                    bloom.threshold.value = 0.80f;
+                    bloom.scatter.value = 0.72f;
                 }
             }
 

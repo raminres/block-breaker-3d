@@ -34,13 +34,13 @@
 }
 
 .title-highlight {
-    color: rgb(255, 59, 86);
-    text-shadow: 0 0 15px rgba(255, 59, 86, 0.6);
+    color: rgb(255, 42, 112);
+    text-shadow: 0 0 24px rgba(255, 42, 112, 0.95), 0 0 8px rgba(255, 255, 255, 0.85);
 }
 
 .title-main {
-    color: rgb(33, 212, 253);
-    text-shadow: 0 0 15px rgba(33, 212, 253, 0.6);
+    color: rgb(0, 240, 255);
+    text-shadow: 0 0 24px rgba(0, 240, 255, 0.95), 0 0 8px rgba(255, 255, 255, 0.85);
     margin-top: -10px;
 }
 
@@ -55,7 +55,7 @@
 
 .menu-card {
     width: 840px;
-    background-color: rgb(18, 24, 40);
+    background-color: rgba(10, 15, 30, 0.88);
     background-image: url("project://database/Assets/UI/Textures/Gradients/TX_Grad_Card_Bg.png");
     -unity-background-scale-mode: stretch-to-fill;
     border-radius: 32px;
@@ -63,15 +63,15 @@
     border-top-right-radius: 32px;
     border-bottom-right-radius: 32px;
     border-bottom-left-radius: 32px;
-    border-top-width: 3px;
+    border-top-width: 2px;
     border-left-width: 2px;
     border-right-width: 2px;
-    border-bottom-width: 6px;
-    border-top-color: rgb(75, 95, 140);
-    border-left-color: rgb(40, 52, 80);
-    border-right-color: rgb(40, 52, 80);
-    border-bottom-color: rgb(12, 16, 26);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 30px rgba(33, 212, 253, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.18);
+    border-bottom-width: 5px;
+    border-top-color: rgb(0, 240, 255);
+    border-left-color: rgba(0, 240, 255, 0.6);
+    border-right-color: rgba(0, 240, 255, 0.6);
+    border-bottom-color: rgba(0, 180, 220, 0.8);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(0, 240, 255, 0.45);
     padding: 34px 28px;
     align-items: stretch;
 }
