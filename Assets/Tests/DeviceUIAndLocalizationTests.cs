@@ -6,6 +6,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
 using UnityEngine.Localization.Tables;
 using UnityEngine.UIElements;
 using UnityEditor.Localization;
@@ -19,6 +20,38 @@ namespace Arcade.Tests
         public void Teardown()
         {
             LocalizationManager.SetLanguage(GameLanguage.English);
+        }
+
+        [Test]
+        public void Test_LocalizationSettings_RuntimeAPI()
+        {
+            var initOp = LocalizationSettings.InitializationOperation;
+            if (!initOp.IsDone)
+            {
+                initOp.WaitForCompletion();
+            }
+
+            Assert.IsNotNull(LocalizationSettings.StringDatabase, "StringDatabase must not be null");
+            Assert.IsNotNull(LocalizationSettings.AvailableLocales, "AvailableLocales must not be null");
+            
+            var enLocale = LocalizationSettings.AvailableLocales.GetLocale("en");
+            var trLocale = LocalizationSettings.AvailableLocales.GetLocale("tr");
+            Assert.IsNotNull(enLocale, "en locale must be found in AvailableLocales");
+            Assert.IsNotNull(trLocale, "tr locale must be found in AvailableLocales");
+
+            var tableEn = LocalizationSettings.StringDatabase.GetTable("ArcadeTable", enLocale);
+            Assert.IsNotNull(tableEn, "GetTable('ArcadeTable', enLocale) must not be null");
+            Assert.AreEqual("OPTIONS", tableEn.GetEntry("menu_options")?.Value);
+
+            var tableTr = LocalizationSettings.StringDatabase.GetTable("ArcadeTable", trLocale);
+            Assert.IsNotNull(tableTr, "GetTable('ArcadeTable', trLocale) must not be null");
+            Assert.AreEqual("AYARLAR", tableTr.GetEntry("menu_options")?.Value);
+
+            string strEn = LocalizationSettings.StringDatabase.GetLocalizedString("ArcadeTable", "menu_options", enLocale);
+            Assert.AreEqual("OPTIONS", strEn);
+
+            string strTr = LocalizationSettings.StringDatabase.GetLocalizedString("ArcadeTable", "menu_options", trLocale);
+            Assert.AreEqual("AYARLAR", strTr);
         }
 
         [Test]
@@ -107,6 +140,100 @@ namespace Arcade.Tests
             finally
             {
                 trEntry.Value = originalValue;
+            }
+        }
+
+        [Test]
+        public void LocalizationManager_RuntimeStringDatabase_IsAuthoritativeSource()
+        {
+            var initOp = LocalizationSettings.InitializationOperation;
+            if (!initOp.IsDone)
+            {
+                initOp.WaitForCompletion();
+            }
+
+            Assert.IsNotNull(LocalizationSettings.StringDatabase, "LocalizationSettings.StringDatabase must be available at runtime.");
+            
+            // Set language to English
+            LocalizationManager.SetLanguage(GameLanguage.English);
+            Assert.AreEqual("en", LocalizationSettings.SelectedLocale.Identifier.Code, "SelectedLocale must synchronize to 'en'.");
+
+            var enTable = LocalizationManager.EnglishTable;
+            Assert.IsNotNull(enTable, "English StringTable must be loaded from StringDatabase.");
+
+            var entry = enTable.GetEntry("menu_start_new");
+            Assert.IsNotNull(entry);
+            string originalValue = entry.Value;
+
+            try
+            {
+                // Temporarily alter the table entry to a value NOT in FallbackStrings
+                entry.Value = "START RUNTIME ADVENTURE";
+                string resolved = LocalizationManager.Get("menu_start_new");
+                Assert.AreEqual("START RUNTIME ADVENTURE", resolved,
+                    "LocalizationManager.Get must read directly from the StringTable rather than FallbackStrings!");
+            }
+            finally
+            {
+                entry.Value = originalValue;
+            }
+        }
+
+        [Test]
+        public void LocalizationManager_Synchronizes_SelectedLocale_BothWays()
+        {
+            var initOp = LocalizationSettings.InitializationOperation;
+            if (!initOp.IsDone)
+            {
+                initOp.WaitForCompletion();
+            }
+
+            // 1. Manager -> Settings.SelectedLocale
+            LocalizationManager.SetLanguage(GameLanguage.Turkish);
+            Assert.AreEqual("tr", LocalizationSettings.SelectedLocale.Identifier.Code,
+                "Setting language to Turkish in manager must update LocalizationSettings.SelectedLocale to 'tr'.");
+
+            LocalizationManager.SetLanguage(GameLanguage.English);
+            Assert.AreEqual("en", LocalizationSettings.SelectedLocale.Identifier.Code,
+                "Setting language to English in manager must update LocalizationSettings.SelectedLocale to 'en'.");
+
+            // 2. Settings.SelectedLocale -> Manager
+            bool eventFired = false;
+            System.Action handler = () => eventFired = true;
+            LocalizationManager.OnLanguageChanged += handler;
+
+            var trLocale = LocalizationSettings.AvailableLocales.GetLocale("tr");
+            Assert.IsNotNull(trLocale);
+            LocalizationSettings.SelectedLocale = trLocale;
+
+            LocalizationManager.OnLanguageChanged -= handler;
+
+            Assert.IsTrue(eventFired, "External change to SelectedLocale must fire LocalizationManager.OnLanguageChanged.");
+            Assert.AreEqual(GameLanguage.Turkish, LocalizationManager.CurrentLanguage,
+                "External change to SelectedLocale must synchronize LocalizationManager.CurrentLanguage.");
+        }
+
+        [Test]
+        public void LocalizationManager_RetrievesKeys_NotFoundInFallbackDictionary()
+        {
+            var enTable = LocalizationManager.EnglishTable;
+            Assert.IsNotNull(enTable);
+
+            string customKey = "test_custom_unique_key_42";
+            string customVal = "Custom Table Value 42";
+
+            enTable.AddEntry(customKey, customVal);
+
+            try
+            {
+                LocalizationManager.SetLanguage(GameLanguage.English);
+                string retrieved = LocalizationManager.Get(customKey);
+                Assert.AreEqual(customVal, retrieved,
+                    "LocalizationManager.Get must retrieve keys created directly in the StringTable even if not present in any script fallback dictionary.");
+            }
+            finally
+            {
+                enTable.RemoveEntry(customKey);
             }
         }
 

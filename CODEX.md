@@ -11,8 +11,8 @@ Welcome to the **BlockBreaker** codebase. This file is your operational briefing
 - **Render Pipeline**: Universal Render Pipeline (`URP 17.6.0`)
 - **Git Branch**: `feature/3d-models-and-scale-fixes`
 - **Git Working Tree**: Clean, all changes committed and pushed
-- **Latest Commit**: `08eebfa`
-- **Automated Tests**: **272 / 272 EditMode tests passing** (100% pass rate)
+- **Latest Commit**: `7ce633f`
+- **Automated Tests**: **276 / 276 EditMode tests passing** (100% pass rate)
 - **Primary Scenes**:
   1. `Assets/Scenes/LV_BlockBreaker_MainMenu.unity` (Build Index 0, Start Scene)
   2. `Assets/Scenes/LV_BlockBreaker.unity` (Build Index 1, Primary Gameplay Arena)
@@ -72,7 +72,7 @@ git status
 | **Game Flow & Scoring** | [ArcadeGameManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/Core/ArcadeGameManager.cs) | Scene Coordinator GameObject | Lives (3 start, max 5), volley combo multipliers ($1\times \to 5\times$), clutch 12s countdown, railgun hyper-beam clear, victory freeze. |
 | **Responsive Camera** | [ResponsiveCameraController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/Core/ResponsiveCameraController.cs) | `Main Camera` | Fits $23 \times 32.5$ playfield across 16:9, 9:16, 19.5:9 aspect ratios. URP post-processing host. |
 | **UI HUD & Menus** | [BlockBreakerHUD.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/UI/BlockBreakerHUD.cs)<br>[MainMenuUIManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/UI/MainMenuUIManager.cs)<br>[SafeAreaController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/UI/SafeAreaController.cs) | `Assets/UI/BlockBreakerHUD.uxml`<br>`Assets/UI/MainMenuUI.uxml` | 3D extruded gradient buttons, radiant pod glows, animated mute toggles, Dynamic Island / notch safe area insets, iOS gesture deferral. |
-| **Localization** | [LocalizationManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/Core/LocalizationManager.cs) | `Assets/Localization/Tables/ArcadeTable.asset` | Unity Localization Tables (`com.unity.localization`), English (`en`) and Turkish (`tr`). |
+| **Localization** | [LocalizationManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/Core/LocalizationManager.cs) | `Assets/Localization/Tables/ArcadeTable.asset` | Unity Localization Tables (`com.unity.localization`), runtime `StringDatabase` & `StringTable` authoritative queries, two-way `SelectedLocale` sync. |
 | **Audio Engine** | [ArcadeAudioManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/Audio/ArcadeAudioManager.cs) | `AudioManager` GameObject | Plays `AU_*` audio clips with procedural fallback synthesis. |
 
 ---

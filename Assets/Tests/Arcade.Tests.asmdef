@@ -5,6 +5,8 @@
         "Arcade.Gameplay",
         "Unity.Localization",
         "Unity.Localization.Editor",
+        "Unity.ResourceManager",
+        "Unity.Addressables",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

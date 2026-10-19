@@ -127,14 +127,52 @@ namespace Arcade.Core
             { "guide_p4", ("• Expander: Widens paddle.\n• Multipliers: 2X-5X bonus points.\n• Shield: Defensive kinetic barrier.\n• Multi-Ball: 3 balls active!\n• Laser Blaster: Twin cannons pierce brick rows!\n• Bombs: Radial detonation explodes neighbors!", "• Genişletici: Raketi büyütür.\n• Çarpanlar: 2X-5X bonus puan.\n• Kalkan: Koruyucu kinetik bariyer.\n• Çoklu Top: 3 top aynı anda sahada!\n• Lazer: Blok sıralarını delen ikiz toplar!\n• Bomba: Etrafındaki komşu blokları patlatır!") }
         };
 
+        public const string TableCollectionName = "ArcadeTable";
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void RuntimeAutoInit()
+        {
+            EnsureInitialized();
+        }
+
         public static void LoadTables()
         {
+            try
+            {
+                var initOp = LocalizationSettings.InitializationOperation;
+                if (initOp.IsValid() && !initOp.IsDone)
+                {
+                    initOp.WaitForCompletion();
+                }
+
+                if (LocalizationSettings.AvailableLocales != null && LocalizationSettings.StringDatabase != null)
+                {
+                    var enLocale = LocalizationSettings.AvailableLocales.GetLocale("en");
+                    var trLocale = LocalizationSettings.AvailableLocales.GetLocale("tr");
+
+                    if (enLocale != null)
+                    {
+                        enTable = LocalizationSettings.StringDatabase.GetTable(TableCollectionName, enLocale);
+                    }
+
+                    if (trLocale != null)
+                    {
+                        trTable = LocalizationSettings.StringDatabase.GetTable(TableCollectionName, trLocale);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LocalizationManager] Runtime StringDatabase table load: {ex.Message}");
+            }
+
 #if UNITY_EDITOR
             if (enTable == null)
                 enTable = UnityEditor.AssetDatabase.LoadAssetAtPath<StringTable>("Assets/Localization/Tables/ArcadeTable_en.asset");
             if (trTable == null)
                 trTable = UnityEditor.AssetDatabase.LoadAssetAtPath<StringTable>("Assets/Localization/Tables/ArcadeTable_tr.asset");
 #endif
+
             tablesLoaded = enTable != null && trTable != null;
         }
 
@@ -153,6 +191,7 @@ namespace Arcade.Core
             }
 
             if (isInitialized) return;
+
             string savedLang = PlayerPrefs.GetString(PrefKey, "English");
             if (Enum.TryParse<GameLanguage>(savedLang, true, out var parsed))
             {
@@ -164,34 +203,80 @@ namespace Arcade.Core
                     ? GameLanguage.Turkish 
                     : GameLanguage.English;
             }
+
+            UpdateSelectedLocale(currentLanguage);
+
+            LocalizationSettings.SelectedLocaleChanged -= OnSelectedLocaleChanged;
+            LocalizationSettings.SelectedLocaleChanged += OnSelectedLocaleChanged;
+
             isInitialized = true;
+        }
+
+        private static void OnSelectedLocaleChanged(Locale locale)
+        {
+            if (locale == null) return;
+            GameLanguage newLang = locale.Identifier.Code.StartsWith("tr", StringComparison.OrdinalIgnoreCase) 
+                ? GameLanguage.Turkish 
+                : GameLanguage.English;
+
+            if (currentLanguage != newLang)
+            {
+                currentLanguage = newLang;
+                PlayerPrefs.SetString(PrefKey, newLang.ToString());
+                PlayerPrefs.Save();
+                OnLanguageChanged?.Invoke();
+            }
         }
 
         public static void SetLanguage(GameLanguage language)
         {
             EnsureInitialized();
-            if (currentLanguage == language) return;
+            if (currentLanguage == language && isInitialized) return;
             currentLanguage = language;
             PlayerPrefs.SetString(PrefKey, language.ToString());
             PlayerPrefs.Save();
 
-#if UNITY_EDITOR
-            try
-            {
-                string localePath = language == GameLanguage.Turkish ? "Assets/Localization/Locales/tr.asset" : "Assets/Localization/Locales/en.asset";
-                var locale = UnityEditor.AssetDatabase.LoadAssetAtPath<Locale>(localePath);
-                if (locale != null) LocalizationSettings.SelectedLocale = locale;
-            }
-            catch { }
-#endif
+            UpdateSelectedLocale(language);
 
             OnLanguageChanged?.Invoke();
+        }
+
+        private static void UpdateSelectedLocale(GameLanguage language)
+        {
+            try
+            {
+                string code = language == GameLanguage.Turkish ? "tr" : "en";
+                Locale targetLocale = null;
+
+                if (LocalizationSettings.AvailableLocales != null)
+                {
+                    targetLocale = LocalizationSettings.AvailableLocales.GetLocale(code);
+                }
+
+#if UNITY_EDITOR
+                if (targetLocale == null)
+                {
+                    string localePath = language == GameLanguage.Turkish ? "Assets/Localization/Locales/tr.asset" : "Assets/Localization/Locales/en.asset";
+                    targetLocale = UnityEditor.AssetDatabase.LoadAssetAtPath<Locale>(localePath);
+                }
+#endif
+
+                if (targetLocale != null && LocalizationSettings.SelectedLocale != targetLocale)
+                {
+                    LocalizationSettings.SelectedLocale = targetLocale;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LocalizationManager] Failed to set SelectedLocale: {ex.Message}");
+            }
         }
 
         public static string Get(string key, string fallback = "")
         {
             EnsureInitialized();
 
+            // 1. Direct query against active StringTable loaded from StringDatabase
             var activeTable = currentLanguage == GameLanguage.Turkish ? trTable : enTable;
             if (activeTable != null)
             {
@@ -202,6 +287,26 @@ namespace Arcade.Core
                 }
             }
 
+            // 2. Query StringDatabase directly by collection name and locale
+            if (LocalizationSettings.StringDatabase != null)
+            {
+                try
+                {
+                    string code = currentLanguage == GameLanguage.Turkish ? "tr" : "en";
+                    var locale = LocalizationSettings.AvailableLocales?.GetLocale(code);
+                    if (locale != null)
+                    {
+                        var localizedStr = LocalizationSettings.StringDatabase.GetLocalizedString(TableCollectionName, key, locale);
+                        if (!string.IsNullOrEmpty(localizedStr))
+                        {
+                            return localizedStr;
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            // 3. Fallback dictionary (safety fallback if tables are missing a specific key)
             if (FallbackStrings.TryGetValue(key, out var pair))
             {
                 return currentLanguage == GameLanguage.Turkish ? pair.tr : pair.en;

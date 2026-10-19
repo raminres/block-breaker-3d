@@ -127,7 +127,7 @@ High-density technical context and architectural rules for BlockBreaker.
   - `Blocks/`: `PF_Block_Base`, `PF_Block_Red`, `PF_Block_Green`, `PF_Block_Blue`, `PF_Block_Bomb`, `PF_Block_Glass` (4 child sockets: `brick`, `brick frost`, `brick special`, `brick vfx`).
   - `Powerups/`: `PF_Drop_Powerup` (cyan capsule), `PF_Drop_Hazard` (crimson diamond).
 - **Zero Runtime Primitives**: All legacy procedural cube/quad fallbacks (`GameObject.CreatePrimitive`) removed from runtime and scene setups.
-- **Automated Tests**: 272 EditMode tests passing across core physics, paddle prefab socket calibration, boundaries, powerups, hazards, UI harmonization, localization tables, touch ergonomics, and level scaling:
+- **Automated Tests**: 276 EditMode tests passing across core physics, paddle prefab socket calibration, boundaries, powerups, hazards, UI harmonization, runtime localization tables, touch ergonomics, and level scaling:
   ```bash
   unity cmd run_tests --mode editor
   ```
@@ -148,8 +148,8 @@ High-density technical context and architectural rules for BlockBreaker.
 
 ## 9. Current Handoff State & Verification
 - **Active Branch**: `feature/3d-models-and-scale-fixes` (Up to date with origin, clean working tree)
-- **Head Commit**: `08eebfa`
-- **Automated Tests**: 272/272 EditMode tests passing (100% pass rate)
+- **Head Commit**: `7ce633f`
+- **Automated Tests**: 276/276 EditMode tests passing (100% pass rate)
 - **Verification Command**:
   ```bash
   unity cmd run_tests --mode editor --timeout 90
@@ -164,4 +164,5 @@ High-density technical context and architectural rules for BlockBreaker.
   3. **Tactile 3D Extruded UI & Glow**: Propagated 3D extruded push buttons (`:active` translation), radiant pod glows, and animated mute toggles across both HUD and Main Menu.
   4. **Mobile Ergonomics & Safe Area**: Full iPhone 15 / 15 Pro Dynamic Island adaptation (`SafeAreaController`), iOS system gesture double-swipe deferral, and bottom touch guideline.
   5. **15-Level Campaign & Onboarding Scale**: Full high-density campaign with +20% block scale on Levels 1–3 for onboarding readability.
+  6. **Authoritative Runtime Localization Tables**: Bound `LocalizationManager` directly to `LocalizationSettings.StringDatabase` and runtime `StringTable` loading with two-way `SelectedLocale` synchronization, ensuring table edits take effect in player builds without relying on fallback script dictionaries.
 
