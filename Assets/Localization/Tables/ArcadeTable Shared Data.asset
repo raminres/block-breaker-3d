@@ -207,6 +207,10 @@ MonoBehaviour:
     m_Key: guide_p4
     m_Metadata:
       m_Items: []
+  - m_Id: 9715486093103104
+    m_Key: test_custom_unique_key_42
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

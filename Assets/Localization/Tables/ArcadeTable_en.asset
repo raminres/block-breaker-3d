@@ -183,7 +183,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1013338152
-    m_Localized: "\u2022 Drag touch or mouse horizontally to guide the paddle.\n\u2022 Keyboard: A/D or Left/Right arrows.\n\u2022 Tap screen or press Space to launch."
+    m_Localized: "\u2022 Drag touch or mouse horizontally to guide the paddle.\n\u2022 Keyboard: A/D or Left/Right arrows.\n\u2022 Tap screen, click, or press Up/Space to launch."
     m_Metadata:
       m_Items: []
   - m_Id: 1013338153
@@ -199,7 +199,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1013338156
-    m_Localized: "\u2022 Red = 10 pts \u2022 Green = 20 pts \u2022 Blue = 30 pts.\n\u2022 Glass Bricks require 2 hits: Hit 1 shatters shell; Hit 2 breaks brick for 2x points!"
+    m_Localized: "\u2022 Red = 10 pts \u2022 Green = 20 pts \u2022 Blue = 30 pts.\n\u2022 Glass Bricks require 2 hits: Hit 1 shatters the protective shell; Hit 2 breaks the brick for 2x points!"
     m_Metadata:
       m_Items: []
   - m_Id: 1013338157
@@ -207,7 +207,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1013338158
-    m_Localized: "\u2022 Expander: Widens paddle.\n\u2022 Multipliers: 2X-5X bonus points.\n\u2022 Shield: Defensive kinetic barrier.\n\u2022 Multi-Ball: 3 balls active!\n\u2022 Laser Blaster: Twin cannons pierce brick rows!\n\u2022 Bombs: Radial detonation explodes neighbors!"
+    m_Localized: "\u2022 Expander: Widens paddle by +10%.\n\u2022 Multipliers: 2X, 3X, 4X, 5X bonus points per block.\n\u2022 Shield: Kinetic barrier protects for 10s.\n\u2022 Multi-Ball: 3 balls! Extra balls don't lose lives.\n\u2022 Laser Blaster: Twin cannons pierce brick rows!\n\u2022 Bombs: Radial detonation explodes neighbors!\n\u2022 Extra Heart: Grants +1 life (up to 5 max).\n\u2022 Clutch Countdown: When 1 brick remains, 12s timer yields up to 10X score or Railgun vaporizes it!"
     m_Metadata:
       m_Items: []
   references:

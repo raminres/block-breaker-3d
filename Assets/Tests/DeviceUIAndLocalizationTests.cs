@@ -238,6 +238,45 @@ namespace Arcade.Tests
         }
 
         [Test]
+        public void HowToPlaySection_IsLocalized_InBothLanguages_AcrossMainMenuAndHUD()
+        {
+            // 1. Verify StringTable entries exist for English and Turkish
+            LocalizationManager.SetLanguage(GameLanguage.English);
+            Assert.AreEqual("HOW TO PLAY", LocalizationManager.Get("guide_title"));
+            Assert.AreEqual("1. CONTROLS & LAUNCH", LocalizationManager.Get("guide_h1"));
+            Assert.IsTrue(LocalizationManager.Get("guide_p1").Contains("Drag touch or mouse"));
+            Assert.AreEqual("4. POWERUPS & HAZARDS", LocalizationManager.Get("guide_h4"));
+            Assert.IsTrue(LocalizationManager.Get("guide_p4").Contains("Clutch Countdown"));
+
+            LocalizationManager.SetLanguage(GameLanguage.Turkish);
+            Assert.AreEqual("NASIL OYNANIR", LocalizationManager.Get("guide_title"));
+            Assert.AreEqual("1. KONTROLLER VE FIRLATMA", LocalizationManager.Get("guide_h1"));
+            Assert.IsTrue(LocalizationManager.Get("guide_p1").Contains("parmağınızı veya fareyi"));
+            Assert.AreEqual("4. GÜÇLENDİRMELER VE TEHLİKELER", LocalizationManager.Get("guide_h4"));
+            Assert.IsTrue(LocalizationManager.Get("guide_p4").Contains("Kritik Geri Sayım"));
+
+            // 2. Verify MainMenuUI.uxml has named elements
+            var menuTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MainMenuUI.uxml");
+            Assert.IsNotNull(menuTree);
+            var menuRoot = menuTree.CloneTree();
+            Assert.IsNotNull(menuRoot.Q<Label>("modal-title-how-to-play"), "modal-title-how-to-play must exist in MainMenuUI.");
+            Assert.IsNotNull(menuRoot.Q<Label>("guide-h1"), "guide-h1 must exist in MainMenuUI.");
+            Assert.IsNotNull(menuRoot.Q<Label>("guide-p1"), "guide-p1 must exist in MainMenuUI.");
+            Assert.IsNotNull(menuRoot.Q<Label>("guide-h4"), "guide-h4 must exist in MainMenuUI.");
+            Assert.IsNotNull(menuRoot.Q<Label>("guide-p4"), "guide-p4 must exist in MainMenuUI.");
+
+            // 3. Verify BlockBreakerHUD.uxml has named elements
+            var hudTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/BlockBreakerHUD.uxml");
+            Assert.IsNotNull(hudTree);
+            var hudRoot = hudTree.CloneTree();
+            Assert.IsNotNull(hudRoot.Q<Label>("modal-title-how-to-play"), "modal-title-how-to-play must exist in BlockBreakerHUD.");
+            Assert.IsNotNull(hudRoot.Q<Label>("guide-h1"), "guide-h1 must exist in BlockBreakerHUD.");
+            Assert.IsNotNull(hudRoot.Q<Label>("guide-p1"), "guide-p1 must exist in BlockBreakerHUD.");
+            Assert.IsNotNull(hudRoot.Q<Label>("guide-h4"), "guide-h4 must exist in BlockBreakerHUD.");
+            Assert.IsNotNull(hudRoot.Q<Label>("guide-p4"), "guide-p4 must exist in BlockBreakerHUD.");
+        }
+
+        [Test]
         public void ResponsiveCameraController_TabletAspect_CalculatesDistanceCorrectly()
         {
             var go = new GameObject("TestCamera", typeof(Camera), typeof(ResponsiveCameraController));
