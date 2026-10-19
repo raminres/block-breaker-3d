@@ -22,10 +22,12 @@ namespace Arcade.Tests
             var go = AssetDatabase.LoadAssetAtPath<GameObject>(PaddlePrefabPath);
             Assert.IsNotNull(go, "Prefab must exist.");
 
+            Assert.AreEqual(Vector3.one, go.transform.localScale, "Paddle root scale must be normalized (1, 1, 1).");
+
             var col = go.GetComponent<BoxCollider>();
             Assert.IsNotNull(col, "Root must have a BoxCollider.");
             Assert.AreEqual(0.38f, col.center.y, 0.01f, "BoxCollider center Y must align with strike deck.");
-            Assert.AreEqual(1.0f, col.size.x, 0.01f, "BoxCollider width must be normalized (1.0).");
+            Assert.AreEqual(5.0f, col.size.x, 0.01f, "BoxCollider size.x must match default paddle width 5.0f for normalized parent root scale.");
             Assert.AreEqual(0.24f, col.size.y, 0.01f, "BoxCollider height must match strike deck thickness.");
 
             var rb = go.GetComponent<Rigidbody>();
@@ -49,6 +51,7 @@ namespace Arcade.Tests
             // 1. visuals
             var visuals = go.transform.Find("visuals");
             Assert.IsNotNull(visuals, "Paddle must have 'visuals' container child.");
+            Assert.AreEqual(Vector3.one, visuals.localScale, "visuals container scale must be normalized (1, 1, 1).");
             var deck = visuals.Find("deck") ?? visuals.Find("Deck");
             var chassis = visuals.Find("chassis") ?? visuals.Find("Chassis");
             var keel = visuals.Find("keel") ?? visuals.Find("Keel");
@@ -63,6 +66,7 @@ namespace Arcade.Tests
             // 2. guns
             var guns = go.transform.Find("guns");
             Assert.IsNotNull(guns, "Paddle must have 'guns' container child.");
+            Assert.AreEqual(Vector3.one, guns.localScale, "guns container scale must be normalized (1, 1, 1).");
             var gunLeft = guns.Find("Gun_Left");
             var gunRight = guns.Find("Gun_Right");
             Assert.IsNotNull(gunLeft, "guns must contain 'Gun_Left'.");
@@ -81,6 +85,7 @@ namespace Arcade.Tests
             // 4. frost
             var frost = go.transform.Find("frost");
             Assert.IsNotNull(frost, "Paddle must have 'frost' container child.");
+            Assert.AreEqual(Vector3.one, frost.localScale, "frost container scale must be normalized (1, 1, 1).");
             var iceShell = frost.Find("Ice_Shell");
             Assert.IsNotNull(iceShell, "frost must contain 'Ice_Shell'.");
             Assert.IsNull(iceShell.GetComponent<Collider>(), "Ice_Shell must not have collider.");
@@ -216,7 +221,7 @@ namespace Arcade.Tests
                 // Initialize paddle to base width 5.0
                 paddleCtrl.ResetWidth(5.0f);
                 Assert.AreEqual(5.0f, paddleCtrl.Width, 0.01f);
-                Assert.AreEqual(5.0f, instance.transform.localScale.x, 0.01f);
+                Assert.AreEqual(Vector3.one, instance.transform.localScale, "Paddle parent scale must remain normalized Vector3.one.");
 
                 // BoxCollider world width must be 5.0f
                 var col = instance.GetComponent<BoxCollider>();
@@ -258,7 +263,7 @@ namespace Arcade.Tests
         }
 
         [Test]
-        public void PaddlePrefab_Level1Width5Point5_CalibratesAccurately()
+        public void PaddlePrefab_Level1Width5Point0_CalibratesAccurately()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PaddlePrefabPath);
             Assert.IsNotNull(prefab, "Prefab must exist.");
@@ -269,23 +274,92 @@ namespace Arcade.Tests
                 var paddleCtrl = instance.GetComponent<PaddleController>();
                 Assert.IsNotNull(paddleCtrl);
 
-                // Level 1 starts with initialPaddleWidth = 5.5f
-                paddleCtrl.ResetWidth(5.5f);
-                Assert.AreEqual(5.5f, paddleCtrl.Width, 0.01f);
-                Assert.AreEqual(5.5f, instance.transform.localScale.x, 0.01f);
+                // Level 1 starts with initialPaddleWidth = 5.0f
+                paddleCtrl.ResetWidth(5.0f);
+                Assert.AreEqual(5.0f, paddleCtrl.Width, 0.01f);
+                Assert.AreEqual(Vector3.one, instance.transform.localScale, "Paddle parent scale must remain normalized Vector3.one.");
+
+                var visuals = instance.transform.Find("visuals");
+                Assert.IsNotNull(visuals, "visuals socket must exist.");
+                Assert.AreEqual(Vector3.one, visuals.localScale, "Visuals local scale must be Vector3.one at standard 5.0 width.");
 
                 var col = instance.GetComponent<BoxCollider>();
                 float colWorldWidth = col.size.x * instance.transform.lossyScale.x;
-                Assert.AreEqual(5.5f, colWorldWidth, 0.01f);
+                Assert.AreEqual(5.0f, colWorldWidth, 0.01f);
 
                 var deck = instance.transform.Find("visuals/deck") ?? instance.transform.Find("visuals/Deck");
                 var deckMf = deck.GetComponent<MeshFilter>();
                 float deckWorldWidth = deckMf.sharedMesh.bounds.size.x * deck.lossyScale.x;
-                Assert.AreEqual(5.5f, deckWorldWidth, 0.05f, "Level 1 paddle must be exactly 5.5 units wide visually and physically, never 27.5u.");
+                Assert.AreEqual(5.0f, deckWorldWidth, 0.05f, "Level 1 paddle must be exactly 5.0 units wide visually and physically.");
+
+                // When collecting Paddle Expander (+10%), visuals X scales to 1.10f
+                paddleCtrl.ExpandWidth(0.10f);
+                Assert.AreEqual(5.5f, paddleCtrl.Width, 0.01f);
+                Assert.AreEqual(1.10f, visuals.localScale.x, 0.01f, "Visuals X scale must scale to 1.10 only upon paddle expander powerup.");
             }
             finally
             {
                 Object.DestroyImmediate(instance);
+            }
+        }
+
+        [Test]
+        public void LaserBolt_PrefabAndSpawn_ScaleNormalizedToVector3One()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Paddle/PF_LaserBolt.prefab");
+            Assert.IsNotNull(prefab, "PF_LaserBolt.prefab must exist in Assets/Prefabs/Paddle/.");
+            Assert.AreEqual(Vector3.one, prefab.transform.localScale, "Laser bolt root scale must be normalized to Vector3.one.");
+
+            var model = prefab.transform.Find("model");
+            Assert.IsNotNull(model, "Laser bolt prefab must have child 'model'.");
+            Assert.AreEqual(new Vector3(0.18f, 0.55f, 0.18f), model.localScale, "Child 'model' must be scaled to (0.18, 0.55, 0.18) for 1:1 visual dimensions.");
+            Assert.IsNull(model.GetComponent<Collider>(), "Child 'model' must not have a collider.");
+
+            var bolt = LaserBolt.Spawn(Vector3.zero);
+            try
+            {
+                Assert.IsNotNull(bolt);
+                Assert.AreEqual(Vector3.one, bolt.transform.localScale, "Spawned LaserBolt root scale must be normalized to Vector3.one.");
+                Assert.IsNotNull(bolt.ModelChild, "Spawned LaserBolt must link ModelChild.");
+                Assert.AreEqual(new Vector3(0.18f, 0.55f, 0.18f), bolt.ModelChild.transform.localScale);
+            }
+            finally
+            {
+                if (bolt != null) Object.DestroyImmediate(bolt.gameObject);
+            }
+        }
+
+        [Test]
+        public void Paddle_Level1PresetConfiguration_StartsAtScaleOne_AndExpandsTo1Point1OnPowerup()
+        {
+            var level1Config = AssetDatabase.LoadAssetAtPath<LevelConfiguration>("Assets/Settings/Levels/SO_Level_01.asset");
+            Assert.IsNotNull(level1Config, "SO_Level_01 must exist.");
+            Assert.AreEqual(5.0f, level1Config.InitialPaddleWidth, 0.01f, "Level 1 InitialPaddleWidth must be 5.0f so paddle starts unscaled.");
+
+            var paddlePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PaddlePrefabPath);
+            var paddleObj = Object.Instantiate(paddlePrefab);
+            try
+            {
+                var paddle = paddleObj.GetComponent<PaddleController>();
+                // Simulate LevelGenerator applying level config on game start
+                paddle.ResetWidth(level1Config.InitialPaddleWidth);
+
+                var visuals = paddleObj.transform.Find("visuals");
+                Assert.IsNotNull(visuals, "visuals child socket must exist.");
+
+                // When starting a new game, visuals X scale must be exactly 1.0f
+                Assert.AreEqual(1.0f, visuals.localScale.x, 0.001f, "Visuals X scale must be 1.0f at start of game.");
+                Assert.AreEqual(1.0f, visuals.localScale.y, 0.001f);
+                Assert.AreEqual(1.0f, visuals.localScale.z, 0.001f);
+
+                // When collecting paddle size increase powerup (+10% expander)
+                paddle.ExpandWidth(BlockModifierExtensions.PADDLE_EXPANSION_PERCENT);
+                Assert.AreEqual(5.50f, paddle.Width, 0.01f);
+                Assert.AreEqual(1.10f, visuals.localScale.x, 0.001f, "Visuals X scale must scale to 1.10 only upon collecting paddle size increase powerup.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(paddleObj);
             }
         }
     }

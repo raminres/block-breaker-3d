@@ -55,7 +55,7 @@ Acts as a production testbed for **Google Antigravity**, **Unity MCP (Model Cont
 
 ## 🕹️ 15-Level Campaign
 
-The campaign features 15 ScriptableObject levels (`SO_Level_01` through `SO_Level_15`) with high-density grids (11–14 columns, up to $17.5\text{u}$ span) and outer bumper flanks to eliminate empty side highways. Ball speed scales from $0.92\times$ to $1.48\times$, paddle width narrows from $5.5\text{u}$ to $4.5\text{u}$, and hazards escalate progressively from 0 up to 13.
+The campaign features 15 ScriptableObject levels (`SO_Level_01` through `SO_Level_15`) with high-density grids (11–14 columns, up to $17.5\text{u}$ span) and outer bumper flanks to eliminate empty side highways. Ball speed scales from $0.92\times$ to $1.48\times$, paddle width narrows from $5.0\text{u}$ to $4.5\text{u}$, and hazards escalate progressively from 0 up to 13.
 
 *For full level breakdowns, archetypes, and par times, refer to [GDD.md](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/GDD.md).*
 

@@ -104,11 +104,11 @@ Drops fall at $4.5\text{ u/s}$ with distinct 3D tumbling meshes and emissive col
 
 ## 5. Progressive 15-Level Campaign Arc
 
-Dense layouts (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with side bumper flanks eliminate empty wall bypasses. Ball speed scales from $0.92\times$ to $1.48\times$, paddle narrows from $5.5\text{u}$ to $4.5\text{u}$, and hazards escalate from 0 to 13.
+Dense layouts (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with side bumper flanks eliminate empty wall bypasses. Ball speed scales from $0.92\times$ to $1.48\times$, paddle narrows from $5.0\text{u}$ to $4.5\text{u}$, and hazards escalate from 0 to 13.
 
 | Level | Name | Archetype | Grid | Blocks | Speed | Paddle | Highlights & Hazards | Par | 3-Star |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :--- | :---: | :---: |
-| **1** | First Flight | `Pyramid` | $11 \times 6$ | 42 | 0.92x | 5.5u | Warmup, +20% enlarged blocks (1.20u), Expander, 0 hazards | 35s | 1,200 |
+| **1** | First Flight | `Pyramid` | $11 \times 6$ | 42 | 0.92x | 5.0u | Warmup, +20% enlarged blocks (1.20u), Expander, 0 hazards | 35s | 1,200 |
 | **2** | Glass & Gold | `Diamond` | $12 \times 6$ | 42 | 0.96x | 5.0u | +20% enlarged blocks (1.20u), 2X, Glass, Expander, 1x Shortener | 40s | 1,800 |
 | **3** | Twin Pillars | `Pillars` | $13 \times 6$ | 42 | 1.00x | 5.0u | +20% enlarged blocks (1.20u), Bombs, Laser, 1x Paddle Slower, 1x Ball Slower | 45s | 2,400 |
 | **4** | Kinetic Shield | `Shield` | $13 \times 6$ | 62 | 1.04x | 5.0u | Shield, Heart, 1x Brick Freezer, 1x Ball Shrink | 50s | 3,200 |

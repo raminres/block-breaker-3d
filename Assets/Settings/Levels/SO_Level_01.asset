@@ -27,7 +27,7 @@ MonoBehaviour:
   customLayout: 
   customLayoutRows: []
   ballSpeedMultiplier: 0.92
-  initialPaddleWidth: 5.5
+  initialPaddleWidth: 5
   multiplier2xCount: 0
   multiplier3xCount: 0
   multiplier4xCount: 0

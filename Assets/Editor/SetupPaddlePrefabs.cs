@@ -38,12 +38,12 @@ namespace Arcade.Editor
             GameObject rootGo = new GameObject("PF_Paddle");
             rootGo.transform.position = Vector3.zero;
             rootGo.transform.rotation = Quaternion.identity;
-            rootGo.transform.localScale = new Vector3(5.0f, 1.0f, 1.0f);
+            rootGo.transform.localScale = Vector3.one;
 
             // 1. Root BoxCollider (Primary Strike Deck trigger & bounce)
             var rootCol = rootGo.AddComponent<BoxCollider>();
             rootCol.center = new Vector3(0f, 0.38f, 0f);
-            rootCol.size = new Vector3(1.0f, 0.24f, 2.8f);
+            rootCol.size = new Vector3(5.0f, 0.24f, 2.8f);
             if (physBounce != null) rootCol.sharedMaterial = physBounce;
 
             // 2. Root Rigidbody
@@ -70,7 +70,7 @@ namespace Arcade.Editor
             // 4. Child 'visuals' (Stepped Pyramid Tiers - pure meshes, no colliders)
             GameObject visualsGo = new GameObject("visuals");
             visualsGo.transform.SetParent(rootGo.transform, false);
-            visualsGo.transform.localScale = useFbxModel ? new Vector3(0.2f, 1.0f, 1.0f) : Vector3.one;
+            visualsGo.transform.localScale = Vector3.one;
 
             // Tier 1: Deck (paddle top)
             GameObject deckGo;
@@ -147,7 +147,7 @@ namespace Arcade.Editor
             // 5. Child 'guns' (Twin Laser Blasters - active during Laser Blaster powerup)
             GameObject gunsGo = new GameObject("guns");
             gunsGo.transform.SetParent(rootGo.transform, false);
-            gunsGo.transform.localScale = useFbxModel ? new Vector3(0.2f, 1.0f, 1.0f) : Vector3.one;
+            gunsGo.transform.localScale = Vector3.one;
 
             // Left Gun
             GameObject gunLeft;
@@ -229,7 +229,7 @@ namespace Arcade.Editor
                 apertureGo = new GameObject("Aperture");
                 apertureGo.transform.SetParent(laserGunGo.transform, false);
                 apertureGo.transform.localPosition = new Vector3(0f, 0.50f, 0f);
-                apertureGo.transform.localScale = new Vector3(0.2f, 1.0f, 1.0f);
+                apertureGo.transform.localScale = Vector3.one;
                 var mf = apertureGo.AddComponent<MeshFilter>();
                 mf.sharedMesh = meshAperture;
                 var mr = apertureGo.AddComponent<MeshRenderer>();
@@ -265,7 +265,7 @@ namespace Arcade.Editor
             // 7. Child 'frost' (Ice encasement shell - active during PaddleFreezer hazard)
             GameObject frostGo = new GameObject("frost");
             frostGo.transform.SetParent(rootGo.transform, false);
-            frostGo.transform.localScale = useFbxModel ? new Vector3(0.2f, 1.0f, 1.0f) : Vector3.one;
+            frostGo.transform.localScale = Vector3.one;
 
             GameObject frostMeshGo;
             if (useFbxModel && meshIceShell != null)

@@ -23,11 +23,14 @@ namespace Arcade.Tests
             var go = AssetDatabase.LoadAssetAtPath<GameObject>(BallPrefabPath);
             Assert.IsNotNull(go, "Prefab must exist.");
 
+            // Root Transform scale must be normalized to 1.0
+            Assert.AreEqual(Vector3.one, go.transform.localScale, "Ball root scale must be normalized to Vector3.one.");
+
             // SphereCollider
             var col = go.GetComponent<SphereCollider>();
             Assert.IsNotNull(col, "Root must have SphereCollider.");
             Assert.IsFalse(col.isTrigger, "SphereCollider must not be a trigger.");
-            Assert.AreEqual(0.5f, col.radius, 0.01f, "SphereCollider radius should be 0.5.");
+            Assert.AreEqual(0.35f, col.radius, 0.01f, "SphereCollider radius should be 0.35 for normalized 1.0 root scale.");
             Assert.IsNotNull(col.sharedMaterial, "SphereCollider must have PM_ArcadeBounce physics material.");
 
             // Rigidbody
@@ -58,6 +61,7 @@ namespace Arcade.Tests
             // 1. Model child
             var model = go.transform.Find("model");
             Assert.IsNotNull(model, "Ball prefab must have child 'model'.");
+            Assert.AreEqual(new Vector3(0.7f, 0.7f, 0.7f), model.localScale, "Child 'model' must be scaled to (0.7, 0.7, 0.7) so visual size matches world radius.");
             var mf = model.GetComponent<MeshFilter>();
             Assert.IsNotNull(mf, "Child 'model' must have MeshFilter.");
             Assert.IsTrue(mf.sharedMesh.name.Contains("Sphere"), "Mesh must be a Sphere.");

@@ -195,13 +195,15 @@ In Unity 6 / Cinemachine 3.x:
 
 ---
 
-## 11. 3D Model Scale Compensation in Modular Prefabs
-1. **The Double-Scaling Problem**:
-   - When a parent prefab GameObject has a scaled root (e.g. `PF_Paddle` scaled horizontally to $5.5\text{u}$ to define the paddle collision bounds and enable dynamic Expander powerup growth), dropping a true-scale 3D mesh (`SM_Paddle.fbx`) into a child GameObject causes it to be stretched by $5.5\times$.
-2. **Child Socket Scale Calibration Pattern**:
-   - Calibrate the intermediate child sockets (`visuals`, `frost`, `guns`, `Aperture`) with a reciprocal local scale: `new Vector3(0.20f, 1.0f, 1.0f)`.
-   - Child 3D models (`Deck`, `Chassis`, `Keel`) reside under `visuals` at local scale $(1, 1, 1)$ and render at true 1:1 proportions without distortion.
-   - The root object continues to manage `BoxCollider` width, ball docking, and Expander buffs seamlessly.
+## 11. Normalized 1.0 Parent Prefab Architecture & Child Scale Control
+1. **Normalized Parent Transform Rule**:
+   - All root prefab containers (`PF_Paddle.prefab`, `PF_Ball_Standard.prefab`, `PF_LaserBolt.prefab`) strictly maintain `transform.localScale = Vector3(1, 1, 1)`.
+   - Dimensions are driven by child mesh sockets and root colliders rather than warped parent transforms.
+2. **Child Socket Scale Pattern**:
+   - In `PF_Paddle.prefab`, all intermediate child sockets (`visuals`, `frost`, `guns`, `laser_gun`, `Aperture`, `dock_point`, `vfx`) maintain resting local scale `Vector3(1, 1, 1)`.
+   - Zero reciprocal $0.20\text{f}$ scale exists, allowing designers and artists to add new 3D meshes under `visuals` directly at true 1:1 scale without squishing.
+   - Dynamic width adjustments (Expander +10%, Shortener -18%) in `PaddleController` adjust child visual socket horizontal scale (`visuals.localScale.x = paddleWidth / 5.0f`) and root `BoxCollider.size.x`, keeping parent scale strictly locked at `(1, 1, 1)`.
+   - Level 1 starts with `initialPaddleWidth = 5.0f`, ensuring `visuals` rests at `1.0` and only scales to `1.10` upon collecting the Paddle Expander powerup.
 
 ---
 
