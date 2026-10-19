@@ -142,44 +142,8 @@ namespace Arcade.BlockBreaker
                 if (stepBottom == null) stepBottom = transform.Find("Step_Bottom");
             }
 
-            // If the visual model mesh was authored at a full base width of ~5.0u (instead of a normalized 1.0u cube),
-            // ensure the visuals container scale is calibrated to 0.2f (1/5) so that paddle root scale (paddleWidth)
-            // matches world width 1:1 without double-scaling.
-            if (stepTop != null)
-            {
-                var filter = stepTop.GetComponent<MeshFilter>();
-                if (filter != null && filter.sharedMesh != null && filter.sharedMesh.bounds.size.x >= 4.0f)
-                {
-                    if (visualsRoot != null && Mathf.Approximately(visualsRoot.transform.localScale.x, 1.0f))
-                    {
-                        Vector3 vs = visualsRoot.transform.localScale;
-                        vs.x = 0.2f;
-                        visualsRoot.transform.localScale = vs;
-                    }
-                    if (frostRoot != null && Mathf.Approximately(frostRoot.transform.localScale.x, 1.0f))
-                    {
-                        Vector3 fs = frostRoot.transform.localScale;
-                        fs.x = 0.2f;
-                        frostRoot.transform.localScale = fs;
-                    }
-                    if (gunsRoot != null && Mathf.Approximately(gunsRoot.transform.localScale.x, 1.0f))
-                    {
-                        Vector3 gs = gunsRoot.transform.localScale;
-                        gs.x = 0.2f;
-                        gunsRoot.transform.localScale = gs;
-                    }
-                    if (laserGunRoot != null)
-                    {
-                        var ap = laserGunRoot.transform.Find("Aperture");
-                        if (ap != null && Mathf.Approximately(ap.localScale.x, 1.0f))
-                        {
-                            Vector3 aps = ap.localScale;
-                            aps.x = 0.2f;
-                            ap.localScale = aps;
-                        }
-                    }
-                }
-            }
+            // Ensure root transform local scale is normalized to Vector3.one
+            transform.localScale = Vector3.one;
 
             // Remove legacy root mesh renderer if single-cube legacy model is attached
             var rootRenderer = GetComponent<MeshRenderer>();
@@ -189,13 +153,34 @@ namespace Arcade.BlockBreaker
                 rootRenderer.enabled = false;
             }
 
-            // Configure root strike BoxCollider to cover strictly the thin top deck with extended depth
+            // Configure root strike BoxCollider with paddleWidth
             if (rootCollider == null) rootCollider = GetComponent<BoxCollider>();
             if (rootCollider == null) rootCollider = gameObject.AddComponent<BoxCollider>();
             if (rootCollider != null)
             {
                 rootCollider.center = new Vector3(0f, 0.38f, 0f);
-                rootCollider.size = new Vector3(1.0f, 0.24f, 2.8f);
+                rootCollider.size = new Vector3(paddleWidth, 0.24f, 2.8f);
+            }
+
+            // Calibrate child visual socket scales based on paddleWidth (base model is 5.0u)
+            float visualScaleX = paddleWidth / 5.0f;
+            if (visualsRoot != null)
+            {
+                Vector3 vs = visualsRoot.transform.localScale;
+                vs.x = visualScaleX;
+                visualsRoot.transform.localScale = vs;
+            }
+            if (frostRoot != null)
+            {
+                Vector3 fs = frostRoot.transform.localScale;
+                fs.x = visualScaleX;
+                frostRoot.transform.localScale = fs;
+            }
+            if (gunsRoot != null)
+            {
+                Vector3 gs = gunsRoot.transform.localScale;
+                gs.x = visualScaleX;
+                gunsRoot.transform.localScale = gs;
             }
         }
 
@@ -307,9 +292,35 @@ namespace Arcade.BlockBreaker
         public void SetWidth(float newWidth)
         {
             paddleWidth = Mathf.Clamp(newWidth, MIN_PADDLE_WIDTH, MAX_PADDLE_WIDTH);
-            Vector3 scale = transform.localScale;
-            scale.x = paddleWidth;
-            transform.localScale = scale;
+            transform.localScale = Vector3.one;
+
+            if (rootCollider == null) rootCollider = GetComponent<BoxCollider>();
+            if (rootCollider != null)
+            {
+                rootCollider.size = new Vector3(paddleWidth, 0.24f, 2.8f);
+                rootCollider.center = new Vector3(0f, 0.38f, 0f);
+            }
+
+            float visualScaleX = paddleWidth / 5.0f;
+            if (visualsRoot != null)
+            {
+                Vector3 vs = visualsRoot.transform.localScale;
+                vs.x = visualScaleX;
+                visualsRoot.transform.localScale = vs;
+            }
+            if (frostRoot != null)
+            {
+                Vector3 fs = frostRoot.transform.localScale;
+                fs.x = visualScaleX;
+                frostRoot.transform.localScale = fs;
+            }
+            if (gunsRoot != null)
+            {
+                Vector3 gs = gunsRoot.transform.localScale;
+                gs.x = visualScaleX;
+                gunsRoot.transform.localScale = gs;
+            }
+
             RecalculateBounds();
 
             Vector3 pos = transform.position;
@@ -356,15 +367,19 @@ namespace Arcade.BlockBreaker
 
                 SetWidth(currentW);
 
-                // Tactile vertical squash & stretch during expansion pulse
+                // Tactile vertical squash & stretch during expansion pulse applied to visual child
                 float yFactor = 1.0f - (springProgress - 1.0f) * 0.35f;
-                transform.localScale = new Vector3(currentW, Mathf.Clamp(yFactor, 0.88f, 1.06f), 1.0f);
+                float visualY = Mathf.Clamp(yFactor, 0.88f, 1.06f);
+                if (visualsRoot != null)
+                {
+                    visualsRoot.transform.localScale = new Vector3(currentW / 5.0f, visualY, 1.0f);
+                }
 
                 yield return null;
             }
 
             SetWidth(targetWidth);
-            transform.localScale = new Vector3(targetWidth, 1.0f, 1.0f);
+            transform.localScale = Vector3.one;
             expandCoroutine = null;
         }
 
@@ -384,7 +399,7 @@ namespace Arcade.BlockBreaker
         private IEnumerator AnimateImpactRecoil(float duration, float squashAmount)
         {
             float elapsed = 0f;
-            float currentW = transform.localScale.x;
+            float visualScaleX = paddleWidth / 5.0f;
 
             while (elapsed < duration)
             {
@@ -392,11 +407,18 @@ namespace Arcade.BlockBreaker
                 float u = Mathf.Clamp01(elapsed / duration);
                 float squash = 1.0f - Mathf.Sin(u * Mathf.PI) * squashAmount;
 
-                transform.localScale = new Vector3(currentW, squash, 1.0f);
+                if (visualsRoot != null)
+                {
+                    visualsRoot.transform.localScale = new Vector3(visualScaleX, squash, 1.0f);
+                }
                 yield return null;
             }
 
-            transform.localScale = new Vector3(currentW, 1.0f, 1.0f);
+            if (visualsRoot != null)
+            {
+                visualsRoot.transform.localScale = new Vector3(visualScaleX, 1.0f, 1.0f);
+            }
+            transform.localScale = Vector3.one;
             recoilCoroutine = null;
         }
 
@@ -413,7 +435,7 @@ namespace Arcade.BlockBreaker
 
             basePaddleWidth = defaultWidth;
             expansionCount = 0;
-            transform.localScale = new Vector3(defaultWidth, 1.0f, 1.0f);
+            transform.localScale = Vector3.one;
             SetWidth(defaultWidth);
         }
 
@@ -429,7 +451,7 @@ namespace Arcade.BlockBreaker
             }
 
             expansionCount = 0;
-            transform.localScale = new Vector3(basePaddleWidth, 1.0f, 1.0f);
+            transform.localScale = Vector3.one;
             SetWidth(basePaddleWidth);
         }
 

@@ -15,30 +15,70 @@ namespace Arcade.BlockBreaker
         [SerializeField] private float topBoundaryY = 25.5f;
         [SerializeField] private Color boltColor = new Color(1f, 0.18f, 0.28f, 1f); // Electric Ruby / Crimson
 
+        [Header("Modular Sockets")]
+        [SerializeField] private GameObject modelChild;
+
         private bool hasHit = false;
         private static Material sharedLaserBoltMat;
+        private static GameObject cachedLaserBoltPrefab;
+        private const string PREFAB_PATH = "Assets/Prefabs/Paddle/PF_LaserBolt.prefab";
 
         public float Speed => speed;
         public Color BoltColor => boltColor;
+        public GameObject ModelChild => modelChild != null ? modelChild : (modelChild = transform.Find("model")?.gameObject);
 
         public static LaserBolt Spawn(Vector3 position, Color? color = null)
         {
-            var boltGo = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            boltGo.name = "LaserBolt";
-            boltGo.transform.position = new Vector3(position.x, position.y, 0f);
-            boltGo.transform.localScale = new Vector3(0.18f, 0.55f, 0.18f);
+            GameObject boltGo = null;
+#if UNITY_EDITOR
+            if (cachedLaserBoltPrefab == null)
+            {
+                cachedLaserBoltPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH);
+            }
+#endif
+            if (cachedLaserBoltPrefab != null)
+            {
+                boltGo = Object.Instantiate(cachedLaserBoltPrefab, new Vector3(position.x, position.y, 0f), Quaternion.identity);
+                boltGo.name = "LaserBolt";
+            }
+            else
+            {
+                boltGo = new GameObject("LaserBolt");
+                boltGo.transform.position = new Vector3(position.x, position.y, 0f);
+                boltGo.transform.localScale = Vector3.one;
 
-            var col = boltGo.GetComponent<Collider>();
-            if (col != null) col.isTrigger = true;
+                var col = boltGo.AddComponent<CapsuleCollider>();
+                col.isTrigger = true;
+                col.radius = 0.09f;
+                col.height = 1.1f;
+                col.direction = 1;
 
-            var bolt = boltGo.AddComponent<LaserBolt>();
+                var modelGo = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                modelGo.name = "model";
+                modelGo.transform.SetParent(boltGo.transform, false);
+                modelGo.transform.localPosition = Vector3.zero;
+                modelGo.transform.localRotation = Quaternion.identity;
+                modelGo.transform.localScale = new Vector3(0.18f, 0.55f, 0.18f);
+
+                var mCol = modelGo.GetComponent<Collider>();
+                if (mCol != null) Object.DestroyImmediate(mCol);
+
+                boltGo.AddComponent<LaserBolt>();
+            }
+
+            var bolt = boltGo.GetComponent<LaserBolt>();
+            if (bolt.modelChild == null)
+            {
+                var m = boltGo.transform.Find("model");
+                if (m != null) bolt.modelChild = m.gameObject;
+            }
+
             if (color.HasValue) bolt.boltColor = color.Value;
 
-            // Apply glowing emissive ruby material
-            var rend = boltGo.GetComponent<MeshRenderer>();
-            if (rend != null)
+            var targetRend = bolt.modelChild != null ? bolt.modelChild.GetComponent<MeshRenderer>() : boltGo.GetComponent<MeshRenderer>();
+            if (targetRend != null)
             {
-                rend.sharedMaterial = GetOrCreateBoltMaterial(bolt.boltColor);
+                targetRend.sharedMaterial = GetOrCreateBoltMaterial(bolt.boltColor);
             }
 
             return bolt;

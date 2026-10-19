@@ -88,6 +88,15 @@ namespace Arcade.UI
         private Label labelDiffSubtitle;
         private Label labelStarsSubtitle;
         private Label labelTimeSubtitle;
+        private Label modalTitleHowToPlay;
+        private Label guideH1;
+        private Label guideP1;
+        private Label guideH2;
+        private Label guideP2;
+        private Label guideH3;
+        private Label guideP3;
+        private Label guideH4;
+        private Label guideP4;
 
         private int targetFps = 60;
 
@@ -329,6 +338,15 @@ namespace Arcade.UI
             labelDiffSubtitle = root.Q<Label>("label-diff-subtitle");
             labelStarsSubtitle = root.Q<Label>("label-stars-subtitle");
             labelTimeSubtitle = root.Q<Label>("label-time-subtitle");
+            modalTitleHowToPlay = root.Q<Label>("modal-title-how-to-play");
+            guideH1 = root.Q<Label>("guide-h1");
+            guideP1 = root.Q<Label>("guide-p1");
+            guideH2 = root.Q<Label>("guide-h2");
+            guideP2 = root.Q<Label>("guide-p2");
+            guideH3 = root.Q<Label>("guide-h3");
+            guideP3 = root.Q<Label>("guide-p3");
+            guideH4 = root.Q<Label>("guide-h4");
+            guideP4 = root.Q<Label>("guide-p4");
 
             if (btnNewGame != null) btnNewGame.clicked += HandleNewGameClicked;
             if (btnLevelSelect != null) btnLevelSelect.clicked += ShowLevelModal;
@@ -490,6 +508,15 @@ namespace Arcade.UI
             if (labelStarsSubtitle != null) labelStarsSubtitle.text = "STARS";
             if (labelTimeSubtitle != null) labelTimeSubtitle.text = LocalizationManager.Get("level_best_time", "BEST TIME");
             if (modalTitleCredits != null) modalTitleCredits.text = LocalizationManager.Get("credits_title", "CREDITS");
+            if (modalTitleHowToPlay != null) modalTitleHowToPlay.text = LocalizationManager.Get("guide_title", "HOW TO PLAY");
+            if (guideH1 != null) guideH1.text = LocalizationManager.Get("guide_h1", "1. CONTROLS & LAUNCH");
+            if (guideP1 != null) guideP1.text = LocalizationManager.Get("guide_p1", "• Drag touch or mouse horizontally to guide the paddle.\n• Keyboard: A/D or Left/Right arrows.\n• Tap screen, click, or press Up/Space to launch.");
+            if (guideH2 != null) guideH2.text = LocalizationManager.Get("guide_h2", "2. DYNAMIC PADDLE DEFLECTION");
+            if (guideP2 != null) guideP2.text = LocalizationManager.Get("guide_p2", "• Rebounds calculate angle from hit offset! Center bounces vertical (90°); outer edges yield sharp angles (30°) for surgical precision.");
+            if (guideH3 != null) guideH3.text = LocalizationManager.Get("guide_h3", "3. SCORING & GLASS BRICKS");
+            if (guideP3 != null) guideP3.text = LocalizationManager.Get("guide_p3", "• Red = 10 pts • Green = 20 pts • Blue = 30 pts.\n• Glass Bricks require 2 hits: Hit 1 shatters the protective shell; Hit 2 breaks the brick for 2x points!");
+            if (guideH4 != null) guideH4.text = LocalizationManager.Get("guide_h4", "4. POWERUPS & HAZARDS");
+            if (guideP4 != null) guideP4.text = LocalizationManager.Get("guide_p4", "• Expander: Widens paddle by +10%.\n• Multipliers: 2X, 3X, 4X, 5X bonus points per block.\n• Shield: Kinetic barrier protects for 10s.\n• Multi-Ball: 3 balls! Extra balls don't lose lives.\n• Laser Blaster: Twin cannons pierce brick rows!\n• Bombs: Radial detonation explodes neighbors!\n• Extra Heart: Grants +1 life (up to 5 max).\n• Clutch Countdown: When 1 brick remains, 12s timer yields up to 10X score or Railgun vaporizes it!");
 
             SelectLevel(selectedLevelNumber, false);
         }

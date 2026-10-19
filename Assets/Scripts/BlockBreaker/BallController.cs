@@ -116,7 +116,7 @@ namespace Arcade.BlockBreaker
         public bool IsBallSlowed => isBallSlowed;
         public float SluggishSpeed => sluggishSpeed;
 
-        private Vector3 initialBallScale = Vector3.one * 0.8f;
+        private Vector3 initialBallScale = Vector3.one;
         private bool isBallShrunk = false;
         private bool isBallSlowed = false;
         private float sluggishSpeed = 9.5f;
@@ -132,7 +132,7 @@ namespace Arcade.BlockBreaker
                 initialBallScale = transform.localScale;
             }
             isBallShrunk = shrunk;
-            if (initialBallScale == Vector3.zero) initialBallScale = Vector3.one * 0.8f;
+            if (initialBallScale == Vector3.zero) initialBallScale = Vector3.one;
             transform.localScale = shrunk ? initialBallScale * 0.60f : initialBallScale;
         }
 

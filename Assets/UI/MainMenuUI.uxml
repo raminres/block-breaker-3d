@@ -121,23 +121,23 @@
         </ui:VisualElement>
         <ui:VisualElement name="how-to-play-modal" class="modal-backdrop modal-hidden">
             <ui:VisualElement class="modal-card modal-card-wide how-to-play-card">
-                <ui:Label text="HOW TO PLAY" class="modal-title"/>
+                <ui:Label name="modal-title-how-to-play" text="HOW TO PLAY" class="modal-title"/>
                 <ui:ScrollView class="guide-scroll">
                     <ui:VisualElement class="guide-card">
-                        <ui:Label text="1. CONTROLS &amp; LAUNCH" class="guide-heading"/>
-                        <ui:Label text="• Drag touch or mouse horizontally to guide the paddle.&#10;• Keyboard: A/D or Left/Right arrows.&#10;• Tap screen, click, or press Up/Space to launch." class="guide-text"/>
+                        <ui:Label name="guide-h1" text="1. CONTROLS &amp; LAUNCH" class="guide-heading"/>
+                        <ui:Label name="guide-p1" text="• Drag touch or mouse horizontally to guide the paddle.&#10;• Keyboard: A/D or Left/Right arrows.&#10;• Tap screen, click, or press Up/Space to launch." class="guide-text"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="guide-card">
-                        <ui:Label text="2. DYNAMIC PADDLE DEFLECTION" class="guide-heading"/>
-                        <ui:Label text="• Rebounds calculate angle from hit offset! Center bounces vertical (90°); outer edges yield sharp angles (30°) for surgical precision." class="guide-text"/>
+                        <ui:Label name="guide-h2" text="2. DYNAMIC PADDLE DEFLECTION" class="guide-heading"/>
+                        <ui:Label name="guide-p2" text="• Rebounds calculate angle from hit offset! Center bounces vertical (90°); outer edges yield sharp angles (30°) for surgical precision." class="guide-text"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="guide-card">
-                        <ui:Label text="3. SCORING &amp; GLASS BRICKS" class="guide-heading"/>
-                        <ui:Label text="• Red = 10 pts • Green = 20 pts • Blue = 30 pts.&#10;• Glass Bricks require 2 hits: Hit 1 shatters the protective shell; Hit 2 breaks the brick for 2x points!" class="guide-text"/>
+                        <ui:Label name="guide-h3" text="3. SCORING &amp; GLASS BRICKS" class="guide-heading"/>
+                        <ui:Label name="guide-p3" text="• Red = 10 pts • Green = 20 pts • Blue = 30 pts.&#10;• Glass Bricks require 2 hits: Hit 1 shatters the protective shell; Hit 2 breaks the brick for 2x points!" class="guide-text"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="guide-card">
-                        <ui:Label text="4. POWERUPS &amp; HAZARDS" class="guide-heading"/>
-                        <ui:Label text="• Expander: Widens paddle by +10%.&#10;• Multipliers: 2X, 3X, 4X, 5X bonus points per block.&#10;• Shield: Kinetic barrier protects for 10s.&#10;• Multi-Ball: 3 balls! Extra balls don&apos;t lose lives.&#10;• Laser Blaster: Twin cannons pierce brick rows!&#10;• Bombs: Radial detonation explodes neighbors!&#10;• Extra Heart: Grants +1 life (up to 5 max).&#10;• Clutch Countdown: When 1 brick remains, 12s timer yields up to 10X score or Railgun vaporizes it!" class="guide-text"/>
+                        <ui:Label name="guide-h4" text="4. POWERUPS &amp; HAZARDS" class="guide-heading"/>
+                        <ui:Label name="guide-p4" text="• Expander: Widens paddle by +10%.&#10;• Multipliers: 2X, 3X, 4X, 5X bonus points per block.&#10;• Shield: Kinetic barrier protects for 10s.&#10;• Multi-Ball: 3 balls! Extra balls don&apos;t lose lives.&#10;• Laser Blaster: Twin cannons pierce brick rows!&#10;• Bombs: Radial detonation explodes neighbors!&#10;• Extra Heart: Grants +1 life (up to 5 max).&#10;• Clutch Countdown: When 1 brick remains, 12s timer yields up to 10X score or Railgun vaporizes it!" class="guide-text"/>
                     </ui:VisualElement>
                 </ui:ScrollView>
                 <ui:Button name="btn-close-how-to-play" text="BACK" class="arcade-button primary-btn modal-close-btn"/>

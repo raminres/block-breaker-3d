@@ -200,7 +200,7 @@ MeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 9
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: b2d8e04e981c8004d9ace0f4051923c9, type: 2}
@@ -373,7 +373,7 @@ MeshRenderer:
   m_SmallMeshCulling: 1
   m_ForceMeshLod: -1
   m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 9
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: fabb4170ab6eb3d4b9dbc0288c50f0a0, type: 2}

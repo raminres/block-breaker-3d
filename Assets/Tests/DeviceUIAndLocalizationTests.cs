@@ -6,6 +6,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
 using UnityEngine.Localization.Tables;
 using UnityEngine.UIElements;
 using UnityEditor.Localization;
@@ -19,6 +20,38 @@ namespace Arcade.Tests
         public void Teardown()
         {
             LocalizationManager.SetLanguage(GameLanguage.English);
+        }
+
+        [Test]
+        public void Test_LocalizationSettings_RuntimeAPI()
+        {
+            var initOp = LocalizationSettings.InitializationOperation;
+            if (!initOp.IsDone)
+            {
+                initOp.WaitForCompletion();
+            }
+
+            Assert.IsNotNull(LocalizationSettings.StringDatabase, "StringDatabase must not be null");
+            Assert.IsNotNull(LocalizationSettings.AvailableLocales, "AvailableLocales must not be null");
+            
+            var enLocale = LocalizationSettings.AvailableLocales.GetLocale("en");
+            var trLocale = LocalizationSettings.AvailableLocales.GetLocale("tr");
+            Assert.IsNotNull(enLocale, "en locale must be found in AvailableLocales");
+            Assert.IsNotNull(trLocale, "tr locale must be found in AvailableLocales");
+
+            var tableEn = LocalizationSettings.StringDatabase.GetTable("ArcadeTable", enLocale);
+            Assert.IsNotNull(tableEn, "GetTable('ArcadeTable', enLocale) must not be null");
+            Assert.AreEqual("OPTIONS", tableEn.GetEntry("menu_options")?.Value);
+
+            var tableTr = LocalizationSettings.StringDatabase.GetTable("ArcadeTable", trLocale);
+            Assert.IsNotNull(tableTr, "GetTable('ArcadeTable', trLocale) must not be null");
+            Assert.AreEqual("AYARLAR", tableTr.GetEntry("menu_options")?.Value);
+
+            string strEn = LocalizationSettings.StringDatabase.GetLocalizedString("ArcadeTable", "menu_options", enLocale);
+            Assert.AreEqual("OPTIONS", strEn);
+
+            string strTr = LocalizationSettings.StringDatabase.GetLocalizedString("ArcadeTable", "menu_options", trLocale);
+            Assert.AreEqual("AYARLAR", strTr);
         }
 
         [Test]
@@ -108,6 +141,139 @@ namespace Arcade.Tests
             {
                 trEntry.Value = originalValue;
             }
+        }
+
+        [Test]
+        public void LocalizationManager_RuntimeStringDatabase_IsAuthoritativeSource()
+        {
+            var initOp = LocalizationSettings.InitializationOperation;
+            if (!initOp.IsDone)
+            {
+                initOp.WaitForCompletion();
+            }
+
+            Assert.IsNotNull(LocalizationSettings.StringDatabase, "LocalizationSettings.StringDatabase must be available at runtime.");
+            
+            // Set language to English
+            LocalizationManager.SetLanguage(GameLanguage.English);
+            Assert.AreEqual("en", LocalizationSettings.SelectedLocale.Identifier.Code, "SelectedLocale must synchronize to 'en'.");
+
+            var enTable = LocalizationManager.EnglishTable;
+            Assert.IsNotNull(enTable, "English StringTable must be loaded from StringDatabase.");
+
+            var entry = enTable.GetEntry("menu_start_new");
+            Assert.IsNotNull(entry);
+            string originalValue = entry.Value;
+
+            try
+            {
+                // Temporarily alter the table entry to a custom runtime value
+                entry.Value = "START RUNTIME ADVENTURE";
+                string resolved = LocalizationManager.Get("menu_start_new");
+                Assert.AreEqual("START RUNTIME ADVENTURE", resolved,
+                    "LocalizationManager.Get must read directly from the StringTable!");
+            }
+            finally
+            {
+                entry.Value = originalValue;
+            }
+        }
+
+        [Test]
+        public void LocalizationManager_Synchronizes_SelectedLocale_BothWays()
+        {
+            var initOp = LocalizationSettings.InitializationOperation;
+            if (!initOp.IsDone)
+            {
+                initOp.WaitForCompletion();
+            }
+
+            // 1. Manager -> Settings.SelectedLocale
+            LocalizationManager.SetLanguage(GameLanguage.Turkish);
+            Assert.AreEqual("tr", LocalizationSettings.SelectedLocale.Identifier.Code,
+                "Setting language to Turkish in manager must update LocalizationSettings.SelectedLocale to 'tr'.");
+
+            LocalizationManager.SetLanguage(GameLanguage.English);
+            Assert.AreEqual("en", LocalizationSettings.SelectedLocale.Identifier.Code,
+                "Setting language to English in manager must update LocalizationSettings.SelectedLocale to 'en'.");
+
+            // 2. Settings.SelectedLocale -> Manager
+            bool eventFired = false;
+            System.Action handler = () => eventFired = true;
+            LocalizationManager.OnLanguageChanged += handler;
+
+            var trLocale = LocalizationSettings.AvailableLocales.GetLocale("tr");
+            Assert.IsNotNull(trLocale);
+            LocalizationSettings.SelectedLocale = trLocale;
+
+            LocalizationManager.OnLanguageChanged -= handler;
+
+            Assert.IsTrue(eventFired, "External change to SelectedLocale must fire LocalizationManager.OnLanguageChanged.");
+            Assert.AreEqual(GameLanguage.Turkish, LocalizationManager.CurrentLanguage,
+                "External change to SelectedLocale must synchronize LocalizationManager.CurrentLanguage.");
+        }
+
+        [Test]
+        public void LocalizationManager_RetrievesKeys_DynamicallyAddedToTable()
+        {
+            var enTable = LocalizationManager.EnglishTable;
+            Assert.IsNotNull(enTable);
+
+            string customKey = "test_custom_unique_key_42";
+            string customVal = "Custom Table Value 42";
+
+            enTable.AddEntry(customKey, customVal);
+
+            try
+            {
+                LocalizationManager.SetLanguage(GameLanguage.English);
+                string retrieved = LocalizationManager.Get(customKey);
+                Assert.AreEqual(customVal, retrieved,
+                    "LocalizationManager.Get must retrieve keys created directly in the StringTable.");
+            }
+            finally
+            {
+                enTable.RemoveEntry(customKey);
+            }
+        }
+
+        [Test]
+        public void HowToPlaySection_IsLocalized_InBothLanguages_AcrossMainMenuAndHUD()
+        {
+            // 1. Verify StringTable entries exist for English and Turkish
+            LocalizationManager.SetLanguage(GameLanguage.English);
+            Assert.AreEqual("HOW TO PLAY", LocalizationManager.Get("guide_title"));
+            Assert.AreEqual("1. CONTROLS & LAUNCH", LocalizationManager.Get("guide_h1"));
+            Assert.IsTrue(LocalizationManager.Get("guide_p1").Contains("Drag touch or mouse"));
+            Assert.AreEqual("4. POWERUPS & HAZARDS", LocalizationManager.Get("guide_h4"));
+            Assert.IsTrue(LocalizationManager.Get("guide_p4").Contains("Clutch Countdown"));
+
+            LocalizationManager.SetLanguage(GameLanguage.Turkish);
+            Assert.AreEqual("NASIL OYNANIR", LocalizationManager.Get("guide_title"));
+            Assert.AreEqual("1. KONTROLLER VE FIRLATMA", LocalizationManager.Get("guide_h1"));
+            Assert.IsTrue(LocalizationManager.Get("guide_p1").Contains("parmağınızı veya fareyi"));
+            Assert.AreEqual("4. GÜÇLENDİRMELER VE TEHLİKELER", LocalizationManager.Get("guide_h4"));
+            Assert.IsTrue(LocalizationManager.Get("guide_p4").Contains("Kritik Geri Sayım"));
+
+            // 2. Verify MainMenuUI.uxml has named elements
+            var menuTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MainMenuUI.uxml");
+            Assert.IsNotNull(menuTree);
+            var menuRoot = menuTree.CloneTree();
+            Assert.IsNotNull(menuRoot.Q<Label>("modal-title-how-to-play"), "modal-title-how-to-play must exist in MainMenuUI.");
+            Assert.IsNotNull(menuRoot.Q<Label>("guide-h1"), "guide-h1 must exist in MainMenuUI.");
+            Assert.IsNotNull(menuRoot.Q<Label>("guide-p1"), "guide-p1 must exist in MainMenuUI.");
+            Assert.IsNotNull(menuRoot.Q<Label>("guide-h4"), "guide-h4 must exist in MainMenuUI.");
+            Assert.IsNotNull(menuRoot.Q<Label>("guide-p4"), "guide-p4 must exist in MainMenuUI.");
+
+            // 3. Verify BlockBreakerHUD.uxml has named elements
+            var hudTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/BlockBreakerHUD.uxml");
+            Assert.IsNotNull(hudTree);
+            var hudRoot = hudTree.CloneTree();
+            Assert.IsNotNull(hudRoot.Q<Label>("modal-title-how-to-play"), "modal-title-how-to-play must exist in BlockBreakerHUD.");
+            Assert.IsNotNull(hudRoot.Q<Label>("guide-h1"), "guide-h1 must exist in BlockBreakerHUD.");
+            Assert.IsNotNull(hudRoot.Q<Label>("guide-p1"), "guide-p1 must exist in BlockBreakerHUD.");
+            Assert.IsNotNull(hudRoot.Q<Label>("guide-h4"), "guide-h4 must exist in BlockBreakerHUD.");
+            Assert.IsNotNull(hudRoot.Q<Label>("guide-p4"), "guide-p4 must exist in BlockBreakerHUD.");
         }
 
         [Test]

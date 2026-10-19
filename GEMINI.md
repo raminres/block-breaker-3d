@@ -19,7 +19,7 @@ This file provides foundational mandates, architectural maps, key mathematical c
   - Settings: `Assets/Settings/` (Levels `SO_Level_01` to `SO_Level_15`, `SO_PowerupIcons.asset`, URP Profiles)
   - Localization: `Assets/Localization/` (`Locales/`, `Tables/`, `LocalizationSettings.asset`)
   - UI Assets: `Assets/UI/` (UXML, USS, Fonts, Icons, procedural gradients under `Textures/Gradients/`)
-  - Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 272 EditMode NUnit unit & integration tests)
+  - Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 279 EditMode NUnit unit & integration tests)
 
 ---
 
@@ -27,7 +27,7 @@ This file provides foundational mandates, architectural maps, key mathematical c
 - **Preservation of User-Authored Scene & Assets (STRICT RULE)**: The user directly customizes and hand-tunes `Assets/Scenes/LV_BlockBreaker.unity`, materials (`MI_*`), prefabs (`PF_Background.prefab`, `PF_Walls.prefab`), volume profiles (`SampleSceneProfile.asset`), and gradient textures (`TX_Background_Gradient_*.png`) in the Unity Editor. Agents must **NEVER** run automated scene rebuild menus (`Tools > Arcade > Setup All Block Breaker Scenes`) or overwrite these files.
 - **Zero Runtime Primitives**: DO NOT use `GameObject.CreatePrimitive` at runtime or in scene setups. All objects instantiate directly from `Assets/Prefabs/`.
 - **Decoupled Physics & Visuals**: Physical colliders are placed exclusively on root container objects; 3D visual models reside in child GameObjects with all colliders removed to prevent double-collision glitches and phantom catches.
-- **3D Model Scale Calibration**: When the parent container is scaled $> 1.0\text{u}$ (e.g. root paddle at $5.5\text{u}$), child visual sockets (`visuals`, `frost`, `guns`, `Aperture`) must use calibrated reciprocal local scale ($X = 0.20\text{f}$) so child 3D models display at true 1:1 proportions while preserving parent collider physics and dynamic powerup scaling.
+- **Parent Scale Normalization (1.0 Root Rule)**: All prefab root containers (`PF_Paddle.prefab`, `PF_Ball_Standard.prefab`, `PF_LaserBolt.prefab`) strictly maintain `transform.localScale = Vector3.one`. Sizes and dynamic expansions are driven by child visual sockets (`visuals`, `frost`, `guns`) and root colliders without reciprocal squishing, allowing artists and designers to add child meshes directly at 1:1 scale.
 - **Naming Conventions**:
   - Materials: `MT_*` (Master), `MI_*` (Instance/Variant under `Assets/Materials/BlockBreaker/`)
   - Textures: `TX_*` (`TX_*_BaseColor`, `TX_*_Normal`, `TX_*_Emissive`)
@@ -47,8 +47,9 @@ This file provides foundational mandates, architectural maps, key mathematical c
 | **Arena** | `PF_Walls.prefab` | `Side_Left` ($X = -10.25, H = 30.2$), `Side_Right` ($X = +10.25, H = 30.2$), `Top_Wall` ($Y = 24.25, W = 17.4$), `Chamfer_Left` & `Chamfer_Right` (45° wedges at $\pm 9.40, 23.40$), `KillZone` ($Y = -9.0$, Tag `"KillZone"`). | `ArenaWalls.cs`, decoupled BoxColliders on each boundary with `PM_ArcadeBounce.physicMaterial`. |
 | **Arena** | `PF_Background.prefab` | Root container + child `plane` ($40 \times 80$ quad). | `LevelBackgroundController.cs`, `URP/Unlit` double-sided material (`MI_Background_Gradient.mat`), cosmic textures (`TX_Background_Gradient_A` to `E`, user-managed). |
 | **Arena** | `PF_ShieldWall.prefab` | Root + Child 1 `model` (`MI_ShieldWall.mat`, zero colliders) + Child 2 `vfx` (`ParticleSystem` cyan energy barrier). | `ShieldWall.cs`, root `BoxCollider` (`size = (1, 1, 1)` with `PM_ArcadeBounce.physicMaterial`). Emits 12 particles on ball impact via `shieldVfx.Emit(12)`. |
-| **Paddle** | `PF_Paddle.prefab` | Root ($W=5.5$) + sockets calibrated to local scale $X=0.20\text{f}$: `visuals` (`Deck`, `Chassis`, `Keel` from `SM_Paddle.fbx`), `guns` (`Muzzle_Left`, `Muzzle_Right`), `laser_gun` (`Aperture` with `VFX_Railgun_HyperBeam`), `frost` (freeze shell), `dock_point` (`(0, 0.88f, 0)`), `vfx` (sparks). | `PaddleController.cs`, `PaddleLaserController.cs`. Root `BoxCollider` ($W=5.0, H=0.24, Z=1.0$ at center $Y=+0.38$) with `PM_ArcadeBounce.physicMaterial`. |
-| **Ball** | `PF_Ball_Standard.prefab` | Root + child visual sphere mesh + `TrailRenderer`. | `BallController.cs`, root `SphereCollider` (radius 0.4, $D = 0.8\text{u}$), `Rigidbody` (interpolate, continuous dynamic, velocity-driven). |
+| **Paddle** | `PF_Paddle.prefab` | Root ($W=5.0$, scale 1.0) + child sockets scale 1.0: `visuals` (`Deck`, `Chassis`, `Keel` from `SM_Paddle.fbx`), `guns` (`Muzzle_Left`, `Muzzle_Right`), `laser_gun` (`Aperture` with `VFX_Railgun_HyperBeam`), `frost` (freeze shell), `dock_point` (`(0, 0.88f, 0)`), `vfx` (sparks). | `PaddleController.cs`, `PaddleLaserController.cs`. Root `BoxCollider` ($W=5.0, H=0.24, Z=2.8$ at center $Y=+0.38$) with `PM_ArcadeBounce.physicMaterial`. Dynamic width scaling adjusts child visual sockets. |
+| **Projectiles** | `PF_LaserBolt.prefab` | Root (scale 1.0) + Child 1 `model` (Capsule scale $0.18, 0.55, 0.18$). | `LaserBolt.cs`, root `CapsuleCollider` trigger ($D=0.18, H=1.1$), continuous sweep raycast. |
+| **Ball** | `PF_Ball_Standard.prefab` | Root (scale 1.0) + Child 1 `model` (Sphere scale $0.70, 0.70, 0.70$) + Child 2 `trail` + Child 3 `vfx`. | `BallController.cs`, root `SphereCollider` (radius 0.35, $D = 0.7\text{u}$), `Rigidbody` (interpolate, continuous dynamic, velocity-driven). |
 | **Blocks** | `PF_Block_Base.prefab`<br>`PF_Block_Red.prefab`<br>`PF_Block_Green.prefab`<br>`PF_Block_Blue.prefab`<br>`PF_Block_Bomb.prefab`<br>`PF_Block_Glass.prefab` | 4 standardized child sockets:<br>1. `brick`: PBR visual mesh (zero colliders).<br>2. `brick frost`: Ice encasement shell.<br>3. `brick special`: UI Toolkit badge element (`BlockBadge`).<br>4. `brick vfx`: Burst anchor. | `Block.cs`, root `BoxCollider` ($W = 1.15, H = 0.55, Z = 1.0$), `MaterialPropertyBlock` zero-allocation tinting. |
 | **Drops** | `PF_Drop_Powerup.prefab`<br>`PF_Drop_Hazard.prefab` | Root container + Child 1 visual mesh (Capsule scale 0.85 / Diamond Cube scale 0.72) + Child 2 `Icon_Billboard` ($Z = -0.6\text{f}$). | `PowerupCapsule.cs`, trigger `BoxCollider`, tumbling rotation ($120^\circ/\text{s}$), fall speed $4.5\text{ u/s}$ at $Z = -1.0\text{f}$. |
 
@@ -135,7 +136,7 @@ This file provides foundational mandates, architectural maps, key mathematical c
 - **Lone Block Countdown**: Triggered when exactly 1 brick remains. Starts a 12s countdown with score multiplier decaying from $10\times \to 1\times$.
 - **Railgun Hyper-Beam**: On countdown expiration, fires vertical railgun beam ($W \approx 3.2$, surge duration $0.65\text{s}$), destroying remaining bricks.
 - **Victory Freeze**: When level clears, freeze all ball velocities, lock paddle input, freeze falling capsules, wait $1.0\text{s}$ (or $1.5\text{s}$ for Hyper-Beam) before displaying scorecard.
-- **15-Level Campaign**: High-density grids (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with outer flank bumper blocks. Ball speed scales from $0.92\times$ to $1.48\times$, paddle narrows from $5.5\text{u}$ to $4.5\text{u}$, and hazards escalate from 0 to 13.
+- **15-Level Campaign**: High-density grids (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with outer flank bumper blocks. Ball speed scales from $0.92\times$ to $1.48\times$, paddle narrows from $5.0\text{u}$ to $4.5\text{u}$, and hazards escalate from 0 to 13.
 - **Onboarding Block Scale (+20% on Levels 1–3)**: Levels 1, 2, and 3 (`SO_Level_01`, `SO_Level_02`, `SO_Level_03`) feature enlarged blocks (`blockSize = 1.20f`) with adjusted horizontal spacing ($1.50\text{u}, 1.45\text{u}, 1.40\text{u}$) to maximize readability and touch targeting comfort while strictly preserving $> 1.0\text{u}$ clearance to arena walls ($X = \pm 10.25$). Levels 4–15 retain standard $1.00\text{u}$ scale. Runtime setters: `SetBlockSize`, `SetHorizontalSpacing`, `SetVerticalSpacing` in `LevelConfiguration.cs`.
 
 ---
@@ -156,7 +157,7 @@ Use this architectural lookup table to locate subsystems, classes, and responsib
 | **Game Coordinator** | `Assets/Scripts/Core/ArcadeGameManager.cs` | Scene Coordinator GameObject | Lives, score multiplier combos, clutch countdown, hyper-beam railgun sequence, victory freeze, scorecard popup. |
 | **Responsive Camera** | `Assets/Scripts/Core/ResponsiveCameraController.cs` | Main Camera in both scenes | Calculates distance required to fit $23 \times 32.5$ arena across any device aspect ratio (16:9, 9:16, 19.5:9), host for `UniversalAdditionalCameraData`. |
 | **Audio Engine** | `Assets/Scripts/Audio/ArcadeAudioManager.cs` | `AudioManager` persistent GameObject | Plays custom SFX (`AU_*`) with algorithmic fallback synthesis (pops, cracks, chimes, sirens). |
-| **Localization** | `Assets/Scripts/Core/LocalizationManager.cs` | `Assets/Localization/Tables/ArcadeTable.asset` | Unity Localization Tables (`com.unity.localization`), multi-locale table queries (`en`/`tr`), fallback dictionary. |
+| **Localization** | `Assets/Scripts/Core/LocalizationManager.cs` | `Assets/Localization/Tables/ArcadeTable.asset` | Unity Localization Tables (`com.unity.localization`), runtime `StringDatabase` & `StringTable` queries, two-way `SelectedLocale` sync. |
 | **Localization Tool** | `Assets/Editor/SetupLocalizationTables.cs` | Menu: `Tools/Arcade/Setup Localization Tables` | Generates and populates StringTableCollection, Locales, and setting assets. |
 | **UI HUD & Menu** | `Assets/Scripts/UI/BlockBreakerHUD.cs`<br>`Assets/Scripts/UI/MainMenuUIManager.cs`<br>`Assets/Scripts/UI/ArcadeUIManager.cs`<br>`Assets/Scripts/UI/SafeAreaController.cs` | `Assets/UI/BlockBreakerHUD.uxml`<br>`Assets/UI/MainMenuUI.uxml` | Unity 6 PanelRenderer HUD dashboard pods, transparent main menu overlay, menu options parity, custom mute toggles, radiant glow styling, safe-area insets. |
 | **Scene Generator** | `Assets/Editor/SetupBlockBreakerScenes.cs` | Menu: `Tools/Arcade/Setup All Block Breaker Scenes` | Reference generator for scenes and prefabs (DO NOT RUN DESTRUCTIVELY over user scene modifications). |
@@ -164,7 +165,7 @@ Use this architectural lookup table to locate subsystems, classes, and responsib
 ---
 
 ## 10. Testing & Verification Command
-All logic, boundaries, prefabs, hazards, scene setups, localization tables, touch ergonomics, and level scaling are strictly verified by **272 automated EditMode NUnit tests**. To execute:
+All logic, boundaries, prefabs, hazards, scene setups, localization tables, touch ergonomics, and level scaling are strictly verified by **279 automated EditMode NUnit tests**. To execute:
 ```bash
 unity cmd run_tests --mode editor --timeout 90
 ```

@@ -31,11 +31,11 @@ namespace Arcade.Editor
             GameObject rootGo = new GameObject("PF_Ball_Standard");
             rootGo.transform.position = Vector3.zero;
             rootGo.transform.rotation = Quaternion.identity;
-            rootGo.transform.localScale = new Vector3(0.7f, 0.7f, 0.7f);
+            rootGo.transform.localScale = Vector3.one;
 
             // 1. Root SphereCollider & Rigidbody
             var col = rootGo.AddComponent<SphereCollider>();
-            col.radius = 0.5f;
+            col.radius = 0.35f;
             col.center = Vector3.zero;
             if (physBounce != null) col.sharedMaterial = physBounce;
 
@@ -52,7 +52,7 @@ namespace Arcade.Editor
             modelGo.transform.SetParent(rootGo.transform, false);
             modelGo.transform.localPosition = Vector3.zero;
             modelGo.transform.localRotation = Quaternion.identity;
-            modelGo.transform.localScale = Vector3.one;
+            modelGo.transform.localScale = new Vector3(0.7f, 0.7f, 0.7f);
 
             var modelCol = modelGo.GetComponent<Collider>();
             if (modelCol != null) Object.DestroyImmediate(modelCol);

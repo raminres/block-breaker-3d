@@ -1911,8 +1911,8 @@ namespace Arcade.Tests
             Assert.AreEqual(42, config.TotalBlocks);
             Assert.AreEqual(LevelLayoutType.Pyramid, config.LayoutType);
 
-            // Generous warmup paddle and comfortable speed
-            Assert.AreEqual(5.5f, config.InitialPaddleWidth, 0.001f);
+            // Standard paddle width and comfortable speed
+            Assert.AreEqual(5.0f, config.InitialPaddleWidth, 0.001f);
             Assert.AreEqual(0.92f, config.BallSpeedMultiplier, 0.001f);
 
             // Single paddle expander reward, zero hazards
@@ -2360,7 +2360,7 @@ namespace Arcade.Tests
                 if (i == 1)
                 {
                     Assert.AreEqual(0, totalHazards, "Level 1 must have 0 hazards as tutorial warmup.");
-                    Assert.AreEqual(5.5f, cfg.InitialPaddleWidth, 0.01f);
+                    Assert.AreEqual(5.0f, cfg.InitialPaddleWidth, 0.01f);
                 }
                 else
                 {

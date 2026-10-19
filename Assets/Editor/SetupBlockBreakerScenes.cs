@@ -38,7 +38,7 @@ namespace Arcade.Editor
             // Level 1: First Flight (Pyramid) - Warmup
             CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_01.asset", 1, "Level 1: First Flight",
                 "Gentle warmup stepped pyramid with comfortable ball speed. Introduces the Paddle Expander to widen your paddle and master bounce angles.",
-                BlockColorPattern.InvertedTiered, LevelLayoutType.Pyramid, 11, 2, 0.92f, 5.5f,
+                BlockColorPattern.InvertedTiered, LevelLayoutType.Pyramid, 11, 2, 0.92f, 5.0f,
                 mult2x: 0, mult3x: 0, mult4x: 0, mult5x: 0, expanders: 1, bombs: 0, glass: 0, heart: 0, shield: 0, multiBall: 0,
                 laser: 0, customLayout: null, shieldDuration: 10f,
                 parTime: 35f, timeBonusMax: 2500, starThresholds: new[] { 500, 1200, 2200 },
