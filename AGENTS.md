@@ -143,3 +143,25 @@ High-density technical context and architectural rules for BlockBreaker.
   - `Assets/Textures/Backgrounds/` (`TX_Background_Gradient_*.png`)
 - **NEVER OVERWRITE USER WORK**: Agents must **NEVER** run automated scene reconstruction scripts (such as `Tools > Arcade > Setup All Block Breaker Scenes`) or overwrite these files.
 - Scene generator scripts (e.g. [SetupBlockBreakerScenes.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Editor/SetupBlockBreakerScenes.cs)) exist solely as reference builders; do NOT execute them destructively across sessions. All modifications must be targeted and respect user craftsmanship.
+
+---
+
+## 9. Current Handoff State & Verification
+- **Active Branch**: `feature/3d-models-and-scale-fixes` (Up to date with origin, clean working tree)
+- **Head Commit**: `08eebfa`
+- **Automated Tests**: 272/272 EditMode tests passing (100% pass rate)
+- **Verification Command**:
+  ```bash
+  unity cmd run_tests --mode editor --timeout 90
+  ```
+- **Recompile Command**:
+  ```bash
+  unity cmd recompile
+  ```
+- **Recent Milestones Completed**:
+  1. **3D Paddle Model Calibration**: Integrated `SM_Paddle.fbx` meshes into `PF_Paddle.prefab` with reciprocal $X = 0.20\text{f}$ socket scaling on children (`visuals`, `frost`, `guns`, `Aperture`) to eliminate double scaling under root width $5.5\text{u}$ and dynamic expander buffs.
+  2. **Lighting & Post-Processing Calibrations**: Added `UniversalAdditionalCameraData` to `Main Camera` with `renderPostProcessing = true`, removed skybox reflection artifacts (`RenderSettings.skybox = null`, `defaultReflectionMode = Custom`), calibrated candy block shaders and neon bloom.
+  3. **Tactile 3D Extruded UI & Glow**: Propagated 3D extruded push buttons (`:active` translation), radiant pod glows, and animated mute toggles across both HUD and Main Menu.
+  4. **Mobile Ergonomics & Safe Area**: Full iPhone 15 / 15 Pro Dynamic Island adaptation (`SafeAreaController`), iOS system gesture double-swipe deferral, and bottom touch guideline.
+  5. **15-Level Campaign & Onboarding Scale**: Full high-density campaign with +20% block scale on Levels 1–3 for onboarding readability.
+
