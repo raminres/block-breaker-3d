@@ -167,11 +167,11 @@ namespace Arcade.Tests
 
             try
             {
-                // Temporarily alter the table entry to a value NOT in FallbackStrings
+                // Temporarily alter the table entry to a custom runtime value
                 entry.Value = "START RUNTIME ADVENTURE";
                 string resolved = LocalizationManager.Get("menu_start_new");
                 Assert.AreEqual("START RUNTIME ADVENTURE", resolved,
-                    "LocalizationManager.Get must read directly from the StringTable rather than FallbackStrings!");
+                    "LocalizationManager.Get must read directly from the StringTable!");
             }
             finally
             {
@@ -214,7 +214,7 @@ namespace Arcade.Tests
         }
 
         [Test]
-        public void LocalizationManager_RetrievesKeys_NotFoundInFallbackDictionary()
+        public void LocalizationManager_RetrievesKeys_DynamicallyAddedToTable()
         {
             var enTable = LocalizationManager.EnglishTable;
             Assert.IsNotNull(enTable);
@@ -229,7 +229,7 @@ namespace Arcade.Tests
                 LocalizationManager.SetLanguage(GameLanguage.English);
                 string retrieved = LocalizationManager.Get(customKey);
                 Assert.AreEqual(customVal, retrieved,
-                    "LocalizationManager.Get must retrieve keys created directly in the StringTable even if not present in any script fallback dictionary.");
+                    "LocalizationManager.Get must retrieve keys created directly in the StringTable.");
             }
             finally
             {
