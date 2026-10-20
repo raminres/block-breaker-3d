@@ -41,6 +41,7 @@ namespace Arcade.Tests
             // 2. Billboard Sprite Icon
             var icon = go.transform.Find("Icon_Billboard");
             Assert.IsNotNull(icon, "Must have child 'Icon_Billboard'.");
+            Assert.AreEqual(LayerMask.NameToLayer("UI"), icon.gameObject.layer, "Icon_Billboard must be on the UI layer to bypass Bloom.");
             Assert.IsNotNull(icon.GetComponent<SpriteRenderer>(), "Icon_Billboard must have SpriteRenderer.");
 
             // 3. Falling Particle Trail VFX
@@ -68,6 +69,7 @@ namespace Arcade.Tests
             // 2. Billboard Sprite Icon
             var icon = go.transform.Find("Icon_Billboard");
             Assert.IsNotNull(icon, "Must have child 'Icon_Billboard'.");
+            Assert.AreEqual(LayerMask.NameToLayer("UI"), icon.gameObject.layer, "Icon_Billboard must be on the UI layer to bypass Bloom.");
             Assert.IsNotNull(icon.GetComponent<SpriteRenderer>(), "Icon_Billboard must have SpriteRenderer.");
 
             // 3. Falling Particle Trail VFX

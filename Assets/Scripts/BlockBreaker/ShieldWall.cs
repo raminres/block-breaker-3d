@@ -122,6 +122,17 @@ namespace Arcade.BlockBreaker
                 shieldVfx = vfxChild.GetComponent<ParticleSystem>() ?? vfxChild.GetComponentInChildren<ParticleSystem>();
             }
 
+            if (shieldVfx != null)
+            {
+                var vel = shieldVfx.velocityOverLifetime;
+                if (vel.enabled)
+                {
+                    vel.x = new ParticleSystem.MinMaxCurve(-0.1f, 0.1f);
+                    vel.y = new ParticleSystem.MinMaxCurve(0.2f, 0.6f);
+                    vel.z = new ParticleSystem.MinMaxCurve(0f, 0f);
+                }
+            }
+
             if (meshRenderer == null)
             {
                 if (modelChild != null)
@@ -382,7 +393,17 @@ namespace Arcade.BlockBreaker
         {
             if (!gameObject.activeInHierarchy || !Application.isPlaying) return;
 
-            if (shieldVfx != null) shieldVfx.Emit(12);
+            if (shieldVfx != null)
+            {
+                try
+                {
+                    shieldVfx.Emit(12);
+                }
+                catch (System.Exception)
+                {
+                    // Guard against any particle emission errors
+                }
+            }
 
             if (hitPulseCoroutine != null)
             {
@@ -418,6 +439,11 @@ namespace Arcade.BlockBreaker
 
             if (ball != null)
             {
+                if (collision.contacts.Length > 0 && collision.contacts[0].normal.y < BallController.MIN_UPWARD_NORMAL_Y)
+                {
+                    // Underside impact from beneath shield: do not deflect upward
+                    return;
+                }
                 Vector3 contact = collision.contacts.Length > 0 ? collision.contacts[0].point : transform.position;
                 ball.BounceFromShield(contact);
                 PulseOnHit();

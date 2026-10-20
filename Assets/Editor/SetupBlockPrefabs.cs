@@ -86,6 +86,8 @@ namespace Arcade.Editor
 
             // Child 3: brick special (special sprite/ui element)
             GameObject specialGo = new GameObject("brick special");
+            int uiLayer = LayerMask.NameToLayer("UI");
+            if (uiLayer != -1) specialGo.layer = uiLayer;
             specialGo.transform.SetParent(baseGo.transform);
             specialGo.transform.localPosition = new Vector3(0f, 0f, -0.52f);
             specialGo.transform.localRotation = Quaternion.identity;

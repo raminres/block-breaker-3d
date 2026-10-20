@@ -55,6 +55,7 @@ namespace Arcade.Tests
 
                 var special = root.transform.Find("brick special");
                 Assert.IsNotNull(special, $"{path} must have child 'brick special' (UI/sprite element).");
+                Assert.AreEqual(LayerMask.NameToLayer("UI"), special.gameObject.layer, $"{path} 'brick special' must be on the UI layer to bypass Bloom.");
                 Assert.IsNotNull(special.GetComponent<PanelRenderer>(), $"{path} child 'brick special' must have PanelRenderer.");
                 Assert.IsNotNull(special.GetComponent<BlockBadge>(), $"{path} child 'brick special' must have BlockBadge.");
 

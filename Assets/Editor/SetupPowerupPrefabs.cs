@@ -83,6 +83,8 @@ namespace Arcade.Editor
 
             // 2. Child 'Icon_Billboard' (Billboard Icon)
             GameObject spriteGo = new GameObject("Icon_Billboard");
+            int uiLayer = LayerMask.NameToLayer("UI");
+            if (uiLayer != -1) spriteGo.layer = uiLayer;
             spriteGo.transform.SetParent(rootGo.transform);
             spriteGo.transform.localPosition = new Vector3(0f, 0f, -0.60f);
             spriteGo.transform.localRotation = Quaternion.identity;

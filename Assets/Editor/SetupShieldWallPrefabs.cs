@@ -88,7 +88,9 @@ namespace Arcade.Editor
 
             var vel = ps.velocityOverLifetime;
             vel.enabled = true;
+            vel.x = new ParticleSystem.MinMaxCurve(-0.1f, 0.1f);
             vel.y = new ParticleSystem.MinMaxCurve(0.2f, 0.6f);
+            vel.z = new ParticleSystem.MinMaxCurve(0f, 0f);
 
             // 4. Wire Serialized Fields on ShieldWall
             var so = new SerializedObject(shieldWall);

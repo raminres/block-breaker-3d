@@ -385,6 +385,11 @@ namespace Arcade.BlockBreaker
             }
 
             iconTransform = primaryIcon;
+            if (iconTransform != null && iconTransform.gameObject.layer == 0)
+            {
+                int uiLayer = LayerMask.NameToLayer("UI");
+                if (uiLayer != -1) iconTransform.gameObject.layer = uiLayer;
+            }
 
             // Strip any MeshFilter, MeshRenderer, or Collider on the icon child
             var strayMf = iconTransform.GetComponent<MeshFilter>();

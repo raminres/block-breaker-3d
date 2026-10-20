@@ -381,6 +381,17 @@ namespace Arcade.BlockBreaker
                 transform.position = pos;
             }
 
+            // Absolute safety floor: If the ball escapes past the KillZone (e.g. tunneling or physics overshoot below Y = -11.5f),
+            // immediately trigger HandleBallFell so the game never stalls with zombie balls.
+            if (pos.y < -11.5f)
+            {
+                if (ArcadeGameManager.Instance != null)
+                {
+                    ArcadeGameManager.Instance.HandleBallFell(this);
+                }
+                return;
+            }
+
             // Dynamic time-based speed escalation during active volleys
             if (ArcadeGameManager.Instance == null || ArcadeGameManager.Instance.State == GameState.Playing)
             {
@@ -397,6 +408,7 @@ namespace Arcade.BlockBreaker
             }
 
             UpdatePaddlePassThrough();
+            UpdateShieldPassThrough();
         }
 
         /// <summary>
@@ -554,6 +566,8 @@ namespace Arcade.BlockBreaker
 
             SetEmitting(false);
             Clear();
+            RestorePaddleCollision();
+            RestoreShieldCollision();
         }
 
         public void SetBallActive(bool active)
@@ -705,6 +719,11 @@ namespace Arcade.BlockBreaker
                 ?? collision.gameObject.GetComponentInParent<ShieldWall>();
             if (shield != null)
             {
+                if (collision.contacts.Length > 0 && collision.contacts[0].normal.y < MIN_UPWARD_NORMAL_Y)
+                {
+                    // Underside impact: do not deflect upward
+                    return;
+                }
                 Vector3 contactPoint = collision.contacts.Length > 0 ? collision.contacts[0].point : transform.position;
                 BounceFromShield(contactPoint);
                 shield.PulseOnHit();
@@ -997,9 +1016,12 @@ namespace Arcade.BlockBreaker
             float inX = inVel.x;
             float inY = Mathf.Abs(inVel.y); // Upward reflection normal
 
+            float speed = currentSpeed > 0.01f ? currentSpeed : (inVel.magnitude > 0.01f ? inVel.magnitude : baseSpeed);
+            currentSpeed = speed;
+
             if (Mathf.Abs(inX) < 0.01f && inY < 0.01f)
             {
-                inY = currentSpeed > 0f ? currentSpeed : baseSpeed;
+                inY = speed;
             }
 
             // Natural upward reflection angle (0 to 180 degrees)
@@ -1023,7 +1045,7 @@ namespace Arcade.BlockBreaker
             float rad = outAngleDeg * Mathf.Deg2Rad;
             Vector3 outDir = new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f).normalized;
 
-            rb.linearVelocity = outDir * currentSpeed;
+            rb.linearVelocity = outDir * speed;
 
             consecutiveSideWallBounces = 0; // Reset consecutive wall bounces on shield save
 
@@ -1092,6 +1114,61 @@ namespace Arcade.BlockBreaker
                 if (ballCollider != null && paddle != null && paddle.PaddleCollider != null)
                 {
                     Physics.IgnoreCollision(ballCollider, paddle.PaddleCollider, false);
+                }
+            }
+        }
+
+        private bool isShieldCollisionIgnored = false;
+        private ShieldWall cachedShieldWall = null;
+
+        /// <summary>
+        /// Allows balls traveling upward beneath the Shield Wall to pass freely through the bottom deck
+        /// so they can re-enter the playfield cleanly without getting trapped or slammed downward into the killzone.
+        /// </summary>
+        private void UpdateShieldPassThrough()
+        {
+            if (cachedShieldWall == null || !cachedShieldWall.gameObject.activeInHierarchy)
+            {
+                if (isShieldCollisionIgnored)
+                {
+                    RestoreShieldCollision();
+                }
+                cachedShieldWall = FindAnyObjectByType<ShieldWall>();
+                if (cachedShieldWall == null || !cachedShieldWall.gameObject.activeInHierarchy) return;
+            }
+
+            var shieldCol = cachedShieldWall.BoxCollider;
+            if (shieldCol == null) return;
+
+            if (ballCollider == null) ballCollider = GetComponent<Collider>();
+            if (ballCollider == null) return;
+
+            // Shield top deck is at cachedShieldWall.transform.position.y + 0.225f (~ -7.375f)
+            float shieldDeckY = cachedShieldWall.transform.position.y + 0.25f;
+
+            // If ball is below the shield's top deck and moving UPWARDS,
+            // ignore collision with the shield wall so it can phase upward without hitting the bottom
+            bool shouldIgnore = (transform.position.y < shieldDeckY) && (rb.linearVelocity.y > 0.05f);
+
+            if (shouldIgnore != isShieldCollisionIgnored)
+            {
+                isShieldCollisionIgnored = shouldIgnore;
+                Physics.IgnoreCollision(ballCollider, shieldCol, shouldIgnore);
+            }
+        }
+
+        /// <summary>
+        /// Restores solid shield collision if it was temporarily disabled for anti-trap passthrough.
+        /// </summary>
+        public void RestoreShieldCollision()
+        {
+            if (isShieldCollisionIgnored)
+            {
+                isShieldCollisionIgnored = false;
+                if (ballCollider == null) ballCollider = GetComponent<Collider>();
+                if (cachedShieldWall != null && cachedShieldWall.BoxCollider != null && ballCollider != null)
+                {
+                    Physics.IgnoreCollision(ballCollider, cachedShieldWall.BoxCollider, false);
                 }
             }
         }

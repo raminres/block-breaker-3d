@@ -105,5 +105,20 @@ namespace Arcade.Tests
 
             Object.DestroyImmediate(instance);
         }
+
+        [Test]
+        public void ShieldWallPrefab_ParticleVelocityCurves_AllInSameMode()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            Assert.IsNotNull(prefab, "PF_ShieldWall.prefab must load.");
+            var wall = prefab.GetComponent<ShieldWall>();
+            var ps = wall.ShieldVfx;
+            Assert.IsNotNull(ps);
+
+            var vel = ps.velocityOverLifetime;
+            Assert.IsTrue(vel.enabled);
+            Assert.AreEqual(vel.y.mode, vel.x.mode, "vel.x and vel.y must be in the same ParticleSystemCurveMode.");
+            Assert.AreEqual(vel.y.mode, vel.z.mode, "vel.z and vel.y must be in the same ParticleSystemCurveMode.");
+        }
     }
 }

@@ -5552,6 +5552,114 @@ namespace Arcade.Tests
             Object.DestroyImmediate(wallGo);
         }
 
+        [Test]
+        public void CameraStacking_LV_BlockBreaker_ConfiguredCorrectly()
+        {
+            string scenePath = "Assets/Scenes/LV_BlockBreaker.unity";
+            Assert.IsTrue(System.IO.File.Exists(scenePath), "LV_BlockBreaker.unity must exist.");
+            string yaml = System.IO.File.ReadAllText(scenePath);
+
+            // 1. Verify UICamera exists and is configured as an overlay camera without post-processing
+            Assert.IsTrue(yaml.Contains("m_Name: UICamera"), "Scene must contain UICamera.");
+            Assert.IsTrue(yaml.Contains("m_TagString: Untagged"), "UICamera must not be tagged MainCamera.");
+            Assert.IsTrue(yaml.Contains("m_CameraType: 1"), "UICamera must be an Overlay camera (m_CameraType: 1).");
+            Assert.IsTrue(yaml.Contains("m_RenderPostProcessing: 0"), "UICamera must have post-processing disabled.");
+            Assert.IsTrue(yaml.Contains("m_Bits: 32"), "UICamera culling mask must target layer 5 (UI, bit 32).");
+
+            // 2. Verify Main Camera culling mask excludes UI layer and has UICamera in its camera stack
+            Assert.IsTrue(yaml.Contains("m_Bits: 4294967263"), "Main Camera culling mask must exclude UI layer (~32).");
+            Assert.IsTrue(yaml.Contains("m_Cameras:\n  - {fileID: 40449609}") || yaml.Contains("m_Cameras:\r\n  - {fileID: 40449609}"),
+                "Main Camera UniversalAdditionalCameraData must include UICamera in its cameraStack.");
+
+            // 3. Verify UICamera is parented to Main Camera
+            Assert.IsTrue(yaml.Contains("m_Father: {fileID: 1730726421}"), "UICamera must be a child of Main Camera.");
+        }
+
+        [Test]
+        public void HandleBallFell_WithActiveShield_RepositionsBallAboveShieldDeck()
+        {
+            var gmGo = new GameObject("TestGM");
+            var gm = gmGo.AddComponent<Arcade.Core.ArcadeGameManager>();
+            Arcade.Core.ArcadeGameManager.SetInstanceForTesting(gm);
+
+            // Set state to Playing
+            var stateField = typeof(Arcade.Core.ArcadeGameManager).GetField("currentState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            stateField.SetValue(gm, Arcade.Core.GameState.Playing);
+
+            // Activate shield
+            var shieldField = typeof(Arcade.Core.ArcadeGameManager).GetField("isShieldActive", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            shieldField.SetValue(gm, true);
+
+            var wallGo = new GameObject("TestWall");
+            var wall = wallGo.AddComponent<ShieldWall>();
+            wall.EnsureComponents();
+            wall.Activate(10f);
+            gm.RegisterShieldWall(wall);
+
+            var ballGo = new GameObject("TestBall");
+            ballGo.AddComponent<SphereCollider>();
+            var rb = ballGo.AddComponent<Rigidbody>();
+            rb.useGravity = false;
+            var ball = ballGo.AddComponent<BallController>();
+            ballGo.transform.position = new Vector3(2.0f, -9.0f, 0f);
+
+            // Register ball in GM
+            var regMethod = typeof(Arcade.Core.ArcadeGameManager).GetMethod("RegisterBall", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            regMethod.Invoke(gm, new object[] { ball });
+
+            // Call HandleBallFell
+            gm.HandleBallFell(ball);
+
+            // Verify ball position was safely lifted above shield top deck (Y = -7.2)
+            Assert.AreEqual(-7.2f, ball.transform.position.y, 0.05f, "Saved ball must be repositioned to Y = -7.2 safely above shield.");
+            Assert.AreEqual(2.0f, ball.transform.position.x, 0.05f, "Saved ball must preserve horizontal X position clamped within arena.");
+            Assert.IsTrue(rb.linearVelocity.y > 0f, "Saved ball must have upward linearVelocity.");
+            Assert.AreEqual(Arcade.Core.GameState.Playing, gm.State, "Game state must remain Playing.");
+
+            Object.DestroyImmediate(ballGo);
+            Object.DestroyImmediate(wallGo);
+            Object.DestroyImmediate(gmGo);
+        }
+
+        [Test]
+        public void HandleBallFell_WithActiveShield_DeepAbyssBallFallsThrough()
+        {
+            var gmGo = new GameObject("TestGM");
+            var gm = gmGo.AddComponent<Arcade.Core.ArcadeGameManager>();
+            Arcade.Core.ArcadeGameManager.SetInstanceForTesting(gm);
+
+            var stateField = typeof(Arcade.Core.ArcadeGameManager).GetField("currentState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            stateField.SetValue(gm, Arcade.Core.GameState.Playing);
+
+            var shieldField = typeof(Arcade.Core.ArcadeGameManager).GetField("isShieldActive", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            shieldField.SetValue(gm, true);
+
+            var wallGo = new GameObject("TestWall");
+            var wall = wallGo.AddComponent<ShieldWall>();
+            wall.EnsureComponents();
+            wall.Activate(10f);
+            gm.RegisterShieldWall(wall);
+
+            var ballGo = new GameObject("TestBall");
+            ballGo.AddComponent<SphereCollider>();
+            var rb = ballGo.AddComponent<Rigidbody>();
+            rb.useGravity = false;
+            var ball = ballGo.AddComponent<BallController>();
+            ballGo.transform.position = new Vector3(0f, -12.0f, 0f); // Deep abyss below -11.0f
+
+            var regMethod = typeof(Arcade.Core.ArcadeGameManager).GetMethod("RegisterBall", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            regMethod.Invoke(gm, new object[] { ball });
+
+            gm.HandleBallFell(ball);
+
+            // Must NOT be saved by shield because it's past the abyss floor
+            Assert.AreEqual(Arcade.Core.GameState.BallLost, gm.State, "Deep abyss ball below -11.0f must transition to BallLost.");
+
+            Object.DestroyImmediate(ballGo);
+            Object.DestroyImmediate(wallGo);
+            Object.DestroyImmediate(gmGo);
+        }
+
         #endregion
 
         #endregion

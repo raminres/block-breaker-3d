@@ -876,9 +876,9 @@ ParticleSystem:
     enabled: 1
     x:
       serializedVersion: 3
-      minMaxState: 0
-      scalar: 0
-      minScalar: 0
+      minMaxState: 3
+      scalar: 0.1
+      minScalar: -0.1
       maxCurve:
         serializedVersion: 2
         m_Curve: []
@@ -910,7 +910,7 @@ ParticleSystem:
         m_RotationOrder: 4
     z:
       serializedVersion: 3
-      minMaxState: 0
+      minMaxState: 3
       scalar: 0
       minScalar: 0
       maxCurve:

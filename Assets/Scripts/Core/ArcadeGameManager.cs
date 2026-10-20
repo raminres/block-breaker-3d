@@ -941,12 +941,28 @@ namespace Arcade.Core
 
             if (isShieldActive)
             {
-                // Shield saves any falling ball! Deflects upward without interrupting play, losing lives, or clearing capsules.
-                if (ball != null)
+                var wall = EnsureShieldWall();
+                if (wall != null && wall.gameObject.activeInHierarchy)
                 {
-                    ball.BounceFromShield(new Vector3(ball.transform.position.x, -7.6f, 0f));
+                    if (ball != null)
+                    {
+                        // If the ball has dropped deeply past the arena floor (y < -11.0f),
+                        // it cannot be saved by the shield and must fall through to normal lost handling.
+                        if (ball.transform.position.y >= -11.0f)
+                        {
+                            // Shield saves falling ball: safely reposition above the shield top deck
+                            Vector3 savePos = ball.transform.position;
+                            savePos.y = -7.2f;
+                            savePos.x = Mathf.Clamp(savePos.x, -9.0f, 9.0f);
+                            savePos.z = 0f;
+                            ball.transform.position = savePos;
+
+                            ball.BounceFromShield(savePos);
+                            wall.PulseOnHit();
+                            return;
+                        }
+                    }
                 }
-                return;
             }
 
             if (activeBalls.Count > 1)

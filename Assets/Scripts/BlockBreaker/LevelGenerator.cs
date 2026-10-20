@@ -597,6 +597,8 @@ namespace Arcade.BlockBreaker
         private void CreateBadgeForBlock(GameObject blockObj, BlockSpecialType special)
         {
             GameObject badgeGo = new GameObject("UI_Badge");
+            int uiLayer = LayerMask.NameToLayer("UI");
+            if (uiLayer != -1) badgeGo.layer = uiLayer;
             badgeGo.transform.SetParent(blockObj.transform);
             badgeGo.transform.localPosition = new Vector3(0f, 0f, -0.52f);
             badgeGo.transform.localRotation = Quaternion.identity;

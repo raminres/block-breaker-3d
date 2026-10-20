@@ -80,6 +80,11 @@ namespace Arcade.BlockBreaker
                 var t = transform.Find("brick special");
                 if (t != null) brickSpecial = t.gameObject;
             }
+            if (brickSpecial != null && brickSpecial.layer == 0)
+            {
+                int uiLayer = LayerMask.NameToLayer("UI");
+                if (uiLayer != -1) brickSpecial.layer = uiLayer;
+            }
             if (brickVfx == null)
             {
                 var t = transform.Find("brick vfx");
