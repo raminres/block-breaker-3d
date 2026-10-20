@@ -1950,13 +1950,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5875fd7554e98947b7722801ab0946d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Arcade.Gameplay::Arcade.BlockBreaker.BlockVFXManager
-  shatterVfxAsset: {fileID: 8926484042661614526, guid: 4fdf0950949e5104bb860a2269aba4f6, type: 3}
+  shatterPrefab: {fileID: 9205630907326690141, guid: 78965bd2456d0214db20f5ec1539e07d, type: 3}
   particleMaterial: {fileID: 2100000, guid: f33d2b3b2fbea8245b1c597f63336517, type: 2}
+  debrisMaterial: {fileID: 2100000, guid: e29da11f8c92b13489cde88e28e969d2, type: 2}
+  materialRed: {fileID: 0}
+  materialGreen: {fileID: 0}
+  materialBlue: {fileID: 0}
+  materialGlass: {fileID: 0}
+  largeParticleMeshes: []
+  smallParticleMeshes: []
+  frostParticleMeshes: []
   poolSize: 10
   spawnPhysicalSubBoxes: 1
   debrisPiecesPerBlock: 8
   debrisExplosionForce: 7
-  debrisMaterial: {fileID: 2100000, guid: e29da11f8c92b13489cde88e28e969d2, type: 2}
 --- !u!114 &1587829261
 MonoBehaviour:
   m_ObjectHideFlags: 0

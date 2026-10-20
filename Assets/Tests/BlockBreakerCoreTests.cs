@@ -959,20 +959,23 @@ namespace Arcade.Tests
             Assert.AreEqual(8, vfx.ActiveDebrisCount, "Shattering one block must spawn exactly 8 debris sub-boxes.");
             Assert.AreEqual(1, vfx.ActiveVfxCount, "Shattering one block must track 1 active VFX burst.");
 
-            // Find spawned debris objects
-            var debrisPieces = vfxGo.GetComponentsInChildren<MeshRenderer>(false);
-            Assert.GreaterOrEqual(debrisPieces.Length, 8, "Debris mesh renderers must be active children.");
+            // Find spawned debris particle system renderers
+            var debrisRenderers = vfxGo.GetComponentsInChildren<ParticleSystemRenderer>(false);
+            Assert.GreaterOrEqual(debrisRenderers.Length, 2, "Debris particle system renderers (large & small) must be active children.");
 
-            foreach (var mr in debrisPieces)
+            foreach (var psr in debrisRenderers)
             {
-                // Must use sharedMaterial without cloning
-                Assert.AreEqual(customMat, mr.sharedMaterial, "Debris piece must use sharedMaterial directly to preserve SRP Batcher.");
+                if (psr.renderMode == ParticleSystemRenderMode.Mesh && !psr.gameObject.name.ToLower().Contains("frost"))
+                {
+                    // Must use sharedMaterial without cloning
+                    Assert.AreEqual(customMat, psr.sharedMaterial, "Debris particle renderer must use sharedMaterial directly to preserve SRP Batcher.");
 
-                // Must have MaterialPropertyBlock applied with the tinted color
-                var propBlock = new MaterialPropertyBlock();
-                mr.GetPropertyBlock(propBlock);
-                Color extractedColor = propBlock.GetColor(Shader.PropertyToID("_BaseColor"));
-                Assert.AreEqual(testColor.r, extractedColor.r, 0.01f, "BaseColor in MaterialPropertyBlock must match test block color.");
+                    // Must have MaterialPropertyBlock applied with the tinted color
+                    var propBlock = new MaterialPropertyBlock();
+                    psr.GetPropertyBlock(propBlock);
+                    Color extractedColor = propBlock.GetColor(Shader.PropertyToID("_BaseColor"));
+                    Assert.AreEqual(testColor.r, extractedColor.r, 0.01f, "BaseColor in MaterialPropertyBlock must match test block color.");
+                }
             }
 
             vfx.ClearAllActive();
@@ -981,6 +984,36 @@ namespace Arcade.Tests
 
             Object.DestroyImmediate(vfxGo);
             Object.DestroyImmediate(customMat);
+        }
+
+        [Test]
+        public void BlockVFXManager_PlayFrostShatter_EmitsFrostMeshParticles_WithGlassMaterial()
+        {
+            var vfxGo = new GameObject("TestVFXManager");
+            var vfx = vfxGo.AddComponent<BlockVFXManager>();
+            BlockVFXManager.SetInstanceForTesting(vfx);
+
+            vfx.PlayFrostShatter(Vector3.zero, Vector3.up);
+
+            Assert.AreEqual(8, vfx.ActiveDebrisCount, "Frost shatter must emit 8 frost mesh particles.");
+            Assert.AreEqual(1, vfx.ActiveVfxCount, "Frost shatter must track 1 active VFX burst.");
+
+            var particleRenderers = vfxGo.GetComponentsInChildren<ParticleSystemRenderer>(false);
+            bool foundFrostMeshRenderer = false;
+            foreach (var psr in particleRenderers)
+            {
+                if (psr.gameObject.name.ToLower().Contains("frost") && psr.renderMode == ParticleSystemRenderMode.Mesh)
+                {
+                    foundFrostMeshRenderer = true;
+                    Assert.IsNotNull(psr.sharedMaterial, "Frost particle system renderer must have material assigned.");
+                }
+            }
+            Assert.IsTrue(foundFrostMeshRenderer, "Must have active frost mesh ParticleSystemRenderer.");
+
+            vfx.ClearAllActive();
+            Assert.AreEqual(0, vfx.ActiveDebrisCount, "ClearAllActive must recycle frost debris.");
+
+            Object.DestroyImmediate(vfxGo);
         }
 
         [Test]

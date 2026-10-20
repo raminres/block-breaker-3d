@@ -254,7 +254,7 @@ namespace Arcade.BlockBreaker
                 }
                 if (BlockVFXManager.Instance != null)
                 {
-                    BlockVFXManager.Instance.PlayBlockShatter(transform.position, new Color(0.6f, 0.95f, 1.0f, 0.8f), hitNormal);
+                    BlockVFXManager.Instance.PlayFrostShatter(transform.position, hitNormal);
                 }
 
                 if (requiredDefrostHits <= 0)
@@ -306,7 +306,7 @@ namespace Arcade.BlockBreaker
 
             if (BlockVFXManager.Instance != null)
             {
-                BlockVFXManager.Instance.PlayBlockShatter(transform.position, new Color(0.85f, 0.95f, 1.0f, 0.5f), hitNormal);
+                BlockVFXManager.Instance.PlayGlassShatter(transform.position, hitNormal);
             }
         }
 
@@ -332,10 +332,11 @@ namespace Arcade.BlockBreaker
                 }
             }
 
-            // 2. Trigger VFX Graph Shatter
+            // 2. Trigger VFX Shatter
             if (BlockVFXManager.Instance != null)
             {
-                BlockVFXManager.Instance.PlayBlockShatter(transform.position, particleColor, hitNormal);
+                Material blockMat = originalMaterial != null ? originalMaterial : (meshRenderer != null ? meshRenderer.sharedMaterial : null);
+                BlockVFXManager.Instance.PlayBlockShatter(transform.position, particleColor, hitNormal, blockMat);
             }
 
             bool isCollectible = specialType.IsPowerup() || specialType.IsCollectiblePowerdown();

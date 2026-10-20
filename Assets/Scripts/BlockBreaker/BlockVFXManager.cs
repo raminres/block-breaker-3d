@@ -1,41 +1,48 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace Arcade.BlockBreaker
 {
     /// <summary>
-    /// Spawns particle bursts and physical 3D sub-cube debris particles when blocks shatter and powerups are collected.
-    /// Optimized for zero GC allocations per frame and instant frame-0 PSO prewarming across iOS (Metal), PC (DX12/Vulkan), and Web (WebGPU).
-    /// Employs dedicated URP-native materials and shaders with zero unshaded or pink fallback artifacts.
+    /// Spawns particle bursts and 3D mesh particle debris when blocks shatter and powerups are collected.
+    /// Standardized 100% on Unity's Particle System (Shuriken) for zero GC allocations, instant frame-0 PSO prewarming,
+    /// and universal mobile/desktop/Web stability.
+    /// Emits large and small mesh particles (SM_Block_Large_Particles, SM_Block_Small_Particles) matching block materials,
+    /// and frost mesh particles (SM_Block_Frost_Particles) for glaciated blocks.
     /// </summary>
     public class BlockVFXManager : MonoBehaviour
     {
         public static BlockVFXManager Instance { get; private set; }
 
-        [Header("VFX Configuration")]
-        [SerializeField] private VisualEffectAsset shatterVfxAsset;
-        [SerializeField] private Material particleMaterial;
-        [SerializeField] private int poolSize = 10;
+        [Header("Shuriken Shatter Prefab")]
+        [SerializeField] private GameObject shatterPrefab;
 
-        [Header("Sub-Box Physics Debris")]
-        [SerializeField] private bool spawnPhysicalSubBoxes = true;
-        [SerializeField] private int debrisPiecesPerBlock = 8; // 2x2x2 sub-cubes
-        [SerializeField] private float debrisExplosionForce = 7f;
+        [Header("Materials")]
+        [SerializeField] private Material particleMaterial;
         [SerializeField] private Material debrisMaterial;
+        [SerializeField] private Material materialRed;
+        [SerializeField] private Material materialGreen;
+        [SerializeField] private Material materialBlue;
+        [SerializeField] private Material materialGlass;
+
+        [Header("Mesh Sources")]
+        [SerializeField] private Mesh[] largeParticleMeshes;
+        [SerializeField] private Mesh[] smallParticleMeshes;
+        [SerializeField] private Mesh[] frostParticleMeshes;
+
+        [Header("Pool Configuration")]
+        [SerializeField] private int poolSize = 10;
+        [SerializeField] private bool spawnPhysicalSubBoxes = true; // Kept for inspector compatibility
+        [SerializeField] private int debrisPiecesPerBlock = 8;
+        [SerializeField] private float debrisExplosionForce = 7f;
 
         public Material DebrisMaterial => debrisMaterial;
         public Material ParticleMaterial => particleMaterial;
+        public GameObject ShatterPrefab => shatterPrefab;
 
-        public void SetDebrisMaterial(Material mat)
-        {
-            debrisMaterial = mat;
-        }
-
-        public void SetParticleMaterial(Material mat)
-        {
-            particleMaterial = mat;
-        }
+        public void SetDebrisMaterial(Material mat) => debrisMaterial = mat;
+        public void SetParticleMaterial(Material mat) => particleMaterial = mat;
+        public void SetShatterPrefab(GameObject prefab) => shatterPrefab = prefab;
 
         public static void SetInstanceForTesting(BlockVFXManager instance)
         {
@@ -44,48 +51,40 @@ namespace Arcade.BlockBreaker
 
         private Material cachedFallbackMaterial;
         private Material cachedFallbackParticleMaterial;
+        private Material cachedFallbackGlassMaterial;
         private static MaterialPropertyBlock debrisPropBlock;
 
-        private readonly Queue<GameObject> burstPool = new Queue<GameObject>();
-        private readonly Queue<VisualEffect> vfxPool = new Queue<VisualEffect>();
-        private readonly Queue<GameObject> debrisPool = new Queue<GameObject>();
-
-        // Struct-based zero-allocation tracking for active debris particles
-        private struct ActiveDebris
+        // Pooled Shuriken shatter instances
+        public class ShatterInstance
         {
-            public GameObject gameObject;
-            public Transform transform;
-            public Vector3 velocity;
-            public Vector3 rotationSpeed;
-            public Vector3 startScale;
+            public GameObject root;
+            public ParticleSystem sparksPs;
+            public ParticleSystemRenderer sparksPsr;
+            public ParticleSystem largePs;
+            public ParticleSystemRenderer largePsr;
+            public ParticleSystem smallPs;
+            public ParticleSystemRenderer smallPsr;
+            public ParticleSystem frostPs;
+            public ParticleSystemRenderer frostPsr;
             public float elapsed;
             public float duration;
+            public int activeMeshCount;
         }
 
-        // Struct-based zero-allocation tracking for active particle bursts
-        private struct ActiveVFX
-        {
-            public GameObject gameObject;
-            public ParticleSystem particleSystem;
-            public VisualEffect effect;
-            public float elapsed;
-            public float duration;
-        }
+        private readonly Queue<ShatterInstance> shatterPool = new Queue<ShatterInstance>();
+        private readonly List<ShatterInstance> activeShatterList = new List<ShatterInstance>(32);
+        private int totalActiveDebrisCount = 0;
 
-        private readonly List<ActiveDebris> activeDebrisList = new List<ActiveDebris>(128);
-        private readonly List<ActiveVFX> activeVfxList = new List<ActiveVFX>(32);
-
-        private static readonly int ColorPropertyId = Shader.PropertyToID("BlockColor");
-        private static readonly int NormalPropertyId = Shader.PropertyToID("HitNormal");
         private static readonly int BaseColorPropId = Shader.PropertyToID("_BaseColor");
         private static readonly int ColorPropId = Shader.PropertyToID("_Color");
         private static readonly int EmissionColorPropId = Shader.PropertyToID("_EmissionColor");
-        private static readonly Vector3 Gravity = new Vector3(0f, -14f, 0f);
 
-        public int AvailableVfxCount => burstPool.Count + vfxPool.Count;
-        public int AvailableDebrisCount => debrisPool.Count;
-        public int ActiveDebrisCount => activeDebrisList.Count;
-        public int ActiveVfxCount => activeVfxList.Count;
+        public int AvailableVfxCount => shatterPool.Count;
+        public int AvailableDebrisCount => shatterPool.Count * debrisPiecesPerBlock;
+        public int ActiveDebrisCount => totalActiveDebrisCount;
+        public int ActiveVfxCount => activeShatterList.Count;
+
+        private Transform poolContainer;
 
         private void Awake()
         {
@@ -99,6 +98,7 @@ namespace Arcade.BlockBreaker
             }
 
             Instance = this;
+            EnsureReferences();
             InitializePool();
         }
 
@@ -115,8 +115,6 @@ namespace Arcade.BlockBreaker
             }
             ClearAllActive();
         }
-
-        private Transform poolContainer;
 
         private Transform GetOrCreatePoolContainer()
         {
@@ -138,40 +136,265 @@ namespace Arcade.BlockBreaker
             return poolContainer;
         }
 
+        public void EnsureReferences()
+        {
+#if UNITY_EDITOR
+            if (shatterPrefab == null)
+            {
+                shatterPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VFX/PF_VFX_BlockShatter.prefab");
+            }
+            if (particleMaterial == null)
+            {
+                particleMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_VFX_Burst.mat");
+            }
+            if (debrisMaterial == null)
+            {
+                debrisMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Debris.mat");
+            }
+            if (materialRed == null)
+            {
+                materialRed = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Red.mat");
+            }
+            if (materialGreen == null)
+            {
+                materialGreen = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Green.mat");
+            }
+            if (materialBlue == null)
+            {
+                materialBlue = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Blue.mat");
+            }
+            if (materialGlass == null)
+            {
+                materialGlass = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Glass.mat");
+            }
+            if (largeParticleMeshes == null || largeParticleMeshes.Length == 0)
+            {
+                largeParticleMeshes = LoadMeshesFromFbx("Assets/Models/SM_Block_Large_Particles.fbx");
+            }
+            if (smallParticleMeshes == null || smallParticleMeshes.Length == 0)
+            {
+                smallParticleMeshes = LoadMeshesFromFbx("Assets/Models/SM_Block_Small_Particles.fbx");
+            }
+            if (frostParticleMeshes == null || frostParticleMeshes.Length == 0)
+            {
+                frostParticleMeshes = LoadMeshesFromFbx("Assets/Models/SM_Block_Frost_Particles.fbx");
+            }
+#endif
+        }
+
+        private static Mesh[] LoadMeshesFromFbx(string path)
+        {
+#if UNITY_EDITOR
+            var all = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path);
+            var list = new List<Mesh>();
+            foreach (var a in all)
+            {
+                if (a is Mesh m && !m.name.StartsWith("__preview__"))
+                {
+                    list.Add(m);
+                }
+            }
+            return list.ToArray();
+#else
+            return new Mesh[0];
+#endif
+        }
+
         public void InitializePool()
         {
             var container = GetOrCreatePoolContainer();
+            EnsureReferences();
 
-            // Particle burst pool with dedicated shaded materials
             for (int i = 0; i < poolSize; i++)
             {
-                GameObject burst = CreateNewBurstInstance();
-                burst.SetActive(false);
-                burst.transform.SetParent(container);
-                burst.transform.position = new Vector3(0f, -500f, 0f);
-                burstPool.Enqueue(burst);
+                ShatterInstance inst = CreateShatterInstance();
+                inst.root.SetActive(false);
+                inst.root.transform.SetParent(container);
+                inst.root.transform.position = new Vector3(0f, -500f, 0f);
+                shatterPool.Enqueue(inst);
+            }
+        }
+
+        private ShatterInstance CreateShatterInstance()
+        {
+            GameObject rootGo;
+            if (shatterPrefab != null)
+            {
+                rootGo = Instantiate(shatterPrefab, GetOrCreatePoolContainer());
+                rootGo.name = "VFX_Burst_Instance";
+            }
+            else
+            {
+                rootGo = BuildProceduralShatterInstance();
+                rootGo.transform.SetParent(GetOrCreatePoolContainer());
             }
 
-            // Debris mini-cubes pool
-            if (spawnPhysicalSubBoxes)
+            rootGo.SetActive(false);
+            rootGo.transform.position = new Vector3(0f, -500f, 0f);
+
+            var inst = new ShatterInstance { root = rootGo };
+
+            // Find child emitters
+            var allPs = rootGo.GetComponentsInChildren<ParticleSystem>(true);
+            foreach (var ps in allPs)
             {
-                int totalDebris = poolSize * debrisPiecesPerBlock;
-                for (int i = 0; i < totalDebris; i++)
+                string n = ps.gameObject.name.ToLower();
+                var psr = ps.GetComponent<ParticleSystemRenderer>();
+                if (n.Contains("spark"))
                 {
-                    GameObject debris = CreateDebrisPiece();
-                    debris.SetActive(false);
-                    debris.transform.SetParent(container);
-                    debris.transform.position = new Vector3(0f, -500f, 0f);
-                    debrisPool.Enqueue(debris);
+                    inst.sparksPs = ps;
+                    inst.sparksPsr = psr;
+                }
+                else if (n.Contains("large"))
+                {
+                    inst.largePs = ps;
+                    inst.largePsr = psr;
+                }
+                else if (n.Contains("small"))
+                {
+                    inst.smallPs = ps;
+                    inst.smallPsr = psr;
+                }
+                else if (n.Contains("frost"))
+                {
+                    inst.frostPs = ps;
+                    inst.frostPsr = psr;
+                }
+            }
+
+            // Fallback bindings if named children not matched
+            if (inst.sparksPs == null && allPs.Length > 0)
+            {
+                inst.sparksPs = allPs[0];
+                inst.sparksPsr = allPs[0].GetComponent<ParticleSystemRenderer>();
+            }
+
+            return inst;
+        }
+
+        private GameObject BuildProceduralShatterInstance()
+        {
+            GameObject root = new GameObject("VFX_Burst_Instance");
+
+            // Sparks
+            GameObject sparksGo = new GameObject("Sparks");
+            sparksGo.transform.SetParent(root.transform, false);
+            var psSparks = sparksGo.AddComponent<ParticleSystem>();
+            var psrSparks = sparksGo.GetComponent<ParticleSystemRenderer>();
+            ConfigureSparksEmitter(psSparks, psrSparks, GetOrCreateParticleMaterial());
+
+            // Large
+            GameObject largeGo = new GameObject("Large_Shards");
+            largeGo.transform.SetParent(root.transform, false);
+            var psLarge = largeGo.AddComponent<ParticleSystem>();
+            var psrLarge = largeGo.GetComponent<ParticleSystemRenderer>();
+            ConfigureMeshEmitter(psLarge, psrLarge, largeParticleMeshes, GetOrCreateDebrisMaterial(), 3.5f, 7.0f, 0.75f, 1.1f, 0.75f, 1.0f, 2.5f);
+
+            // Small
+            GameObject smallGo = new GameObject("Small_Shards");
+            smallGo.transform.SetParent(root.transform, false);
+            var psSmall = smallGo.AddComponent<ParticleSystem>();
+            var psrSmall = smallGo.GetComponent<ParticleSystemRenderer>();
+            ConfigureMeshEmitter(psSmall, psrSmall, smallParticleMeshes, GetOrCreateDebrisMaterial(), 4.5f, 9.0f, 0.45f, 0.7f, 0.65f, 0.9f, 2.8f);
+
+            // Frost
+            GameObject frostGo = new GameObject("Frost_Shards");
+            frostGo.transform.SetParent(root.transform, false);
+            var psFrost = frostGo.AddComponent<ParticleSystem>();
+            var psrFrost = frostGo.GetComponent<ParticleSystemRenderer>();
+            ConfigureMeshEmitter(psFrost, psrFrost, frostParticleMeshes, GetOrCreateGlassMaterial(), 4.0f, 8.0f, 0.55f, 0.85f, 0.7f, 0.95f, 2.6f);
+
+            return root;
+        }
+
+        private static void ConfigureSparksEmitter(ParticleSystem ps, ParticleSystemRenderer psr, Material mat)
+        {
+            var main = ps.main;
+            main.playOnAwake = false;
+            main.loop = false;
+            main.duration = 1.0f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.35f, 0.55f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(5f, 11f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.12f, 0.26f);
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.gravityModifier = 0.5f;
+
+            var emission = ps.emission;
+            emission.enabled = false;
+
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            shape.radius = 0.25f;
+
+            var col = ps.colorOverLifetime;
+            col.enabled = true;
+            Gradient grad = new Gradient();
+            grad.SetKeys(
+                new GradientColorKey[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new GradientAlphaKey[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) }
+            );
+            col.color = grad;
+
+            var size = ps.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(1f, 0f)));
+
+            if (psr != null && mat != null)
+            {
+                psr.renderMode = ParticleSystemRenderMode.Billboard;
+                psr.sharedMaterial = mat;
+            }
+        }
+
+        private static void ConfigureMeshEmitter(ParticleSystem ps, ParticleSystemRenderer psr, Mesh[] meshes, Material mat,
+            float speedMin, float speedMax, float sizeMin, float sizeMax, float lifetimeMin, float lifetimeMax, float gravity)
+        {
+            var main = ps.main;
+            main.playOnAwake = false;
+            main.loop = false;
+            main.duration = 1.2f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(lifetimeMin, lifetimeMax);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(speedMin, speedMax);
+            main.startSize = new ParticleSystem.MinMaxCurve(sizeMin, sizeMax);
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.gravityModifier = gravity;
+
+            var emission = ps.emission;
+            emission.enabled = false;
+
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            shape.radius = 0.35f;
+
+            var rot = ps.rotationOverLifetime;
+            rot.enabled = true;
+            rot.separateAxes = true;
+            rot.x = new ParticleSystem.MinMaxCurve(-360f * Mathf.Deg2Rad, 360f * Mathf.Deg2Rad);
+            rot.y = new ParticleSystem.MinMaxCurve(-360f * Mathf.Deg2Rad, 360f * Mathf.Deg2Rad);
+            rot.z = new ParticleSystem.MinMaxCurve(-360f * Mathf.Deg2Rad, 360f * Mathf.Deg2Rad);
+
+            var size = ps.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(
+                new Keyframe(0f, 1f, 0f, 0f),
+                new Keyframe(0.65f, 0.9f, -0.4f, -0.8f),
+                new Keyframe(1.0f, 0f, -2.5f, 0f)
+            ));
+
+            if (psr != null)
+            {
+                psr.renderMode = ParticleSystemRenderMode.Mesh;
+                if (meshes != null && meshes.Length > 0)
+                {
+                    psr.SetMeshes(meshes);
+                }
+                if (mat != null)
+                {
+                    psr.sharedMaterial = mat;
                 }
             }
         }
 
-        /// <summary>
-        /// Frame-0 PSO and shader prewarming to eliminate first-hit pipeline compilation hitches.
-        /// Prewarms raster shaders, compiles particle PSOs, and prepares MaterialPropertyBlock
-        /// across Metal (iOS), DirectX 12 / Vulkan (PC), and WebGPU (Web).
-        /// </summary>
         public void Prewarm()
         {
             if (!Application.isEditor)
@@ -179,40 +402,16 @@ namespace Arcade.BlockBreaker
                 Shader.WarmupAllShaders();
             }
 
-            // 1. Prewarm particle material and burst instance
-            if (burstPool.Count > 0)
+            if (shatterPool.Count > 0)
             {
-                GameObject burst = burstPool.Peek();
-                if (burst != null)
+                var peek = shatterPool.Peek();
+                if (peek != null)
                 {
-                    var psr = burst.GetComponent<ParticleSystemRenderer>();
-                    if (psr != null)
-                    {
-                        Material baseMat = GetOrCreateParticleMaterial();
-                        if (baseMat != null) psr.sharedMaterial = baseMat;
-                    }
-                }
-            }
-
-            // 2. Prewarm debris renderer & MaterialPropertyBlock
-            if (spawnPhysicalSubBoxes && debrisPool.Count > 0)
-            {
-                GameObject debris = debrisPool.Peek();
-                if (debris != null)
-                {
-                    var mr = debris.GetComponent<MeshRenderer>();
-                    if (mr != null)
-                    {
-                        Material baseMat = GetOrCreateDebrisMaterial();
-                        if (baseMat != null) mr.sharedMaterial = baseMat;
-
-                        debrisPropBlock ??= new MaterialPropertyBlock();
-                        debrisPropBlock.Clear();
-                        debrisPropBlock.SetColor(BaseColorPropId, Color.white);
-                        debrisPropBlock.SetColor(ColorPropId, Color.white);
-                        debrisPropBlock.SetColor(EmissionColorPropId, Color.white);
-                        mr.SetPropertyBlock(debrisPropBlock);
-                    }
+                    var baseMat = GetOrCreateParticleMaterial();
+                    if (peek.sparksPsr != null && baseMat != null) peek.sparksPsr.sharedMaterial = baseMat;
+                    var debMat = GetOrCreateDebrisMaterial();
+                    if (peek.largePsr != null && debMat != null) peek.largePsr.sharedMaterial = debMat;
+                    if (peek.smallPsr != null && debMat != null) peek.smallPsr.sharedMaterial = debMat;
                 }
             }
         }
@@ -236,64 +435,16 @@ namespace Arcade.BlockBreaker
             return cachedFallbackParticleMaterial;
         }
 
-        private GameObject CreateNewBurstInstance()
-        {
-            GameObject go = new GameObject("VFX_Burst_Instance");
-            go.SetActive(false); // Crucial: ensure particle system does not awake/emit in the playfield
-            go.transform.SetParent(GetOrCreatePoolContainer());
-            go.transform.position = new Vector3(0f, -500f, 0f);
-
-            var ps = go.AddComponent<ParticleSystem>();
-            var psr = go.GetComponent<ParticleSystemRenderer>();
-
-            var main = ps.main;
-            main.playOnAwake = false;
-            main.loop = false;
-            main.startLifetime = 0.55f;
-            main.startSpeed = new ParticleSystem.MinMaxCurve(5f, 11f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.12f, 0.26f);
-            main.simulationSpace = ParticleSystemSimulationSpace.World;
-            main.stopAction = ParticleSystemStopAction.None;
-
-            var emission = ps.emission;
-            emission.enabled = false;
-
-            var shape = ps.shape;
-            shape.shapeType = ParticleSystemShapeType.Sphere;
-            shape.radius = 0.25f;
-
-            var colOverLifetime = ps.colorOverLifetime;
-            colOverLifetime.enabled = true;
-            Gradient grad = new Gradient();
-            grad.SetKeys(
-                new GradientColorKey[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
-                new GradientAlphaKey[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) }
-            );
-            colOverLifetime.color = grad;
-
-            var sizeOverLifetime = ps.sizeOverLifetime;
-            sizeOverLifetime.enabled = true;
-            AnimationCurve curve = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(1f, 0f));
-            sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, curve);
-
-            if (psr != null)
-            {
-                Material mat = GetOrCreateParticleMaterial();
-                if (mat != null)
-                {
-                    psr.sharedMaterial = mat;
-                }
-            }
-
-            return go;
-        }
-
         public Material GetOrCreateDebrisMaterial()
         {
             if (debrisMaterial != null) return debrisMaterial;
 
             if (cachedFallbackMaterial == null)
             {
+#if UNITY_EDITOR
+                debrisMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Debris.mat");
+                if (debrisMaterial != null) return debrisMaterial;
+#endif
                 var shader = Shader.Find("Arcade/VFX_BlockDebris") ?? Shader.Find("Universal Render Pipeline/Lit");
                 if (shader != null)
                 {
@@ -303,58 +454,194 @@ namespace Arcade.BlockBreaker
             return cachedFallbackMaterial;
         }
 
-        private GameObject CreateDebrisPiece()
+        public Material GetOrCreateGlassMaterial()
         {
-            GameObject debris = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            debris.name = "SubBox_Debris";
-            debris.SetActive(false);
-            debris.transform.SetParent(GetOrCreatePoolContainer());
-            debris.transform.position = new Vector3(0f, -500f, 0f);
-            debris.transform.localScale = Vector3.one * 0.45f;
+            if (materialGlass != null) return materialGlass;
 
-            // Remove default collider so particles don't interfere with ball physics
-            Collider col = debris.GetComponent<Collider>();
-            if (col != null)
+            if (cachedFallbackGlassMaterial == null)
             {
-                if (Application.isPlaying)
-                    Destroy(col);
-                else
-                    DestroyImmediate(col);
-            }
-
-            var mr = debris.GetComponent<MeshRenderer>();
-            if (mr != null)
-            {
-                Material mat = GetOrCreateDebrisMaterial();
-                if (mat != null)
+#if UNITY_EDITOR
+                materialGlass = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Glass.mat");
+                if (materialGlass != null) return materialGlass;
+#endif
+                var shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Universal Render Pipeline/Unlit");
+                if (shader != null)
                 {
-                    mr.sharedMaterial = mat;
+                    cachedFallbackGlassMaterial = new Material(shader) { name = "M_BlockGlass_Fallback" };
+                }
+            }
+            return cachedFallbackGlassMaterial;
+        }
+
+        public Material ResolveMaterialForColor(Color blockColor)
+        {
+            if (debrisMaterial != null) return debrisMaterial;
+
+            // Match color to dedicated material
+            if (materialRed != null && blockColor.r > 0.8f && blockColor.g < 0.4f) return materialRed;
+            if (materialGreen != null && blockColor.g > 0.7f && blockColor.b < 0.5f && blockColor.r < 0.5f) return materialGreen;
+            if (materialBlue != null && blockColor.b > 0.7f && blockColor.r < 0.5f) return materialBlue;
+
+#if UNITY_EDITOR
+            if (blockColor.r > 0.8f && blockColor.g < 0.4f)
+            {
+                var mat = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Red.mat");
+                if (mat != null) return mat;
+            }
+            if (blockColor.g > 0.7f && blockColor.b < 0.5f && blockColor.r < 0.5f)
+            {
+                var mat = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Green.mat");
+                if (mat != null) return mat;
+            }
+            if (blockColor.b > 0.7f && blockColor.r < 0.5f)
+            {
+                var mat = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Blue.mat");
+                if (mat != null) return mat;
+            }
+#endif
+
+            return GetOrCreateDebrisMaterial();
+        }
+
+        /// <summary>
+        /// Shatters a block into spark particles and 3D mesh particles.
+        /// Spawns some large particles (SM_Block_Large_Particles) and a bit more small particles (SM_Block_Small_Particles)
+        /// with gravity drop and tumbling rotation, styled with the original block's material.
+        /// </summary>
+        public void PlayBlockShatter(Vector3 position, Color blockColor, Vector3 hitNormal, Material blockMaterial = null, bool isFrost = false)
+        {
+            EnsureReferences();
+            ShatterInstance inst = shatterPool.Count > 0 ? shatterPool.Dequeue() : CreateShatterInstance();
+            inst.root.transform.position = position;
+            inst.root.SetActive(true);
+
+            debrisPropBlock ??= new MaterialPropertyBlock();
+            debrisPropBlock.Clear();
+            debrisPropBlock.SetColor(BaseColorPropId, blockColor);
+            debrisPropBlock.SetColor(ColorPropId, blockColor);
+            debrisPropBlock.SetColor(EmissionColorPropId, blockColor * 1.3f);
+
+            ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
+            {
+                applyShapeToPosition = true
+            };
+
+            int meshCount = 0;
+
+            if (isFrost)
+            {
+                // Frosted block shatter: emit frost mesh shards (SM_Block_Frost_Particles)
+                Material targetMat = blockMaterial ?? GetOrCreateGlassMaterial();
+                if (inst.frostPs != null)
+                {
+                    if (inst.frostPsr != null)
+                    {
+                        if (targetMat != null) inst.frostPsr.sharedMaterial = targetMat;
+                        inst.frostPsr.SetPropertyBlock(debrisPropBlock);
+                    }
+                    int frostCount = 8;
+                    inst.frostPs.Emit(emitParams, frostCount);
+                    meshCount += frostCount;
+                }
+            }
+            else
+            {
+                // Regular or glass block: emit large and small shards matching block material
+                Material targetMat = blockMaterial ?? ResolveMaterialForColor(blockColor);
+
+                // 1. Large shards: some large particles (3 particles)
+                if (inst.largePs != null)
+                {
+                    if (inst.largePsr != null)
+                    {
+                        if (targetMat != null) inst.largePsr.sharedMaterial = targetMat;
+                        inst.largePsr.SetPropertyBlock(debrisPropBlock);
+                    }
+                    int largeCount = 3;
+                    inst.largePs.Emit(emitParams, largeCount);
+                    meshCount += largeCount;
+                }
+
+                // 2. Small shards: a bit more small particles (5 particles)
+                if (inst.smallPs != null)
+                {
+                    if (inst.smallPsr != null)
+                    {
+                        if (targetMat != null) inst.smallPsr.sharedMaterial = targetMat;
+                        inst.smallPsr.SetPropertyBlock(debrisPropBlock);
+                    }
+                    int smallCount = 5;
+                    inst.smallPs.Emit(emitParams, smallCount);
+                    meshCount += smallCount;
                 }
             }
 
-            return debris;
+            // 3. Sparks burst
+            if (inst.sparksPs != null)
+            {
+                if (inst.sparksPsr != null)
+                {
+                    Material pMat = GetOrCreateParticleMaterial();
+                    if (pMat != null && inst.sparksPsr.sharedMaterial != pMat)
+                    {
+                        inst.sparksPsr.sharedMaterial = pMat;
+                    }
+                }
+                ParticleSystem.EmitParams sparkParams = new ParticleSystem.EmitParams
+                {
+                    startColor = blockColor * 1.4f,
+                    applyShapeToPosition = true
+                };
+                inst.sparksPs.Emit(sparkParams, 16);
+            }
+
+            inst.elapsed = 0f;
+            inst.duration = 1.2f;
+            inst.activeMeshCount = meshCount;
+            totalActiveDebrisCount += meshCount;
+
+            activeShatterList.Add(inst);
+        }
+
+        public void PlayBlockShatter(Vector3 position, Color blockColor, Vector3 hitNormal)
+        {
+            PlayBlockShatter(position, blockColor, hitNormal, null, false);
+        }
+
+        /// <summary>
+        /// Shatters frost encasement on a block using SM_Block_Frost_Particles meshes with falling physics.
+        /// </summary>
+        public void PlayFrostShatter(Vector3 position, Vector3 hitNormal)
+        {
+            PlayBlockShatter(position, new Color(0.6f, 0.95f, 1.0f, 0.8f), hitNormal, GetOrCreateGlassMaterial(), true);
+        }
+
+        /// <summary>
+        /// Shatters glass shell on a 2-hit block using falling glass mesh particles.
+        /// </summary>
+        public void PlayGlassShatter(Vector3 position, Vector3 hitNormal)
+        {
+            PlayBlockShatter(position, new Color(0.85f, 0.95f, 1.0f, 0.5f), hitNormal, GetOrCreateGlassMaterial(), false);
         }
 
         /// <summary>
         /// Fires a radiant particle burst when a powerup capsule is intercepted by the paddle.
-        /// Emits glowing sparks in the powerup's distinct neon emissive hue with zero pink/missing shader artifacts.
         /// </summary>
         public void PlayPowerupCollect(Vector3 position, Color powerupColor)
         {
-            GameObject burstObj = burstPool.Count > 0 ? burstPool.Dequeue() : CreateNewBurstInstance();
-            burstObj.transform.position = position;
-            burstObj.SetActive(true);
+            EnsureReferences();
+            ShatterInstance inst = shatterPool.Count > 0 ? shatterPool.Dequeue() : CreateShatterInstance();
+            inst.root.transform.position = position;
+            inst.root.SetActive(true);
 
-            var ps = burstObj.GetComponent<ParticleSystem>();
-            if (ps != null)
+            if (inst.sparksPs != null)
             {
-                var psr = burstObj.GetComponent<ParticleSystemRenderer>();
-                if (psr != null)
+                if (inst.sparksPsr != null)
                 {
                     Material mat = GetOrCreateParticleMaterial();
-                    if (mat != null && psr.sharedMaterial != mat)
+                    if (mat != null && inst.sparksPsr.sharedMaterial != mat)
                     {
-                        psr.sharedMaterial = mat;
+                        inst.sparksPsr.sharedMaterial = mat;
                     }
                 }
 
@@ -364,38 +651,34 @@ namespace Arcade.BlockBreaker
                     startLifetime = 0.55f,
                     applyShapeToPosition = true
                 };
-                ps.Emit(emitParams, 32);
+                inst.sparksPs.Emit(emitParams, 32);
             }
 
-            activeVfxList.Add(new ActiveVFX
-            {
-                gameObject = burstObj,
-                particleSystem = ps,
-                elapsed = 0f,
-                duration = 0.65f
-            });
+            inst.elapsed = 0f;
+            inst.duration = 0.65f;
+            inst.activeMeshCount = 0; // Powerup collects emit sparks only, zero debris pieces
+
+            activeShatterList.Add(inst);
         }
 
         /// <summary>
         /// Emits a directional spark burst at the paddle collision contact point.
-        /// An active smash produces an energetic, wider burst of bright cyan sparks.
         /// </summary>
         public void PlayPaddleHitSpark(Vector3 position, bool isSmash = false)
         {
-            GameObject burstObj = burstPool.Count > 0 ? burstPool.Dequeue() : CreateNewBurstInstance();
-            burstObj.transform.position = position;
-            burstObj.SetActive(true);
+            EnsureReferences();
+            ShatterInstance inst = shatterPool.Count > 0 ? shatterPool.Dequeue() : CreateShatterInstance();
+            inst.root.transform.position = position;
+            inst.root.SetActive(true);
 
-            var ps = burstObj.GetComponent<ParticleSystem>();
-            if (ps != null)
+            if (inst.sparksPs != null)
             {
-                var psr = burstObj.GetComponent<ParticleSystemRenderer>();
-                if (psr != null)
+                if (inst.sparksPsr != null)
                 {
                     Material mat = GetOrCreateParticleMaterial();
-                    if (mat != null && psr.sharedMaterial != mat)
+                    if (mat != null && inst.sparksPsr.sharedMaterial != mat)
                     {
-                        psr.sharedMaterial = mat;
+                        inst.sparksPsr.sharedMaterial = mat;
                     }
                 }
 
@@ -409,228 +692,83 @@ namespace Arcade.BlockBreaker
                     startLifetime = lifetime,
                     applyShapeToPosition = true
                 };
-                ps.Emit(emitParams, count);
+                inst.sparksPs.Emit(emitParams, count);
             }
 
-            activeVfxList.Add(new ActiveVFX
-            {
-                gameObject = burstObj,
-                particleSystem = ps,
-                elapsed = 0f,
-                duration = isSmash ? 0.5f : 0.4f
-            });
-        }
+            inst.elapsed = 0f;
+            inst.duration = isSmash ? 0.5f : 0.4f;
+            inst.activeMeshCount = 0;
 
-        /// <summary>
-        /// Shatters a block into spark particles and 8 physical 3D tumbling debris sub-boxes.
-        /// </summary>
-        public void PlayBlockShatter(Vector3 position, Color blockColor, Vector3 hitNormal)
-        {
-            // 1. Play shaded particle spark burst
-            GameObject burstObj = burstPool.Count > 0 ? burstPool.Dequeue() : CreateNewBurstInstance();
-            burstObj.transform.position = position;
-            burstObj.SetActive(true);
-
-            var ps = burstObj.GetComponent<ParticleSystem>();
-            if (ps != null)
-            {
-                var psr = burstObj.GetComponent<ParticleSystemRenderer>();
-                if (psr != null)
-                {
-                    Material mat = GetOrCreateParticleMaterial();
-                    if (mat != null && psr.sharedMaterial != mat)
-                    {
-                        psr.sharedMaterial = mat;
-                    }
-                }
-
-                ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
-                {
-                    startColor = blockColor * 1.4f,
-                    startLifetime = 0.5f,
-                    applyShapeToPosition = true
-                };
-                ps.Emit(emitParams, 24);
-            }
-
-            activeVfxList.Add(new ActiveVFX
-            {
-                gameObject = burstObj,
-                particleSystem = ps,
-                elapsed = 0f,
-                duration = 0.65f
-            });
-
-            // 2. Spawn physical sub-box particles exploding in 3D
-            if (spawnPhysicalSubBoxes)
-            {
-                SpawnSubBoxDebrisBurst(position, blockColor, hitNormal);
-            }
-        }
-
-        private void SpawnSubBoxDebrisBurst(Vector3 centerPos, Color blockColor, Vector3 hitNormal)
-        {
-            // Subdivide 1x1 cube into 2x2x2 sub-boxes (offsets at -0.25 and +0.25 on each axis)
-            float offset = 0.25f;
-            float[] offsets = { -offset, offset };
-
-            Material baseMat = GetOrCreateDebrisMaterial();
-            debrisPropBlock ??= new MaterialPropertyBlock();
-
-            foreach (float ox in offsets)
-            {
-                foreach (float oy in offsets)
-                {
-                    foreach (float oz in offsets)
-                    {
-                        GameObject debris = debrisPool.Count > 0 ? debrisPool.Dequeue() : CreateDebrisPiece();
-                        Vector3 subPos = centerPos + new Vector3(ox, oy, oz);
-                        Transform t = debris.transform;
-                        t.position = subPos;
-                        t.localScale = Vector3.one * 0.42f;
-                        t.rotation = Random.rotation;
-
-                        MeshRenderer mr = debris.GetComponent<MeshRenderer>();
-                        if (mr != null)
-                        {
-                            if (mr.sharedMaterial != baseMat && baseMat != null)
-                            {
-                                mr.sharedMaterial = baseMat;
-                            }
-
-                            // Zero-allocation tinting via MaterialPropertyBlock (preserves SRP Batching)
-                            debrisPropBlock.Clear();
-                            debrisPropBlock.SetColor(BaseColorPropId, blockColor);
-                            debrisPropBlock.SetColor(ColorPropId, blockColor);
-                            debrisPropBlock.SetColor(EmissionColorPropId, blockColor * 1.3f);
-                            mr.SetPropertyBlock(debrisPropBlock);
-                        }
-
-                        debris.SetActive(true);
-
-                        // Velocity direction: outward spherical bias + incoming hit direction
-                        Vector3 outward = (new Vector3(ox, oy, oz)).normalized;
-                        Vector3 burstVel = (outward * 0.7f + hitNormal * 0.3f + Random.insideUnitSphere * 0.3f).normalized * debrisExplosionForce;
-                        Vector3 rotSpeed = new Vector3(Random.Range(-360f, 360f), Random.Range(-360f, 360f), Random.Range(-360f, 360f));
-
-                        activeDebrisList.Add(new ActiveDebris
-                        {
-                            gameObject = debris,
-                            transform = t,
-                            velocity = burstVel,
-                            rotationSpeed = rotSpeed,
-                            startScale = t.localScale,
-                            elapsed = 0f,
-                            duration = 0.75f
-                        });
-                    }
-                }
-            }
+            activeShatterList.Add(inst);
         }
 
         private void Update()
         {
             float dt = Time.deltaTime;
-            // Freeze simulation when game is paused
             if (dt <= 0f) return;
 
-            // 1. Zero-allocation update for active debris pieces
-            for (int i = activeDebrisList.Count - 1; i >= 0; i--)
+            for (int i = activeShatterList.Count - 1; i >= 0; i--)
             {
-                ActiveDebris item = activeDebrisList[i];
-                if (item.gameObject == null || item.transform == null)
+                ShatterInstance inst = activeShatterList[i];
+                if (inst.root == null)
                 {
-                    activeDebrisList.RemoveAt(i);
+                    activeShatterList.RemoveAt(i);
                     continue;
                 }
 
-                item.elapsed += dt;
-                float t = item.elapsed / item.duration;
-
-                item.velocity += Gravity * dt;
-                item.transform.position += item.velocity * dt;
-                item.transform.Rotate(item.rotationSpeed * dt);
-
-                // Smooth quadratic shrink out
-                float scaleFactor = Mathf.Lerp(1f, 0f, t * t);
-                item.transform.localScale = item.startScale * scaleFactor;
-
-                if (item.elapsed >= item.duration)
+                inst.elapsed += dt;
+                if (inst.elapsed >= inst.duration)
                 {
-                    item.gameObject.SetActive(false);
-                    item.gameObject.transform.position = new Vector3(0f, -500f, 0f);
-                    debrisPool.Enqueue(item.gameObject);
-                    activeDebrisList.RemoveAt(i);
-                }
-                else
-                {
-                    activeDebrisList[i] = item;
-                }
-            }
-
-            // 2. Zero-allocation update for active particle bursts
-            for (int i = activeVfxList.Count - 1; i >= 0; i--)
-            {
-                ActiveVFX item = activeVfxList[i];
-                if (item.gameObject == null)
-                {
-                    activeVfxList.RemoveAt(i);
-                    continue;
-                }
-
-                item.elapsed += dt;
-                if (item.elapsed >= item.duration)
-                {
-                    if (item.particleSystem != null)
-                    {
-                        item.particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                        item.particleSystem.Clear();
-                    }
-                    item.gameObject.SetActive(false);
-                    item.gameObject.transform.position = new Vector3(0f, -500f, 0f);
-                    burstPool.Enqueue(item.gameObject);
-                    activeVfxList.RemoveAt(i);
-                }
-                else
-                {
-                    activeVfxList[i] = item;
+                    RecycleInstance(inst);
+                    activeShatterList.RemoveAt(i);
                 }
             }
         }
 
+        private void RecycleInstance(ShatterInstance inst)
+        {
+            if (inst == null || inst.root == null) return;
+
+            totalActiveDebrisCount = Mathf.Max(0, totalActiveDebrisCount - inst.activeMeshCount);
+            inst.activeMeshCount = 0;
+
+            if (inst.sparksPs != null)
+            {
+                inst.sparksPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                inst.sparksPs.Clear();
+            }
+            if (inst.largePs != null)
+            {
+                inst.largePs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                inst.largePs.Clear();
+            }
+            if (inst.smallPs != null)
+            {
+                inst.smallPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                inst.smallPs.Clear();
+            }
+            if (inst.frostPs != null)
+            {
+                inst.frostPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                inst.frostPs.Clear();
+            }
+
+            inst.root.SetActive(false);
+            inst.root.transform.position = new Vector3(0f, -500f, 0f);
+            shatterPool.Enqueue(inst);
+        }
+
         /// <summary>
-        /// Instantly recycles all active debris and VFX instances back into their pools.
+        /// Instantly recycles all active VFX instances back into the pool.
         /// </summary>
         public void ClearAllActive()
         {
-            for (int i = activeDebrisList.Count - 1; i >= 0; i--)
+            for (int i = activeShatterList.Count - 1; i >= 0; i--)
             {
-                ActiveDebris item = activeDebrisList[i];
-                if (item.gameObject != null)
-                {
-                    item.gameObject.SetActive(false);
-                    item.gameObject.transform.position = new Vector3(0f, -500f, 0f);
-                    debrisPool.Enqueue(item.gameObject);
-                }
+                RecycleInstance(activeShatterList[i]);
             }
-            activeDebrisList.Clear();
-
-            for (int i = activeVfxList.Count - 1; i >= 0; i--)
-            {
-                ActiveVFX item = activeVfxList[i];
-                if (item.gameObject != null)
-                {
-                    if (item.particleSystem != null)
-                    {
-                        item.particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                        item.particleSystem.Clear();
-                    }
-                    item.gameObject.SetActive(false);
-                    item.gameObject.transform.position = new Vector3(0f, -500f, 0f);
-                    burstPool.Enqueue(item.gameObject);
-                }
-            }
-            activeVfxList.Clear();
+            activeShatterList.Clear();
+            totalActiveDebrisCount = 0;
         }
     }
 }
