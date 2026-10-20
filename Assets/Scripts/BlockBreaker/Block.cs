@@ -80,6 +80,11 @@ namespace Arcade.BlockBreaker
                 var t = transform.Find("brick special");
                 if (t != null) brickSpecial = t.gameObject;
             }
+            if (brickSpecial != null && brickSpecial.layer == 0)
+            {
+                int uiLayer = LayerMask.NameToLayer("UI");
+                if (uiLayer != -1) brickSpecial.layer = uiLayer;
+            }
             if (brickVfx == null)
             {
                 var t = transform.Find("brick vfx");
@@ -112,6 +117,9 @@ namespace Arcade.BlockBreaker
         public void Freeze(int defrostHits = 1)
         {
             if (isDestroyed) return;
+            // Prevent special powerup or powerdown blocks from being frozen
+            if (specialType != BlockSpecialType.Normal && specialType != BlockSpecialType.BrickFreezer) return;
+
             isFrozen = true;
             requiredDefrostHits = defrostHits;
 
@@ -145,7 +153,13 @@ namespace Arcade.BlockBreaker
                 if (originalMaterial != null) meshRenderer.sharedMaterial = originalMaterial;
             }
 
-            // Remove or deactivate badge icon so the frozen icon disappears on the first hit
+            // Once defrosted, frost blocks transition to regular Normal blocks
+            if (specialType == BlockSpecialType.BrickFreezer)
+            {
+                specialType = BlockSpecialType.Normal;
+            }
+
+            // Remove or deactivate badge icon only if it specifically was a BrickFreezer badge
             if (brickSpecial != null)
             {
                 var badge = brickSpecial.GetComponent<BlockBadge>();
@@ -157,7 +171,7 @@ namespace Arcade.BlockBreaker
             else
             {
                 var badge = GetComponentInChildren<BlockBadge>();
-                if (badge != null)
+                if (badge != null && (badge.SpecialType == BlockSpecialType.BrickFreezer || badge.gameObject.name == "UI_Badge"))
                 {
                     if (Application.isPlaying)
                         Destroy(badge.gameObject);
@@ -210,6 +224,8 @@ namespace Arcade.BlockBreaker
             if (special == BlockSpecialType.BrickFreezer)
             {
                 Freeze(1);
+                // Frost blocks must not display a special badge icon
+                if (brickSpecial != null) brickSpecial.SetActive(false);
             }
         }
 
@@ -238,7 +254,7 @@ namespace Arcade.BlockBreaker
                 }
                 if (BlockVFXManager.Instance != null)
                 {
-                    BlockVFXManager.Instance.PlayBlockShatter(transform.position, new Color(0.6f, 0.95f, 1.0f, 0.8f), hitNormal);
+                    BlockVFXManager.Instance.PlayFrostShatter(transform.position, hitNormal);
                 }
 
                 if (requiredDefrostHits <= 0)
@@ -290,7 +306,7 @@ namespace Arcade.BlockBreaker
 
             if (BlockVFXManager.Instance != null)
             {
-                BlockVFXManager.Instance.PlayBlockShatter(transform.position, new Color(0.85f, 0.95f, 1.0f, 0.5f), hitNormal);
+                BlockVFXManager.Instance.PlayGlassShatter(transform.position, hitNormal);
             }
         }
 
@@ -305,6 +321,10 @@ namespace Arcade.BlockBreaker
                 if (specialType == BlockSpecialType.Bomb)
                 {
                     ArcadeAudioManager.Instance.PlayBombExplosion();
+                    if (BlockVFXManager.Instance != null)
+                    {
+                        BlockVFXManager.Instance.PlayBombExplosion(transform.position);
+                    }
                 }
                 else
                 {
@@ -316,10 +336,11 @@ namespace Arcade.BlockBreaker
                 }
             }
 
-            // 2. Trigger VFX Graph Shatter
+            // 2. Trigger VFX Shatter
             if (BlockVFXManager.Instance != null)
             {
-                BlockVFXManager.Instance.PlayBlockShatter(transform.position, particleColor, hitNormal);
+                Material blockMat = originalMaterial != null ? originalMaterial : (meshRenderer != null ? meshRenderer.sharedMaterial : null);
+                BlockVFXManager.Instance.PlayBlockShatter(transform.position, particleColor, hitNormal, blockMat);
             }
 
             bool isCollectible = specialType.IsPowerup() || specialType.IsCollectiblePowerdown();

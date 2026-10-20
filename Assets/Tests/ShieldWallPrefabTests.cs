@@ -25,7 +25,7 @@ namespace Arcade.Tests
 
             var col = root.GetComponent<BoxCollider>();
             Assert.IsNotNull(col, "Root must have BoxCollider for physical deflection.");
-            Assert.AreEqual(Vector3.one, col.size, "Root BoxCollider size must be (1,1,1).");
+            Assert.AreEqual(new Vector3(21f, 0.5f, 2f), col.size, "Root BoxCollider size must be (21, 0.5, 2).");
             Assert.AreEqual(Vector3.zero, col.center, "Root BoxCollider center must be (0,0,0).");
             Assert.IsNotNull(col.sharedMaterial, "Root BoxCollider must have bouncy PhysicMaterial assigned.");
             Assert.AreEqual("PM_ArcadeBounce", col.sharedMaterial.name);
@@ -79,7 +79,7 @@ namespace Arcade.Tests
 
             Assert.IsTrue(instance.activeSelf, "Instance must be active upon Activate().");
             Assert.IsTrue(wall.VfxChild.activeSelf, "VfxChild must be active upon Activate().");
-            Assert.AreEqual(-7.6f, instance.transform.position.y, 0.05f, "Shield wall must be positioned at wallY = -7.6.");
+            Assert.AreEqual(-7.75f, instance.transform.position.y, 0.05f, "Shield wall must be positioned at wallY = -7.75.");
 
             // Deactivate immediately
             wall.Deactivate(immediate: true);
@@ -104,6 +104,46 @@ namespace Arcade.Tests
             Assert.DoesNotThrow(() => wall.PulseOnHit(), "PulseOnHit must execute cleanly without error.");
 
             Object.DestroyImmediate(instance);
+        }
+
+        [Test]
+        public void ShieldWallPrefab_ParticleVelocityCurves_AllInSameMode()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            Assert.IsNotNull(prefab, "PF_ShieldWall.prefab must load.");
+            var wall = prefab.GetComponent<ShieldWall>();
+            var ps = wall.ShieldVfx;
+            Assert.IsNotNull(ps);
+
+            var vel = ps.velocityOverLifetime;
+            Assert.IsTrue(vel.enabled);
+            Assert.AreEqual(vel.y.mode, vel.x.mode, "vel.x and vel.y must be in the same ParticleSystemCurveMode.");
+            Assert.AreEqual(vel.y.mode, vel.z.mode, "vel.z and vel.y must be in the same ParticleSystemCurveMode.");
+        }
+
+        [Test]
+        public void ShieldWallPrefab_EnsureShieldWall_InstantiatesFromPrefab()
+        {
+            var gmGo = new GameObject("TestGameManager");
+            var gm = gmGo.AddComponent<Arcade.Core.ArcadeGameManager>();
+
+            try
+            {
+                var wall = gm.EnsureShieldWall();
+                Assert.IsNotNull(wall, "EnsureShieldWall must return a non-null ShieldWall.");
+                Assert.IsNotNull(wall.ModelChild, "Instantiated ShieldWall must have ModelChild.");
+                Assert.IsNotNull(wall.VfxChild, "Instantiated ShieldWall must have VfxChild.");
+                Assert.AreEqual("ShieldWall", wall.gameObject.name);
+                Assert.IsFalse(wall.gameObject.activeSelf, "Instantiated ShieldWall must start inactive until activated.");
+            }
+            finally
+            {
+                if (gm.ActiveShieldWall != null)
+                {
+                    Object.DestroyImmediate(gm.ActiveShieldWall.gameObject);
+                }
+                Object.DestroyImmediate(gmGo);
+            }
         }
     }
 }

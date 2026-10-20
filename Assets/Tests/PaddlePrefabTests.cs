@@ -40,6 +40,7 @@ namespace Arcade.Tests
 
             var laserCtrl = go.GetComponent<PaddleLaserController>();
             Assert.IsNotNull(laserCtrl, "Root must have PaddleLaserController.");
+            Assert.IsNotNull(laserCtrl.LaserBoltPrefab, "PaddleLaserController must reference LaserBoltPrefab.");
         }
 
         [Test]
@@ -310,10 +311,25 @@ namespace Arcade.Tests
             Assert.IsNotNull(prefab, "PF_LaserBolt.prefab must exist in Assets/Prefabs/Paddle/.");
             Assert.AreEqual(Vector3.one, prefab.transform.localScale, "Laser bolt root scale must be normalized to Vector3.one.");
 
+            var col = prefab.GetComponent<CapsuleCollider>();
+            Assert.IsNotNull(col, "Laser bolt must have CapsuleCollider.");
+            Assert.AreEqual(0.27f, col.center.y, 0.02f, "CapsuleCollider center Y must be at 0.27 to align with bottom pivot mesh.");
+            Assert.AreEqual(0.54f, col.height, 0.02f, "CapsuleCollider height must match Bullet mesh height (0.54).");
+
+            var rb = prefab.GetComponent<Rigidbody>();
+            Assert.IsNotNull(rb, "Laser bolt must have kinematic Rigidbody for physics trigger events.");
+            Assert.IsTrue(rb.isKinematic);
+            Assert.IsFalse(rb.useGravity);
+
             var model = prefab.transform.Find("model");
             Assert.IsNotNull(model, "Laser bolt prefab must have child 'model'.");
-            Assert.AreEqual(new Vector3(0.18f, 0.55f, 0.18f), model.localScale, "Child 'model' must be scaled to (0.18, 0.55, 0.18) for 1:1 visual dimensions.");
+            Assert.AreEqual(Vector3.one, model.localScale, "Child 'model' must be 1:1 scale (Vector3.one) matching Bullet mesh.");
             Assert.IsNull(model.GetComponent<Collider>(), "Child 'model' must not have a collider.");
+
+            var mf = model.GetComponent<MeshFilter>();
+            Assert.IsNotNull(mf, "model must have MeshFilter.");
+            Assert.IsNotNull(mf.sharedMesh, "model must have sharedMesh assigned.");
+            Assert.AreEqual("Bullet", mf.sharedMesh.name, "model MeshFilter must use 'Bullet' mesh from SM_Paddle.fbx.");
 
             var bolt = LaserBolt.Spawn(Vector3.zero);
             try
@@ -321,7 +337,10 @@ namespace Arcade.Tests
                 Assert.IsNotNull(bolt);
                 Assert.AreEqual(Vector3.one, bolt.transform.localScale, "Spawned LaserBolt root scale must be normalized to Vector3.one.");
                 Assert.IsNotNull(bolt.ModelChild, "Spawned LaserBolt must link ModelChild.");
-                Assert.AreEqual(new Vector3(0.18f, 0.55f, 0.18f), bolt.ModelChild.transform.localScale);
+                Assert.AreEqual(Vector3.one, bolt.ModelChild.transform.localScale, "Spawned LaserBolt ModelChild must be Vector3.one.");
+                var spawnedMf = bolt.ModelChild.GetComponent<MeshFilter>();
+                Assert.IsNotNull(spawnedMf);
+                Assert.AreEqual("Bullet", spawnedMf.sharedMesh.name);
             }
             finally
             {
@@ -356,6 +375,52 @@ namespace Arcade.Tests
                 paddle.ExpandWidth(BlockModifierExtensions.PADDLE_EXPANSION_PERCENT);
                 Assert.AreEqual(5.50f, paddle.Width, 0.01f);
                 Assert.AreEqual(1.10f, visuals.localScale.x, 0.001f, "Visuals X scale must scale to 1.10 only upon collecting paddle size increase powerup.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(paddleObj);
+            }
+        }
+
+        [Test]
+        public void LaserBolt_BulletMesh_HasBottomPivotAndAlignsWithGunsMuzzle()
+        {
+            var fbx = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/SM_Paddle.fbx");
+            Assert.IsNotNull(fbx, "SM_Paddle.fbx must exist.");
+            var bulletTransform = fbx.transform.Find("Bullet");
+            Assert.IsNotNull(bulletTransform, "Bullet child must exist in SM_Paddle.fbx.");
+
+            var mf = bulletTransform.GetComponent<MeshFilter>();
+            Assert.IsNotNull(mf, "Bullet must have MeshFilter.");
+            var mesh = mf.sharedMesh;
+            Assert.IsNotNull(mesh, "Bullet MeshFilter must have sharedMesh.");
+            Assert.AreEqual("Bullet", mesh.name);
+
+            // Pivot at the bottom check: bounds.min.y must be 0 (bottom) and bounds.max.y must be positive
+            Assert.AreEqual(0.0f, mesh.bounds.min.y, 0.02f, "Bullet mesh pivot must be at the bottom (min Y = 0).");
+            Assert.Greater(mesh.bounds.max.y, 0.45f, "Bullet mesh must extend upward.");
+
+            // Spawn bolt at paddle muzzle position
+            var paddlePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PaddlePrefabPath);
+            var paddleObj = Object.Instantiate(paddlePrefab);
+            try
+            {
+                var laserCtrl = paddleObj.GetComponent<PaddleLaserController>();
+                laserCtrl.EnsureGunReferences();
+                Assert.IsNotNull(laserCtrl.MuzzleLeft, "Paddle must have MuzzleLeft.");
+
+                var bolt = LaserBolt.Spawn(laserCtrl.MuzzleLeft.position);
+                try
+                {
+                    Assert.IsNotNull(bolt);
+                    Assert.AreEqual(laserCtrl.MuzzleLeft.position.y, bolt.transform.position.y, 0.001f, "Bolt root position must match muzzle Y.");
+                    Assert.AreEqual(Vector3.zero, bolt.ModelChild.transform.localPosition, "Child model must have localPosition zero for bottom-pivot alignment.");
+                    Assert.AreEqual(Vector3.one, bolt.ModelChild.transform.localScale, "Child model must be 1:1 scale.");
+                }
+                finally
+                {
+                    if (bolt != null) Object.DestroyImmediate(bolt.gameObject);
+                }
             }
             finally
             {

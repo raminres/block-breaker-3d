@@ -40,9 +40,9 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Metallic: 0.729
+    - _Metallic: 0.887
     - _ReceiveShadows: 1
-    - _Smoothness: 0.474
+    - _Smoothness: 0.8
     m_Colors:
     - _BaseColor: {r: 0.92, g: 0.96, b: 1, a: 1}
     - _Color: {r: 0.92, g: 0.96, b: 1, a: 1}

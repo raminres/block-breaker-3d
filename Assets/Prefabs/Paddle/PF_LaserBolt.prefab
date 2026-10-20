@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5816364449661404762}
   - component: {fileID: 2523265878201978949}
   - component: {fileID: 7442940768648383508}
+  - component: {fileID: 612995806481830741}
   m_Layer: 0
   m_Name: PF_LaserBolt
   m_TagString: Untagged
@@ -53,10 +54,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.09
-  m_Height: 1.1
+  m_Radius: 0.111
+  m_Height: 0.54
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.27, z: 0}
 --- !u!114 &7442940768648383508
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -72,6 +73,34 @@ MonoBehaviour:
   speed: 34
   topBoundaryY: 25.5
   boltColor: {r: 1, g: 0.18, b: 0.28, a: 1}
+  modelChild: {fileID: 6272447719779812011}
+--- !u!54 &612995806481830741
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3802064124626486475}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 3
 --- !u!1 &6272447719779812011
 GameObject:
   m_ObjectHideFlags: 0
@@ -100,7 +129,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.18, y: 0.55, z: 0.18}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5816364449661404762}
@@ -112,7 +141,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6272447719779812011}
-  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -7204647971529134275, guid: 3755c5a0faffa2c449e0f847ba9f6b32, type: 3}
 --- !u!23 &8205648654959848663
 MeshRenderer:
   m_ObjectHideFlags: 0

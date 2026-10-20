@@ -204,6 +204,7 @@ MonoBehaviour:
   hyperBeamDuration: 5
   beamSurgeDuration: 0.65
   hyperBeamMaterialAsset: {fileID: 2100000, guid: a49c3725b8214311bb633857a621cf92, type: 2}
+  laserBoltPrefab: {fileID: 3802064124626486475, guid: 632b9ac906ab1da42892376f16dd70eb, type: 3}
   gunsRoot: {fileID: 7727307513679722855}
   muzzleLeft: {fileID: 1254223837339554953}
   muzzleRight: {fileID: 5042778596279022511}

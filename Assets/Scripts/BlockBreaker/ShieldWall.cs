@@ -12,8 +12,8 @@ namespace Arcade.BlockBreaker
     public class ShieldWall : MonoBehaviour
     {
         [Header("Dimensions & Placement")]
-        [SerializeField] private Vector3 targetScale = new Vector3(20.4f, 0.45f, 2.0f);
-        [SerializeField] private float wallY = -7.6f;
+        [SerializeField] private Vector3 targetScale = Vector3.one;
+        [SerializeField] private float wallY = -7.75f;
 
         [Header("Tween & Animation Parameters")]
         [Tooltip("Duration in seconds for the shield to expand into place upon activation.")]
@@ -117,9 +117,31 @@ namespace Arcade.BlockBreaker
                 var t = transform.Find("vfx");
                 if (t != null) vfxChild = t.gameObject;
             }
+            if (vfxChild == null)
+            {
+                var barrierPrefab = GetOrCreateShieldBarrierPrefab();
+                if (barrierPrefab != null)
+                {
+                    vfxChild = Instantiate(barrierPrefab, transform);
+                    vfxChild.name = "vfx";
+                    vfxChild.transform.localPosition = Vector3.zero;
+                    vfxChild.transform.localRotation = Quaternion.identity;
+                }
+            }
             if (shieldVfx == null && vfxChild != null)
             {
                 shieldVfx = vfxChild.GetComponent<ParticleSystem>() ?? vfxChild.GetComponentInChildren<ParticleSystem>();
+            }
+
+            if (shieldVfx != null)
+            {
+                var vel = shieldVfx.velocityOverLifetime;
+                if (vel.enabled)
+                {
+                    vel.x = new ParticleSystem.MinMaxCurve(-0.1f, 0.1f);
+                    vel.y = new ParticleSystem.MinMaxCurve(0.2f, 0.6f);
+                    vel.z = new ParticleSystem.MinMaxCurve(0f, 0f);
+                }
             }
 
             if (meshRenderer == null)
@@ -137,15 +159,35 @@ namespace Arcade.BlockBreaker
 
         public void EnsureComponents()
         {
-            if (boxCollider == null) boxCollider = GetComponent<BoxCollider>();
-            if (boxCollider == null) boxCollider = gameObject.AddComponent<BoxCollider>();
-            if (boxCollider != null)
+            if (boxCollider == null)
             {
-                boxCollider.size = Vector3.one;
-                boxCollider.center = Vector3.zero;
+                boxCollider = GetComponent<BoxCollider>();
+                if (boxCollider == null)
+                {
+                    boxCollider = gameObject.AddComponent<BoxCollider>();
+                    boxCollider.size = new Vector3(21f, 0.5f, 2f);
+                    boxCollider.center = Vector3.zero;
+                }
+            }
+
+            // Guard against legacy unnormalized targetScale
+            if (targetScale.x > 2f)
+            {
+                targetScale = Vector3.one;
             }
 
             ResolveModularChildren();
+
+            // Strip any stray colliders on child model to ensure single authoritative root collider
+            if (modelChild != null)
+            {
+                var childCols = modelChild.GetComponentsInChildren<Collider>();
+                for (int i = 0; i < childCols.Length; i++)
+                {
+                    if (Application.isPlaying) Destroy(childCols[i]);
+                    else DestroyImmediate(childCols[i]);
+                }
+            }
 
             // Fallback for bare test GameObjects instantiated without prefabs:
             if (meshRenderer == null)
@@ -382,7 +424,17 @@ namespace Arcade.BlockBreaker
         {
             if (!gameObject.activeInHierarchy || !Application.isPlaying) return;
 
-            if (shieldVfx != null) shieldVfx.Emit(12);
+            if (shieldVfx != null)
+            {
+                try
+                {
+                    shieldVfx.Emit(12);
+                }
+                catch (System.Exception)
+                {
+                    // Guard against any particle emission errors
+                }
+            }
 
             if (hitPulseCoroutine != null)
             {
@@ -418,10 +470,34 @@ namespace Arcade.BlockBreaker
 
             if (ball != null)
             {
+                if (collision.contacts.Length > 0 && collision.contacts[0].normal.y < BallController.MIN_UPWARD_NORMAL_Y)
+                {
+                    // Underside impact from beneath shield: do not deflect upward
+                    return;
+                }
                 Vector3 contact = collision.contacts.Length > 0 ? collision.contacts[0].point : transform.position;
                 ball.BounceFromShield(contact);
                 PulseOnHit();
             }
+        }
+
+        private static GameObject cachedShieldBarrierPrefab;
+        public const string SHIELD_BARRIER_PREFAB_PATH = "Assets/Prefabs/VFX/PF_VFX_ShieldBarrier.prefab";
+
+        public static GameObject GetOrCreateShieldBarrierPrefab()
+        {
+            if (cachedShieldBarrierPrefab == null)
+            {
+#if UNITY_EDITOR
+                cachedShieldBarrierPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(SHIELD_BARRIER_PREFAB_PATH);
+#endif
+            }
+            return cachedShieldBarrierPrefab;
+        }
+
+        public static void SetShieldBarrierPrefabForTesting(GameObject prefab)
+        {
+            cachedShieldBarrierPrefab = prefab;
         }
     }
 }

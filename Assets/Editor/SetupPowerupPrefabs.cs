@@ -81,50 +81,43 @@ namespace Arcade.Editor
                 modelMr.sharedMaterial = matCapsule;
             }
 
-            // 2. Child 'Icon_Billboard' (Billboard Icon)
+            // 2. Child 'Icon_Billboard' parented under 'Visual_Capsule' so it moves and rotates with the 3D mesh
             GameObject spriteGo = new GameObject("Icon_Billboard");
-            spriteGo.transform.SetParent(rootGo.transform);
-            spriteGo.transform.localPosition = new Vector3(0f, 0f, -0.60f);
+            int uiLayer = LayerMask.NameToLayer("UI");
+            if (uiLayer != -1) spriteGo.layer = uiLayer;
+            spriteGo.transform.SetParent(modelGo.transform, false);
+            spriteGo.transform.localPosition = new Vector3(0f, 0f, -0.24f);
             spriteGo.transform.localRotation = Quaternion.identity;
-            spriteGo.transform.localScale = new Vector3(0.95f, 0.95f, 0.95f);
+            spriteGo.transform.localScale = new Vector3(0.95f / modelScale.x, 0.95f / modelScale.y, 0.95f / modelScale.z);
 
             var sr = spriteGo.AddComponent<SpriteRenderer>();
             if (defaultSprite != null) sr.sprite = defaultSprite;
             sr.color = Color.white;
             sr.sortingOrder = 35;
 
-            // 3. Child 'Falling_Vfx' (Particle System Trail)
-            GameObject vfxGo = new GameObject("Falling_Vfx");
-            vfxGo.transform.SetParent(rootGo.transform);
+            // 3. Child 'Falling_Vfx' (Instantiated from PF_VFX_FallingTrail prefab)
+            GameObject vfxGo = null;
+            var trailPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VFX/PF_VFX_FallingTrail.prefab");
+            if (trailPrefab != null)
+            {
+                vfxGo = (GameObject)PrefabUtility.InstantiatePrefab(trailPrefab, rootGo.transform);
+                vfxGo.name = "Falling_Vfx";
+            }
+            else
+            {
+                vfxGo = new GameObject("Falling_Vfx");
+                vfxGo.transform.SetParent(rootGo.transform);
+            }
             vfxGo.transform.localPosition = Vector3.zero;
             vfxGo.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f); // upward emission
             vfxGo.transform.localScale = Vector3.one;
 
-            var ps = vfxGo.AddComponent<ParticleSystem>();
-            var psr = vfxGo.GetComponent<ParticleSystemRenderer>();
-            if (matVfx != null) psr.sharedMaterial = matVfx;
-
-            var main = ps.main;
-            main.playOnAwake = true;
-            main.loop = true;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(0.35f, 0.55f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(1.0f, 2.2f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.14f, 0.22f);
-            main.startColor = glowColor;
-            main.simulationSpace = ParticleSystemSimulationSpace.World;
-
-            var emission = ps.emission;
-            emission.enabled = true;
-            emission.rateOverTime = 25f;
-
-            var shape = ps.shape;
-            shape.enabled = true;
-            shape.shapeType = ParticleSystemShapeType.Sphere;
-            shape.radius = 0.35f;
-
-            var velocityOverLifetime = ps.velocityOverLifetime;
-            velocityOverLifetime.enabled = true;
-            velocityOverLifetime.y = new ParticleSystem.MinMaxCurve(1.5f, 2.5f);
+            var ps = vfxGo.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                var main = ps.main;
+                main.startColor = glowColor;
+            }
 
             // Serialize properties onto PowerupCapsule
             SerializedObject so = new SerializedObject(capsuleComp);

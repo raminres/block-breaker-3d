@@ -108,6 +108,13 @@ namespace Arcade.Core
 
         [Header("Asset References")]
         [SerializeField] private Material powerupCapsuleMaterial;
+        [SerializeField] private GameObject shieldWallPrefab;
+
+        public GameObject ShieldWallPrefab
+        {
+            get => shieldWallPrefab;
+            set => shieldWallPrefab = value;
+        }
 
         // Powerdown states and timers
         private bool isPaddleShortened = false;
@@ -169,27 +176,36 @@ namespace Arcade.Core
         public BlockBreaker.ShieldWall EnsureShieldWall()
         {
             if (shieldWall != null) return shieldWall;
+
+            // 1. Try instantiating directly from configured shieldWallPrefab or default prefab path
+            GameObject template = shieldWallPrefab;
+            if (template == null)
+            {
+#if UNITY_EDITOR
+                template = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Arena/PF_ShieldWall.prefab");
+#endif
+            }
+
+            if (template != null)
+            {
+                var boundaries = GameObject.Find("Boundaries") ?? GameObject.Find("ArenaBoundaries") ?? GameObject.Find("PF_Walls");
+                var wallGo = Instantiate(template, new Vector3(0f, -7.75f, 0f), Quaternion.identity);
+                wallGo.name = "ShieldWall";
+                if (boundaries != null) wallGo.transform.SetParent(boundaries.transform);
+                shieldWall = wallGo.GetComponent<BlockBreaker.ShieldWall>();
+                wallGo.SetActive(false);
+                return shieldWall;
+            }
+
+            // 2. Fallback if no prefab found: check scene
             shieldWall = FindAnyObjectByType<BlockBreaker.ShieldWall>(FindObjectsInactive.Include);
             if (shieldWall == null)
             {
                 var boundaries = GameObject.Find("Boundaries") ?? GameObject.Find("ArenaBoundaries") ?? GameObject.Find("PF_Walls");
-                GameObject template = null;
-#if UNITY_EDITOR
-                template = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Arena/PF_ShieldWall.prefab");
-#endif
-                if (template != null)
-                {
-                    var wallGo = Instantiate(template, new Vector3(0f, -7.6f, 0f), Quaternion.identity);
-                    wallGo.name = "ShieldWall";
-                    if (boundaries != null) wallGo.transform.SetParent(boundaries.transform);
-                    shieldWall = wallGo.GetComponent<BlockBreaker.ShieldWall>();
-                }
-                else
-                {
-                    var wallGo = new GameObject("ShieldWall");
-                    if (boundaries != null) wallGo.transform.SetParent(boundaries.transform);
-                    shieldWall = wallGo.AddComponent<BlockBreaker.ShieldWall>();
-                }
+                var wallGo = new GameObject("ShieldWall");
+                if (boundaries != null) wallGo.transform.SetParent(boundaries.transform);
+                shieldWall = wallGo.AddComponent<BlockBreaker.ShieldWall>();
+                wallGo.SetActive(false);
             }
             return shieldWall;
         }
@@ -737,7 +753,8 @@ namespace Arcade.Core
             int frozenCount = 0;
             for (int i = 0; i < blocks.Length; i++)
             {
-                if (!blocks[i].IsDestroyed && !blocks[i].IsFrozen && blocks[i].SpecialType != BlockSpecialType.GlassEnclosed)
+                // Only freeze normal blocks; never freeze special powerup or powerdown blocks
+                if (!blocks[i].IsDestroyed && !blocks[i].IsFrozen && blocks[i].SpecialType == BlockSpecialType.Normal)
                 {
                     blocks[i].Freeze(1);
                     frozenCount++;
@@ -941,12 +958,28 @@ namespace Arcade.Core
 
             if (isShieldActive)
             {
-                // Shield saves any falling ball! Deflects upward without interrupting play, losing lives, or clearing capsules.
-                if (ball != null)
+                var wall = EnsureShieldWall();
+                if (wall != null && wall.gameObject.activeInHierarchy)
                 {
-                    ball.BounceFromShield(new Vector3(ball.transform.position.x, -7.6f, 0f));
+                    if (ball != null)
+                    {
+                        // If the ball has dropped deeply past the arena floor (y < -11.0f),
+                        // it cannot be saved by the shield and must fall through to normal lost handling.
+                        if (ball.transform.position.y >= -11.0f)
+                        {
+                            // Shield saves falling ball: safely reposition above the shield top deck
+                            Vector3 savePos = ball.transform.position;
+                            savePos.y = -7.2f;
+                            savePos.x = Mathf.Clamp(savePos.x, -9.0f, 9.0f);
+                            savePos.z = 0f;
+                            ball.transform.position = savePos;
+
+                            ball.BounceFromShield(savePos);
+                            wall.PulseOnHit();
+                            return;
+                        }
+                    }
                 }
-                return;
             }
 
             if (activeBalls.Count > 1)

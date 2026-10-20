@@ -12,6 +12,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: MI_LaserBolt
+    second: {fileID: 2100000, guid: b7100a9e43337da4dbed7d7ec4a349be, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: MI_Paddle
     second: {fileID: 2100000, guid: 56f62cc91a5e8e344856ec8b91686391, type: 2}
   - first:

@@ -22,6 +22,9 @@ namespace Arcade.BlockBreaker
         [SerializeField] private float beamSurgeDuration = 0.65f; // Duration for beam to extend from paddle to arena ceiling
         [SerializeField] private Material hyperBeamMaterialAsset;
 
+        [Header("Projectile Settings")]
+        [SerializeField] private GameObject laserBoltPrefab;
+
         [Header("Modular Gun References")]
         [SerializeField] private GameObject gunsRoot;
         [SerializeField] private Transform muzzleLeft;
@@ -52,15 +55,33 @@ namespace Arcade.BlockBreaker
         public float BeamSurgeDuration => beamSurgeDuration;
         public float CurrentBeamHeight => currentBeamHeight;
 
+        public GameObject LaserBoltPrefab => laserBoltPrefab;
         public GameObject GunsRoot => gunsRoot;
         public Transform MuzzleLeft => muzzleLeft;
         public Transform MuzzleRight => muzzleRight;
         public GameObject LaserGunRoot => laserGunRoot;
         public GameObject LaserGunAperture => laserGunAperture;
 
+        public void SetLaserBoltPrefab(GameObject prefab)
+        {
+            laserBoltPrefab = prefab;
+            if (prefab != null) LaserBolt.SetPrefab(prefab);
+        }
+
         public void EnsureGunReferences()
         {
             if (paddle == null) paddle = GetComponent<PaddleController>();
+
+#if UNITY_EDITOR
+            if (laserBoltPrefab == null)
+            {
+                laserBoltPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(LaserBolt.PREFAB_PATH);
+            }
+#endif
+            if (laserBoltPrefab != null)
+            {
+                LaserBolt.SetPrefab(laserBoltPrefab);
+            }
 
             if (gunsRoot == null)
             {

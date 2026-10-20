@@ -10,7 +10,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
-using UnityEngine.VFX;
 
 namespace Arcade.Editor
 {
@@ -429,7 +428,7 @@ namespace Arcade.Editor
             var redMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Red.mat");
             var greenMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Green.mat");
             var blueMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Blue.mat");
-            var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>("Assets/VFX/VFX_BlockShatter.vfx");
+            var shatterPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VFX/PF_VFX_BlockShatter.prefab");
             var debrisMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Debris.mat");
             var burstMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_VFX_Burst.mat");
 
@@ -444,7 +443,7 @@ namespace Arcade.Editor
             GameObject shieldWallGo = (GameObject)PrefabUtility.InstantiatePrefab(shieldPrefab);
             shieldWallGo.name = "ShieldWall";
             shieldWallGo.transform.SetParent(boundariesRoot.transform);
-            shieldWallGo.transform.position = new Vector3(0f, -7.6f, 0f);
+            shieldWallGo.transform.position = new Vector3(0f, -7.75f, 0f);
             shieldWallGo.transform.localScale = Vector3.zero;
             var shieldWall = shieldWallGo.GetComponent<ShieldWall>();
             shieldWallGo.SetActive(false);
@@ -488,7 +487,7 @@ namespace Arcade.Editor
 
             var vfxMgr = gmGo.AddComponent<BlockVFXManager>();
             var vfxSo = new SerializedObject(vfxMgr);
-            if (vfxAsset != null) vfxSo.FindProperty("shatterVfxAsset").objectReferenceValue = vfxAsset;
+            if (shatterPrefab != null) vfxSo.FindProperty("shatterPrefab").objectReferenceValue = shatterPrefab;
             if (debrisMat != null) vfxSo.FindProperty("debrisMaterial").objectReferenceValue = debrisMat;
             if (burstMat != null) vfxSo.FindProperty("particleMaterial").objectReferenceValue = burstMat;
             vfxSo.ApplyModifiedProperties();

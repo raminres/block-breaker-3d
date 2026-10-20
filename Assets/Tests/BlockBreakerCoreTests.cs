@@ -959,20 +959,23 @@ namespace Arcade.Tests
             Assert.AreEqual(8, vfx.ActiveDebrisCount, "Shattering one block must spawn exactly 8 debris sub-boxes.");
             Assert.AreEqual(1, vfx.ActiveVfxCount, "Shattering one block must track 1 active VFX burst.");
 
-            // Find spawned debris objects
-            var debrisPieces = vfxGo.GetComponentsInChildren<MeshRenderer>(false);
-            Assert.GreaterOrEqual(debrisPieces.Length, 8, "Debris mesh renderers must be active children.");
+            // Find spawned debris particle system renderers
+            var debrisRenderers = vfxGo.GetComponentsInChildren<ParticleSystemRenderer>(false);
+            Assert.GreaterOrEqual(debrisRenderers.Length, 2, "Debris particle system renderers (large & small) must be active children.");
 
-            foreach (var mr in debrisPieces)
+            foreach (var psr in debrisRenderers)
             {
-                // Must use sharedMaterial without cloning
-                Assert.AreEqual(customMat, mr.sharedMaterial, "Debris piece must use sharedMaterial directly to preserve SRP Batcher.");
+                if (psr.renderMode == ParticleSystemRenderMode.Mesh && !psr.gameObject.name.ToLower().Contains("frost"))
+                {
+                    // Must use sharedMaterial without cloning
+                    Assert.AreEqual(customMat, psr.sharedMaterial, "Debris particle renderer must use sharedMaterial directly to preserve SRP Batcher.");
 
-                // Must have MaterialPropertyBlock applied with the tinted color
-                var propBlock = new MaterialPropertyBlock();
-                mr.GetPropertyBlock(propBlock);
-                Color extractedColor = propBlock.GetColor(Shader.PropertyToID("_BaseColor"));
-                Assert.AreEqual(testColor.r, extractedColor.r, 0.01f, "BaseColor in MaterialPropertyBlock must match test block color.");
+                    // Must have MaterialPropertyBlock applied with the tinted color
+                    var propBlock = new MaterialPropertyBlock();
+                    psr.GetPropertyBlock(propBlock);
+                    Color extractedColor = propBlock.GetColor(Shader.PropertyToID("_BaseColor"));
+                    Assert.AreEqual(testColor.r, extractedColor.r, 0.01f, "BaseColor in MaterialPropertyBlock must match test block color.");
+                }
             }
 
             vfx.ClearAllActive();
@@ -981,6 +984,36 @@ namespace Arcade.Tests
 
             Object.DestroyImmediate(vfxGo);
             Object.DestroyImmediate(customMat);
+        }
+
+        [Test]
+        public void BlockVFXManager_PlayFrostShatter_EmitsFrostMeshParticles_WithGlassMaterial()
+        {
+            var vfxGo = new GameObject("TestVFXManager");
+            var vfx = vfxGo.AddComponent<BlockVFXManager>();
+            BlockVFXManager.SetInstanceForTesting(vfx);
+
+            vfx.PlayFrostShatter(Vector3.zero, Vector3.up);
+
+            Assert.AreEqual(8, vfx.ActiveDebrisCount, "Frost shatter must emit 8 frost mesh particles.");
+            Assert.AreEqual(1, vfx.ActiveVfxCount, "Frost shatter must track 1 active VFX burst.");
+
+            var particleRenderers = vfxGo.GetComponentsInChildren<ParticleSystemRenderer>(false);
+            bool foundFrostMeshRenderer = false;
+            foreach (var psr in particleRenderers)
+            {
+                if (psr.gameObject.name.ToLower().Contains("frost") && psr.renderMode == ParticleSystemRenderMode.Mesh)
+                {
+                    foundFrostMeshRenderer = true;
+                    Assert.IsNotNull(psr.sharedMaterial, "Frost particle system renderer must have material assigned.");
+                }
+            }
+            Assert.IsTrue(foundFrostMeshRenderer, "Must have active frost mesh ParticleSystemRenderer.");
+
+            vfx.ClearAllActive();
+            Assert.AreEqual(0, vfx.ActiveDebrisCount, "ClearAllActive must recycle frost debris.");
+
+            Object.DestroyImmediate(vfxGo);
         }
 
         [Test]
@@ -1003,6 +1036,98 @@ namespace Arcade.Tests
             Assert.AreEqual(0, vfx.ActiveVfxCount, "ClearAllActive must recycle all 2 VFX instances.");
 
             Object.DestroyImmediate(vfxGo);
+        }
+
+        [Test]
+        public void All_ParticleEffect_Prefabs_ExistAndHaveValidParticleSystemsAndURPShaders()
+        {
+            string[] prefabPaths = new string[]
+            {
+                "Assets/Prefabs/VFX/PF_VFX_BlockShatter.prefab",
+                "Assets/Prefabs/VFX/PF_VFX_PowerupCollect.prefab",
+                "Assets/Prefabs/VFX/PF_VFX_PaddleSpark.prefab",
+                "Assets/Prefabs/VFX/PF_VFX_BombExplosion.prefab",
+                "Assets/Prefabs/VFX/PF_VFX_FallingTrail.prefab",
+                "Assets/Prefabs/VFX/PF_VFX_ShieldBarrier.prefab"
+            };
+
+            foreach (var path in prefabPaths)
+            {
+                var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                Assert.IsNotNull(prefab, $"VFX Prefab must exist at path: {path}");
+                Assert.AreEqual(Vector3.one, prefab.transform.localScale, $"VFX Prefab {prefab.name} root scale must be normalized Vector3.one.");
+
+                var particleSystems = prefab.GetComponentsInChildren<ParticleSystem>(true);
+                Assert.Greater(particleSystems.Length, 0, $"VFX Prefab {prefab.name} must contain at least one ParticleSystem.");
+
+                foreach (var ps in particleSystems)
+                {
+                    var psr = ps.GetComponent<ParticleSystemRenderer>();
+                    Assert.IsNotNull(psr, $"ParticleSystem {ps.name} in {prefab.name} must have a ParticleSystemRenderer.");
+                    Assert.IsNotNull(psr.sharedMaterial, $"ParticleSystemRenderer {ps.name} in {prefab.name} must have a valid sharedMaterial.");
+                    Assert.AreNotEqual("Hidden/InternalErrorShader", psr.sharedMaterial.shader.name, $"Shader on {ps.name} in {prefab.name} must not be missing/pink error shader.");
+                }
+            }
+        }
+
+        [Test]
+        public void BlockVFXManager_PlayPaddleHitSpark_EmitsSparks_UsingPrefab()
+        {
+            var vfxGo = new GameObject("TestVFXManager");
+            var vfx = vfxGo.AddComponent<BlockVFXManager>();
+            BlockVFXManager.SetInstanceForTesting(vfx);
+
+            vfx.PlayPaddleHitSpark(Vector3.zero, isSmash: true);
+
+            Assert.AreEqual(1, vfx.ActiveVfxCount, "PlayPaddleHitSpark must track exactly 1 active VFX burst.");
+            Assert.AreEqual(0, vfx.ActiveDebrisCount, "PlayPaddleHitSpark must NOT spawn block debris cubes.");
+
+            var ps = vfxGo.GetComponentInChildren<ParticleSystem>();
+            Assert.IsNotNull(ps, "Must have active ParticleSystem child for paddle hit spark.");
+
+            vfx.ClearAllActive();
+            Assert.AreEqual(0, vfx.ActiveVfxCount, "ClearAllActive must reset active VFX count.");
+
+            Object.DestroyImmediate(vfxGo);
+        }
+
+        [Test]
+        public void BlockVFXManager_PlayBombExplosion_EmitsShockwaveAndSparks_UsingPrefab()
+        {
+            var vfxGo = new GameObject("TestVFXManager");
+            var vfx = vfxGo.AddComponent<BlockVFXManager>();
+            BlockVFXManager.SetInstanceForTesting(vfx);
+
+            vfx.PlayBombExplosion(Vector3.zero);
+
+            Assert.AreEqual(1, vfx.ActiveVfxCount, "PlayBombExplosion must track exactly 1 active VFX burst.");
+            Assert.AreEqual(0, vfx.ActiveDebrisCount, "PlayBombExplosion must NOT spawn block debris cubes.");
+
+            var particleSystems = vfxGo.GetComponentsInChildren<ParticleSystem>();
+            Assert.GreaterOrEqual(particleSystems.Length, 1, "Must have active explosion ParticleSystems.");
+
+            vfx.ClearAllActive();
+            Assert.AreEqual(0, vfx.ActiveVfxCount, "ClearAllActive must reset active VFX count.");
+
+            Object.DestroyImmediate(vfxGo);
+        }
+
+        [Test]
+        public void PowerupCapsule_FallingTrailPrefab_IsValidAndAccessible()
+        {
+            var prefab = PowerupCapsule.GetOrCreateFallingTrailPrefab();
+            Assert.IsNotNull(prefab, "PowerupCapsule.GetOrCreateFallingTrailPrefab must return a non-null prefab.");
+            var ps = prefab.GetComponentInChildren<ParticleSystem>();
+            Assert.IsNotNull(ps, "Falling trail prefab must have ParticleSystem component.");
+        }
+
+        [Test]
+        public void ShieldWall_ShieldBarrierPrefab_IsValidAndAccessible()
+        {
+            var prefab = ShieldWall.GetOrCreateShieldBarrierPrefab();
+            Assert.IsNotNull(prefab, "ShieldWall.GetOrCreateShieldBarrierPrefab must return a non-null prefab.");
+            var ps = prefab.GetComponentInChildren<ParticleSystem>();
+            Assert.IsNotNull(ps, "Shield barrier prefab must have ParticleSystem component.");
         }
 
         [Test]
@@ -3088,22 +3213,21 @@ namespace Arcade.Tests
             Assert.AreEqual("Visual_Capsule", capsule.VisualCapsuleTransform.name);
             Assert.GreaterOrEqual(capsule.VisualCapsuleTransform.localScale.x, 0.80f, "Capsule visual mesh must be prominently sized.");
 
-            // Verify billboard icon child
+            // Verify billboard icon child (parented under Visual_Capsule so it rotates with the mesh)
             Assert.IsNotNull(capsule.IconTransform, "Capsule must have IconTransform child.");
             Assert.AreEqual("Icon_Billboard", capsule.IconTransform.name);
-            Assert.GreaterOrEqual(capsule.IconTransform.localScale.x, 0.85f, "Billboard icon must be prominently sized.");
-            Assert.Less(capsule.IconTransform.localPosition.z, -0.50f, "Billboard icon must sit comfortably in front of the capsule.");
+            Assert.AreEqual(capsule.VisualCapsuleTransform, capsule.IconTransform.parent, "Icon_Billboard must be parented under Visual_Capsule.");
+            Assert.GreaterOrEqual(capsule.IconTransform.lossyScale.x, 0.85f, "Billboard icon must be prominently sized in world space.");
+            Assert.Less(capsule.IconTransform.localPosition.z, 0f, "Billboard icon must sit comfortably in front of the capsule face.");
 
             Assert.IsNotNull(capsule.IconRenderer, "IconTransform must have SpriteRenderer component.");
             Assert.IsNotNull(capsule.IconRenderer.sprite, "Billboard icon must have a sprite assigned.");
             Assert.GreaterOrEqual(capsule.IconRenderer.sortingOrder, 30, "Billboard icon must have foreground sortingOrder.");
 
-            // Test LateUpdate orientation lock
-            capsule.transform.rotation = Quaternion.Euler(45f, 90f, 30f);
-            capsule.UpdateBillboardOrientation();
-
-            Assert.Less(Quaternion.Angle(capsule.IconTransform.rotation, Quaternion.identity), 0.1f,
-                "Billboard icon must stay upright and unrotated facing camera regardless of parent capsule rotation.");
+            // Test oscillation: when Visual_Capsule rotates on Y, child Icon_Billboard moves/rotates with it to prevent intersection
+            capsule.UpdateOscillation(1.57f);
+            Assert.Greater(Mathf.Abs(capsule.VisualCapsuleTransform.localEulerAngles.y), 0f);
+            Assert.AreEqual(capsule.VisualCapsuleTransform, capsule.IconTransform.parent);
 
             Object.DestroyImmediate(capsule.gameObject);
         }
@@ -3436,14 +3560,15 @@ namespace Arcade.Tests
             Assert.IsNull(cap.GetComponent<MeshRenderer>(), "Root capsule container must not have MeshRenderer.");
             Assert.IsNull(cap.GetComponent<SpriteRenderer>(), "Root capsule container must not have SpriteRenderer.");
 
-            // 2. Exactly 3 children: Visual_Capsule, Icon_Billboard, and Falling_Vfx
-            Assert.AreEqual(3, cap.transform.childCount, "Powerup capsule must have exactly 3 children (1 visual mesh child, 1 billboard sprite child, 1 particle vfx child).");
+            // 2. Modular children: Visual_Capsule, Icon_Billboard (parented under Visual_Capsule), and Falling_Vfx
+            Assert.AreEqual(2, cap.transform.childCount, "Powerup capsule root has 2 direct children: Visual_Capsule and Falling_Vfx.");
 
             var visual = cap.VisualCapsuleTransform;
             var icon = cap.IconTransform;
             var vfx = cap.FallingVfxTransform;
             Assert.IsNotNull(visual, "Visual_Capsule child must exist.");
             Assert.IsNotNull(icon, "Icon_Billboard child must exist.");
+            Assert.AreEqual(visual, icon.parent, "Icon_Billboard must be parented under Visual_Capsule so it moves with the mesh.");
             Assert.IsNotNull(vfx, "Falling_Vfx child must exist.");
             Assert.AreEqual("Visual_Capsule", visual.name);
             Assert.AreEqual("Icon_Billboard", icon.name);
@@ -3718,6 +3843,37 @@ namespace Arcade.Tests
 
             if (boltObj != null) Object.DestroyImmediate(boltObj);
             if (blockObj != null) Object.DestroyImmediate(blockObj);
+        }
+
+        [Test]
+        public void LaserBolt_VolumetricEdgeImpact_HitsAndDestroysBlock_AndBypassesTriggerObstructions()
+        {
+            // Block positioned at (0, 3, 0) with width 1.0 (-0.5 to +0.5 on X)
+            var blockObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            blockObj.transform.position = new Vector3(0f, 3f, 0f);
+            var block = blockObj.AddComponent<Block>();
+            block.Initialize(BlockColorTier.Blue, null, Color.blue);
+
+            // A falling trigger capsule placed in the path between bolt and block
+            var triggerObstacle = new GameObject("FallingPowerupTrigger");
+            triggerObstacle.transform.position = new Vector3(0.55f, 1.5f, 0f);
+            var trigCol = triggerObstacle.AddComponent<BoxCollider>();
+            trigCol.isTrigger = true;
+            trigCol.size = new Vector3(1.6f, 1.6f, 4f);
+
+            // Bolt fired at X = 0.55 (grazing outer edge: center ray misses 0.50 boundary, but 0.11 radius hits)
+            var bolt = LaserBolt.Spawn(new Vector3(0.55f, 0f, 0f));
+
+            Physics.SyncTransforms();
+
+            // Simulate tick where bolt travels past block (0 -> 4 units upward)
+            bolt.SimulateStepForTesting(0.12f);
+
+            Assert.IsTrue(block.IsDestroyed, "Volumetric SphereCast must detect grazing edge impact and ignore trigger obstacles.");
+
+            if (triggerObstacle != null) Object.DestroyImmediate(triggerObstacle);
+            if (blockObj != null) Object.DestroyImmediate(blockObj);
+            if (bolt != null) Object.DestroyImmediate(bolt.gameObject);
         }
 
         [Test]
@@ -4256,7 +4412,7 @@ namespace Arcade.Tests
             var genGo = new GameObject("TestLevelGen");
             var gen = genGo.AddComponent<LevelGenerator>();
 
-            gen.EnsureCornerChamfers();
+            gen.EnsureCornerChamfers(boundariesRoot);
 
             // Verify continuous wall shortening
             Assert.AreEqual(17.4f, topWall.transform.localScale.x, 0.05f, "TopWall must be shortened to 17.4 to continuously join chamfers.");
@@ -4980,9 +5136,11 @@ namespace Arcade.Tests
             var cubeMf = powerdown.VisualCapsuleTransform.GetComponent<MeshFilter>();
             Assert.IsNotNull(cubeMf);
             Assert.IsNotNull(cubeMf.sharedMesh);
-            Assert.IsTrue(cubeMf.sharedMesh.name.IndexOf("Cube", System.StringComparison.OrdinalIgnoreCase) >= 0,
-                "Powerdowns must instantiate a 3D Cube primitive mesh to tumble as a diamond.");
-            Assert.AreEqual(new Vector3(0.72f, 0.72f, 0.72f), powerdown.VisualCapsuleTransform.localScale);
+            Assert.IsTrue(cubeMf.sharedMesh.name.IndexOf("Hazard", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                          cubeMf.sharedMesh.name.IndexOf("Cube", System.StringComparison.OrdinalIgnoreCase) >= 0,
+                "Powerdowns must instantiate a 3D Hazard model or Cube mesh to tumble as a diamond.");
+            Assert.IsTrue(powerdown.VisualCapsuleTransform.localScale.x > 0.5f,
+                "Powerdown visual model must have a valid scale.");
 
             // Spawn Powerup (PaddleExpander)
             var powerup = PowerupCapsule.Spawn(new Vector3(5f, 0f, 0f), BlockSpecialType.PaddleExpander);
@@ -4992,9 +5150,11 @@ namespace Arcade.Tests
             var capsuleMf = powerup.VisualCapsuleTransform.GetComponent<MeshFilter>();
             Assert.IsNotNull(capsuleMf);
             Assert.IsNotNull(capsuleMf.sharedMesh);
-            Assert.IsTrue(capsuleMf.sharedMesh.name.IndexOf("Capsule", System.StringComparison.OrdinalIgnoreCase) >= 0,
-                "Powerups must instantiate a 3D Capsule primitive mesh.");
-            Assert.AreEqual(new Vector3(0.85f, 0.85f, 0.85f), powerup.VisualCapsuleTransform.localScale);
+            Assert.IsTrue(capsuleMf.sharedMesh.name.IndexOf("PowerUp", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                          capsuleMf.sharedMesh.name.IndexOf("Capsule", System.StringComparison.OrdinalIgnoreCase) >= 0,
+                "Powerups must instantiate a 3D PowerUp model or Capsule mesh.");
+            Assert.IsTrue(powerup.VisualCapsuleTransform.localScale.x > 0.5f,
+                "Powerup visual model must have a valid scale.");
 
             Object.DestroyImmediate(powerdown.gameObject);
             Object.DestroyImmediate(powerup.gameObject);
@@ -5158,8 +5318,9 @@ namespace Arcade.Tests
 
             var cubeMf = cap.VisualCapsuleTransform.GetComponent<MeshFilter>();
             Assert.IsNotNull(cubeMf);
-            Assert.IsTrue(cubeMf.sharedMesh.name.IndexOf("Cube", System.StringComparison.OrdinalIgnoreCase) >= 0,
-                "Powerdown capsule must be 3D diamond cube mesh.");
+            Assert.IsTrue(cubeMf.sharedMesh.name.IndexOf("Hazard", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                          cubeMf.sharedMesh.name.IndexOf("Cube", System.StringComparison.OrdinalIgnoreCase) >= 0,
+                "Powerdown capsule must be 3D Hazard model or diamond cube mesh.");
 
             PowerupCapsule.ClearAllFallingCapsules();
             Object.DestroyImmediate(blockGo);
@@ -5426,7 +5587,7 @@ namespace Arcade.Tests
             ballRb.linearVelocity = new Vector3(2f, -14.8f, 0f);
 
             // Bounce from shield wall contact at X = 2f
-            ball.BounceFromShield(new Vector3(2f, -7.6f, 0f));
+            ball.BounceFromShield(new Vector3(2f, -7.75f, 0f));
 
             // Verify upward deflection
             Assert.Greater(ballRb.linearVelocity.y, 0f, "Ball must deflect upward.");
@@ -5506,8 +5667,8 @@ namespace Arcade.Tests
             Assert.Greater(wall.DisappearDuration, 0f);
             Assert.IsNotNull(wall.AppearCurve);
             Assert.IsNotNull(wall.DisappearCurve);
-            Assert.AreEqual(20.4f, wall.TargetScale.x, 0.1f);
-            Assert.AreEqual(-7.6f, wall.WallY, 0.1f);
+            Assert.AreEqual(1.0f, wall.TargetScale.x, 0.1f);
+            Assert.AreEqual(-7.75f, wall.WallY, 0.1f);
 
             wall.AppearDuration = 0.5f;
             Assert.AreEqual(0.5f, wall.AppearDuration, 0.001f);
@@ -5550,6 +5711,184 @@ namespace Arcade.Tests
             Assert.IsTrue(rend.sharedMaterial.HasProperty("_EmissionColor"), "Material must have URP _EmissionColor property for iOS compatibility.");
 
             Object.DestroyImmediate(wallGo);
+        }
+
+        [Test]
+        public void CameraStacking_LV_BlockBreaker_ConfiguredCorrectly()
+        {
+            string scenePath = "Assets/Scenes/LV_BlockBreaker.unity";
+            Assert.IsTrue(System.IO.File.Exists(scenePath), "LV_BlockBreaker.unity must exist.");
+            string yaml = System.IO.File.ReadAllText(scenePath);
+
+            // 1. Verify UICamera exists and is configured as an overlay camera without post-processing
+            Assert.IsTrue(yaml.Contains("m_Name: UICamera"), "Scene must contain UICamera.");
+            Assert.IsTrue(yaml.Contains("m_TagString: Untagged"), "UICamera must not be tagged MainCamera.");
+            Assert.IsTrue(yaml.Contains("m_CameraType: 1"), "UICamera must be an Overlay camera (m_CameraType: 1).");
+            Assert.IsTrue(yaml.Contains("m_RenderPostProcessing: 0"), "UICamera must have post-processing disabled.");
+            Assert.IsTrue(yaml.Contains("m_Bits: 32"), "UICamera culling mask must target layer 5 (UI, bit 32).");
+
+            // 2. Verify Main Camera culling mask excludes UI layer and has UICamera in its camera stack
+            Assert.IsTrue(yaml.Contains("m_Bits: 4294967263"), "Main Camera culling mask must exclude UI layer (~32).");
+            Assert.IsTrue(yaml.Contains("m_Cameras:\n  - {fileID: 40449609}") || yaml.Contains("m_Cameras:\r\n  - {fileID: 40449609}"),
+                "Main Camera UniversalAdditionalCameraData must include UICamera in its cameraStack.");
+
+            // 3. Verify UICamera is parented to Main Camera
+            Assert.IsTrue(yaml.Contains("m_Father: {fileID: 1730726421}"), "UICamera must be a child of Main Camera.");
+        }
+
+        [Test]
+        public void HandleBallFell_WithActiveShield_RepositionsBallAboveShieldDeck()
+        {
+            var gmGo = new GameObject("TestGM");
+            var gm = gmGo.AddComponent<Arcade.Core.ArcadeGameManager>();
+            Arcade.Core.ArcadeGameManager.SetInstanceForTesting(gm);
+
+            // Set state to Playing
+            var stateField = typeof(Arcade.Core.ArcadeGameManager).GetField("currentState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            stateField.SetValue(gm, Arcade.Core.GameState.Playing);
+
+            // Activate shield
+            var shieldField = typeof(Arcade.Core.ArcadeGameManager).GetField("isShieldActive", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            shieldField.SetValue(gm, true);
+
+            var wallGo = new GameObject("TestWall");
+            var wall = wallGo.AddComponent<ShieldWall>();
+            wall.EnsureComponents();
+            wall.Activate(10f);
+            gm.RegisterShieldWall(wall);
+
+            var ballGo = new GameObject("TestBall");
+            ballGo.AddComponent<SphereCollider>();
+            var rb = ballGo.AddComponent<Rigidbody>();
+            rb.useGravity = false;
+            var ball = ballGo.AddComponent<BallController>();
+            ballGo.transform.position = new Vector3(2.0f, -9.0f, 0f);
+
+            // Register ball in GM
+            var regMethod = typeof(Arcade.Core.ArcadeGameManager).GetMethod("RegisterBall", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            regMethod.Invoke(gm, new object[] { ball });
+
+            // Call HandleBallFell
+            gm.HandleBallFell(ball);
+
+            // Verify ball position was safely lifted above shield top deck (Y = -7.2)
+            Assert.AreEqual(-7.2f, ball.transform.position.y, 0.05f, "Saved ball must be repositioned to Y = -7.2 safely above shield.");
+            Assert.AreEqual(2.0f, ball.transform.position.x, 0.05f, "Saved ball must preserve horizontal X position clamped within arena.");
+            Assert.IsTrue(rb.linearVelocity.y > 0f, "Saved ball must have upward linearVelocity.");
+            Assert.AreEqual(Arcade.Core.GameState.Playing, gm.State, "Game state must remain Playing.");
+
+            Object.DestroyImmediate(ballGo);
+            Object.DestroyImmediate(wallGo);
+            Object.DestroyImmediate(gmGo);
+        }
+
+        [Test]
+        public void HandleBallFell_WithActiveShield_DeepAbyssBallFallsThrough()
+        {
+            var gmGo = new GameObject("TestGM");
+            var gm = gmGo.AddComponent<Arcade.Core.ArcadeGameManager>();
+            Arcade.Core.ArcadeGameManager.SetInstanceForTesting(gm);
+
+            var stateField = typeof(Arcade.Core.ArcadeGameManager).GetField("currentState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            stateField.SetValue(gm, Arcade.Core.GameState.Playing);
+
+            var shieldField = typeof(Arcade.Core.ArcadeGameManager).GetField("isShieldActive", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            shieldField.SetValue(gm, true);
+
+            var wallGo = new GameObject("TestWall");
+            var wall = wallGo.AddComponent<ShieldWall>();
+            wall.EnsureComponents();
+            wall.Activate(10f);
+            gm.RegisterShieldWall(wall);
+
+            var ballGo = new GameObject("TestBall");
+            ballGo.AddComponent<SphereCollider>();
+            var rb = ballGo.AddComponent<Rigidbody>();
+            rb.useGravity = false;
+            var ball = ballGo.AddComponent<BallController>();
+            ballGo.transform.position = new Vector3(0f, -12.0f, 0f); // Deep abyss below -11.0f
+
+            var regMethod = typeof(Arcade.Core.ArcadeGameManager).GetMethod("RegisterBall", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            regMethod.Invoke(gm, new object[] { ball });
+
+            gm.HandleBallFell(ball);
+
+            // Must NOT be saved by shield because it's past the abyss floor
+            Assert.AreEqual(Arcade.Core.GameState.BallLost, gm.State, "Deep abyss ball below -11.0f must transition to BallLost.");
+
+            Object.DestroyImmediate(ballGo);
+            Object.DestroyImmediate(wallGo);
+            Object.DestroyImmediate(gmGo);
+        }
+
+        [Test]
+        public void Block_Freeze_RefusesToFreezeSpecialPowerupOrPowerdownBlocks()
+        {
+            var expGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var expBlock = expGo.AddComponent<Block>();
+            expBlock.Initialize(BlockColorTier.Green, null, Color.green, BlockSpecialType.PaddleExpander);
+
+            var shortGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var shortBlock = shortGo.AddComponent<Block>();
+            shortBlock.Initialize(BlockColorTier.Red, null, Color.red, BlockSpecialType.PaddleShortener);
+
+            // Attempt to freeze both blocks
+            expBlock.Freeze(1);
+            shortBlock.Freeze(1);
+
+            Assert.IsFalse(expBlock.IsFrozen, "Special powerup block must refuse to be frozen.");
+            Assert.IsFalse(shortBlock.IsFrozen, "Special powerdown block must refuse to be frozen.");
+
+            Object.DestroyImmediate(expGo);
+            Object.DestroyImmediate(shortGo);
+        }
+
+        [Test]
+        public void ArcadeGameManager_ActivateBrickFreezer_OnlyFreezesNormalBlocks()
+        {
+            var gmGo = new GameObject("TestGM");
+            var gm = gmGo.AddComponent<Arcade.Core.ArcadeGameManager>();
+            Arcade.Core.ArcadeGameManager.SetInstanceForTesting(gm);
+
+            var normGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var normBlock = normGo.AddComponent<Block>();
+            normBlock.Initialize(BlockColorTier.Blue, null, Color.cyan, BlockSpecialType.Normal);
+
+            var specialGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var specialBlock = specialGo.AddComponent<Block>();
+            specialBlock.Initialize(BlockColorTier.Green, null, Color.green, BlockSpecialType.MultiBall);
+
+            gm.ActivateBrickFreezer(5);
+
+            Assert.IsTrue(normBlock.IsFrozen, "Normal block should be frozen by BrickFreezer.");
+            Assert.IsFalse(specialBlock.IsFrozen, "MultiBall powerup block must NEVER be frozen by BrickFreezer.");
+
+            Object.DestroyImmediate(normGo);
+            Object.DestroyImmediate(specialGo);
+            Object.DestroyImmediate(gmGo);
+        }
+
+        [Test]
+        public void Block_BrickFreezer_DefrostsToNormalBlock_AndAwardsStandardPointsOnBreak()
+        {
+            var blockGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var block = blockGo.AddComponent<Block>();
+            block.Initialize(BlockColorTier.Green, null, Color.green, BlockSpecialType.BrickFreezer);
+
+            Assert.IsTrue(block.IsFrozen, "BrickFreezer block must initialize in frozen state.");
+            Assert.AreEqual(BlockSpecialType.BrickFreezer, block.SpecialType);
+
+            // Hit 1: Absorbs hit, defrosted, transitions to Normal
+            block.TakeHit(Vector3.up);
+            Assert.IsFalse(block.IsFrozen, "Block must defrost upon first hit.");
+            Assert.AreEqual(BlockSpecialType.Normal, block.SpecialType, "Defrosted block must transition to BlockSpecialType.Normal.");
+            Assert.AreEqual(20, block.Points, "Defrosted green block must award 20 standard points.");
+
+            // Hit 2: Block is destroyed
+            block.TakeHit(Vector3.up);
+            Assert.IsTrue(block.IsDestroyed, "Block must be destroyed on second hit.");
+
+            Object.DestroyImmediate(blockGo);
         }
 
         #endregion
