@@ -25,7 +25,7 @@ namespace Arcade.Tests
 
             var col = root.GetComponent<BoxCollider>();
             Assert.IsNotNull(col, "Root must have BoxCollider for physical deflection.");
-            Assert.AreEqual(Vector3.one, col.size, "Root BoxCollider size must be (1,1,1).");
+            Assert.AreEqual(new Vector3(21f, 0.5f, 2f), col.size, "Root BoxCollider size must be (21, 0.5, 2).");
             Assert.AreEqual(Vector3.zero, col.center, "Root BoxCollider center must be (0,0,0).");
             Assert.IsNotNull(col.sharedMaterial, "Root BoxCollider must have bouncy PhysicMaterial assigned.");
             Assert.AreEqual("PM_ArcadeBounce", col.sharedMaterial.name);

@@ -5511,7 +5511,7 @@ namespace Arcade.Tests
             Assert.Greater(wall.DisappearDuration, 0f);
             Assert.IsNotNull(wall.AppearCurve);
             Assert.IsNotNull(wall.DisappearCurve);
-            Assert.AreEqual(20.4f, wall.TargetScale.x, 0.1f);
+            Assert.AreEqual(1.0f, wall.TargetScale.x, 0.1f);
             Assert.AreEqual(-7.6f, wall.WallY, 0.1f);
 
             wall.AppearDuration = 0.5f;

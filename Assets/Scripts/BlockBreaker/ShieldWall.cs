@@ -12,7 +12,7 @@ namespace Arcade.BlockBreaker
     public class ShieldWall : MonoBehaviour
     {
         [Header("Dimensions & Placement")]
-        [SerializeField] private Vector3 targetScale = new Vector3(20.4f, 0.45f, 2.0f);
+        [SerializeField] private Vector3 targetScale = Vector3.one;
         [SerializeField] private float wallY = -7.6f;
 
         [Header("Tween & Animation Parameters")]
@@ -148,12 +148,21 @@ namespace Arcade.BlockBreaker
 
         public void EnsureComponents()
         {
-            if (boxCollider == null) boxCollider = GetComponent<BoxCollider>();
-            if (boxCollider == null) boxCollider = gameObject.AddComponent<BoxCollider>();
-            if (boxCollider != null)
+            if (boxCollider == null)
             {
-                boxCollider.size = Vector3.one;
-                boxCollider.center = Vector3.zero;
+                boxCollider = GetComponent<BoxCollider>();
+                if (boxCollider == null)
+                {
+                    boxCollider = gameObject.AddComponent<BoxCollider>();
+                    boxCollider.size = new Vector3(21f, 0.5f, 2f);
+                    boxCollider.center = Vector3.zero;
+                }
+            }
+
+            // Guard against legacy unnormalized targetScale
+            if (targetScale.x > 2f)
+            {
+                targetScale = Vector3.one;
             }
 
             ResolveModularChildren();
