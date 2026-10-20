@@ -3092,7 +3092,7 @@ namespace Arcade.Tests
             Assert.IsNotNull(capsule.IconTransform, "Capsule must have IconTransform child.");
             Assert.AreEqual("Icon_Billboard", capsule.IconTransform.name);
             Assert.GreaterOrEqual(capsule.IconTransform.localScale.x, 0.85f, "Billboard icon must be prominently sized.");
-            Assert.Less(capsule.IconTransform.localPosition.z, -0.50f, "Billboard icon must sit comfortably in front of the capsule.");
+            Assert.Less(capsule.IconTransform.localPosition.z, -0.30f, "Billboard icon must sit comfortably in front of the capsule.");
 
             Assert.IsNotNull(capsule.IconRenderer, "IconTransform must have SpriteRenderer component.");
             Assert.IsNotNull(capsule.IconRenderer.sprite, "Billboard icon must have a sprite assigned.");

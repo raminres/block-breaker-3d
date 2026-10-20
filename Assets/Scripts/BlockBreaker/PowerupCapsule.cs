@@ -191,11 +191,9 @@ namespace Arcade.BlockBreaker
             pos.z = FOREGROUND_Z;
             transform.position = pos;
 
-            // 3D tumbling rotation ONLY on the visual capsule mesh child
-            if (visualCapsuleTransform != null)
-            {
-                visualCapsuleTransform.Rotate(new Vector3(30f, rotationSpeed, 45f) * Time.deltaTime, Space.Self);
-            }
+            // Smooth yaw oscillation (ping-pong between -20° and +20° strictly on the Y axis)
+            // to prevent the 3D model from intersecting the billboard sprite icon in front.
+            UpdateOscillation(Time.time);
 
             // Destroy if fallen into bottom abyss
             if (transform.position.y < destroyY)
@@ -204,12 +202,28 @@ namespace Arcade.BlockBreaker
             }
         }
 
+        public void UpdateOscillation(float time)
+        {
+            if (visualCapsuleTransform != null)
+            {
+                float oscillationRate = rotationSpeed > 0f ? (rotationSpeed * 0.025f) : 3.0f;
+                float yAngle = Mathf.Sin(time * oscillationRate) * 20f;
+                visualCapsuleTransform.localRotation = Quaternion.Euler(0f, yAngle, 0f);
+            }
+        }
+
+        private float initialIconLocalZ = 0f;
+
         public void UpdateBillboardOrientation()
         {
-            // Lock billboard icon upright facing camera in world space, placed strictly in front of capsule
+            // Lock billboard icon upright facing camera in world space, preserving authored local Z offset
             if (iconTransform != null)
             {
-                iconTransform.position = transform.position + new Vector3(0f, 0f, -0.60f);
+                if (initialIconLocalZ == 0f)
+                {
+                    initialIconLocalZ = iconTransform.localPosition.z != 0f ? iconTransform.localPosition.z : -0.60f;
+                }
+                iconTransform.position = transform.position + new Vector3(0f, 0f, initialIconLocalZ);
                 iconTransform.rotation = Quaternion.identity;
             }
         }
@@ -348,7 +362,7 @@ namespace Arcade.BlockBreaker
                 visualGo.transform.localPosition = Vector3.zero;
                 if (isPowerdown)
                 {
-                    visualGo.transform.localRotation = Quaternion.Euler(45f, 45f, 45f);
+                    visualGo.transform.localRotation = Quaternion.identity;
                     visualGo.transform.localScale = new Vector3(0.72f, 0.72f, 0.72f);
                 }
                 else

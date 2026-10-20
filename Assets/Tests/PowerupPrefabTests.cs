@@ -97,5 +97,29 @@ namespace Arcade.Tests
                 Object.DestroyImmediate(drop.gameObject);
             }
         }
+
+        [Test]
+        public void PowerupCapsule_Update_OscillatesOnYAxisWithinClampedAngle()
+        {
+            var drop = PowerupCapsule.Spawn(new Vector3(0f, 5f, 0f), BlockSpecialType.Laser);
+            try
+            {
+                // Call oscillation step with test timestamp
+                drop.UpdateOscillation(1.5f);
+
+                Vector3 euler = drop.VisualCapsuleTransform.localEulerAngles;
+                float x = euler.x > 180f ? euler.x - 360f : euler.x;
+                float y = euler.y > 180f ? euler.y - 360f : euler.y;
+                float z = euler.z > 180f ? euler.z - 360f : euler.z;
+
+                Assert.AreEqual(0f, x, 0.05f, "Visual capsule must have 0 X rotation to avoid clipping billboard sprite.");
+                Assert.AreEqual(0f, z, 0.05f, "Visual capsule must have 0 Z rotation to avoid clipping billboard sprite.");
+                Assert.IsTrue(Mathf.Abs(y) <= 20.01f, $"Y rotation must remain within [-20, 20] degrees. Actual: {y}");
+            }
+            finally
+            {
+                Object.DestroyImmediate(drop.gameObject);
+            }
+        }
     }
 }

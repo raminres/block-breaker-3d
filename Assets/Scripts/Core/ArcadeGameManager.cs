@@ -108,6 +108,13 @@ namespace Arcade.Core
 
         [Header("Asset References")]
         [SerializeField] private Material powerupCapsuleMaterial;
+        [SerializeField] private GameObject shieldWallPrefab;
+
+        public GameObject ShieldWallPrefab
+        {
+            get => shieldWallPrefab;
+            set => shieldWallPrefab = value;
+        }
 
         // Powerdown states and timers
         private bool isPaddleShortened = false;
@@ -169,27 +176,36 @@ namespace Arcade.Core
         public BlockBreaker.ShieldWall EnsureShieldWall()
         {
             if (shieldWall != null) return shieldWall;
+
+            // 1. Try instantiating directly from configured shieldWallPrefab or default prefab path
+            GameObject template = shieldWallPrefab;
+            if (template == null)
+            {
+#if UNITY_EDITOR
+                template = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Arena/PF_ShieldWall.prefab");
+#endif
+            }
+
+            if (template != null)
+            {
+                var boundaries = GameObject.Find("Boundaries") ?? GameObject.Find("ArenaBoundaries") ?? GameObject.Find("PF_Walls");
+                var wallGo = Instantiate(template, new Vector3(0f, -7.6f, 0f), Quaternion.identity);
+                wallGo.name = "ShieldWall";
+                if (boundaries != null) wallGo.transform.SetParent(boundaries.transform);
+                shieldWall = wallGo.GetComponent<BlockBreaker.ShieldWall>();
+                wallGo.SetActive(false);
+                return shieldWall;
+            }
+
+            // 2. Fallback if no prefab found: check scene
             shieldWall = FindAnyObjectByType<BlockBreaker.ShieldWall>(FindObjectsInactive.Include);
             if (shieldWall == null)
             {
                 var boundaries = GameObject.Find("Boundaries") ?? GameObject.Find("ArenaBoundaries") ?? GameObject.Find("PF_Walls");
-                GameObject template = null;
-#if UNITY_EDITOR
-                template = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Arena/PF_ShieldWall.prefab");
-#endif
-                if (template != null)
-                {
-                    var wallGo = Instantiate(template, new Vector3(0f, -7.6f, 0f), Quaternion.identity);
-                    wallGo.name = "ShieldWall";
-                    if (boundaries != null) wallGo.transform.SetParent(boundaries.transform);
-                    shieldWall = wallGo.GetComponent<BlockBreaker.ShieldWall>();
-                }
-                else
-                {
-                    var wallGo = new GameObject("ShieldWall");
-                    if (boundaries != null) wallGo.transform.SetParent(boundaries.transform);
-                    shieldWall = wallGo.AddComponent<BlockBreaker.ShieldWall>();
-                }
+                var wallGo = new GameObject("ShieldWall");
+                if (boundaries != null) wallGo.transform.SetParent(boundaries.transform);
+                shieldWall = wallGo.AddComponent<BlockBreaker.ShieldWall>();
+                wallGo.SetActive(false);
             }
             return shieldWall;
         }

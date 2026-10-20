@@ -120,5 +120,30 @@ namespace Arcade.Tests
             Assert.AreEqual(vel.y.mode, vel.x.mode, "vel.x and vel.y must be in the same ParticleSystemCurveMode.");
             Assert.AreEqual(vel.y.mode, vel.z.mode, "vel.z and vel.y must be in the same ParticleSystemCurveMode.");
         }
+
+        [Test]
+        public void ShieldWallPrefab_EnsureShieldWall_InstantiatesFromPrefab()
+        {
+            var gmGo = new GameObject("TestGameManager");
+            var gm = gmGo.AddComponent<Arcade.Core.ArcadeGameManager>();
+
+            try
+            {
+                var wall = gm.EnsureShieldWall();
+                Assert.IsNotNull(wall, "EnsureShieldWall must return a non-null ShieldWall.");
+                Assert.IsNotNull(wall.ModelChild, "Instantiated ShieldWall must have ModelChild.");
+                Assert.IsNotNull(wall.VfxChild, "Instantiated ShieldWall must have VfxChild.");
+                Assert.AreEqual("ShieldWall", wall.gameObject.name);
+                Assert.IsFalse(wall.gameObject.activeSelf, "Instantiated ShieldWall must start inactive until activated.");
+            }
+            finally
+            {
+                if (gm.ActiveShieldWall != null)
+                {
+                    Object.DestroyImmediate(gm.ActiveShieldWall.gameObject);
+                }
+                Object.DestroyImmediate(gmGo);
+            }
+        }
     }
 }

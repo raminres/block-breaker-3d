@@ -296,17 +296,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &207943554 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7917572416735397896, guid: d541049f8b96cc942b253244a356c122, type: 3}
-  m_PrefabInstance: {fileID: 1016037816}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 133a5e0f52f28a44d9c7dc0d7a5f4f23, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Arcade.Gameplay::Arcade.BlockBreaker.ShieldWall
 --- !u!1 &275570417
 GameObject:
   m_ObjectHideFlags: 0
@@ -1353,7 +1342,8 @@ PrefabInstance:
       value: Boundaries
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 3987524502236375438, guid: d541049f8b96cc942b253244a356c122, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d541049f8b96cc942b253244a356c122, type: 3}
@@ -2008,7 +1998,7 @@ MonoBehaviour:
   standardClearDelaySeconds: 1
   isShieldActive: 0
   shieldTimeRemaining: 0
-  shieldWall: {fileID: 207943554}
+  shieldWall: {fileID: 0}
   isPaddleExpanded: 0
   paddleExpandTimeRemaining: 0
   activeScoreMultiplier: 1
@@ -2021,6 +2011,7 @@ MonoBehaviour:
   clutchDuration: 12
   clutchMultiplier: 1
   powerupCapsuleMaterial: {fileID: 2100000, guid: be5e42fbaef425b4ca014c8ea4b242c4, type: 2}
+  shieldWallPrefab: {fileID: 5640916559723417570, guid: 0611947c313bc3140b165b4cc2020137, type: 3}
 --- !u!4 &1587829263
 Transform:
   m_ObjectHideFlags: 0
