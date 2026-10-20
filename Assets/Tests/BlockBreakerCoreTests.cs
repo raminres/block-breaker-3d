@@ -4412,7 +4412,7 @@ namespace Arcade.Tests
             var genGo = new GameObject("TestLevelGen");
             var gen = genGo.AddComponent<LevelGenerator>();
 
-            gen.EnsureCornerChamfers();
+            gen.EnsureCornerChamfers(boundariesRoot);
 
             // Verify continuous wall shortening
             Assert.AreEqual(17.4f, topWall.transform.localScale.x, 0.05f, "TopWall must be shortened to 17.4 to continuously join chamfers.");

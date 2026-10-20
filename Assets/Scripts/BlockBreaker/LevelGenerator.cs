@@ -615,10 +615,11 @@ namespace Arcade.BlockBreaker
             }
         }
 
-        public void EnsureCornerChamfers()
+        public void EnsureCornerChamfers(GameObject targetBoundaries = null)
         {
-            var boundariesRoot = GameObject.Find("Boundaries") ?? GameObject.Find("ArenaBoundaries");
-            if (boundariesRoot == null || boundariesRoot.GetComponent<ArenaWalls>() != null) return;
+            var boundariesRoot = targetBoundaries ?? GameObject.Find("Boundaries") ?? GameObject.Find("ArenaBoundaries");
+            if (boundariesRoot == null) return;
+            if (targetBoundaries == null && boundariesRoot.GetComponent<ArenaWalls>() != null) return;
 
             Transform topWall = boundariesRoot.transform.Find("TopWall");
             Material borderMat = null;
@@ -649,7 +650,7 @@ namespace Arcade.BlockBreaker
                 rightWall.localScale = new Vector3(0.5f, 30.2f, 2f);
             }
 
-            Transform leftChamfer = boundariesRoot.transform.Find("Chamfer_TopLeft");
+            Transform leftChamfer = boundariesRoot.transform.Find("chamfer left") ?? boundariesRoot.transform.Find("Chamfer_TopLeft");
             if (leftChamfer == null)
             {
                 var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -668,7 +669,7 @@ namespace Arcade.BlockBreaker
                 leftChamfer.localScale = new Vector3(2.5f, 0.5f, 2f);
             }
 
-            Transform rightChamfer = boundariesRoot.transform.Find("Chamfer_TopRight");
+            Transform rightChamfer = boundariesRoot.transform.Find("chamfer right") ?? boundariesRoot.transform.Find("Chamfer_TopRight");
             if (rightChamfer == null)
             {
                 var go = GameObject.CreatePrimitive(PrimitiveType.Cube);

@@ -149,9 +149,8 @@ High-density technical context and architectural rules for BlockBreaker.
 ---
 
 ## 9. Current Handoff State & Verification
-- **Active Branch**: `feature/3d-models-and-scale-fixes` (Up to date with origin, clean working tree)
-- **Head Commit**: `17f3ee3`
-- **Automated Tests**: 279/279 EditMode tests passing (100% pass rate)
+- **Active Branch**: `feature/misc-updates` (Up to date with origin, clean working tree)
+- **Automated Tests**: 296/296 EditMode tests passing (100% pass rate)
 - **Verification Command**:
   ```bash
   unity cmd run_tests --mode editor --timeout 90
@@ -161,11 +160,12 @@ High-density technical context and architectural rules for BlockBreaker.
   unity cmd recompile
   ```
 - **Recent Milestones Completed**:
-  1. **Parent Prefab Scale Normalization to 1.0 & Level 1 Calibration**: Normalized parent root scale to `Vector3(1, 1, 1)` across `PF_Paddle.prefab`, `PF_Ball_Standard.prefab`, and created `PF_LaserBolt.prefab`. Removed reciprocal $0.20\text{f}$ scale on paddle child sockets (`visuals`, `guns`, `frost`, `laser_gun`, `Aperture`) so designers can add child meshes directly at 1:1 scale without squishing. Dynamically driven paddle width adjustments (Expander, Shortener) scale the child sockets and root BoxCollider while root parent scale remains strictly locked at `(1, 1, 1)`. Calibrated Level 1 initial paddle width (`SO_Level_01.asset`) to standard $5.0\text{u}$ so that `visuals` rests at `Vector3(1, 1, 1)` on new game start, scaling to `1.10f` only upon collecting the Paddle Expander (+10%) powerup.
-  2. **Authoritative Runtime Localization Tables**: Bound `LocalizationManager` directly to `LocalizationSettings.StringDatabase` and runtime `StringTable` loading with two-way `SelectedLocale` synchronization, ensuring table edits take effect in player builds without relying on fallback script dictionaries. Fully translated "How to Play" guide text in English and Turkish.
-  3. **3D Paddle Model Calibration**: Integrated `SM_Paddle.fbx` meshes into `PF_Paddle.prefab`.
-  4. **Lighting & Post-Processing Calibrations**: Added `UniversalAdditionalCameraData` to `Main Camera` with `renderPostProcessing = true`, removed skybox reflection artifacts (`RenderSettings.skybox = null`, `defaultReflectionMode = Custom`), calibrated candy block shaders and neon bloom.
-  5. **Tactile 3D Extruded UI & Glow**: Propagated 3D extruded push buttons (`:active` translation), radiant pod glows, and animated mute toggles across both HUD and Main Menu.
-  6. **Mobile Ergonomics & Safe Area**: Full iPhone 15 / 15 Pro Dynamic Island adaptation (`SafeAreaController`), iOS system gesture double-swipe deferral, and bottom touch guideline.
-  7. **15-Level Campaign & Onboarding Scale**: Full high-density campaign with +20% block scale on Levels 1–3 for onboarding readability.
+  1. **Zero Runtime Model/Mesh Spawning & Prefab Consolidation**: Audited all runtime scripts to ensure 100% of 3D models, visual meshes, and particle VFX are sourced from `Assets/Prefabs/`. Fixed `LevelGenerator.EnsureCornerChamfers()` to query existing prefab chamfers (`"chamfer left"`, `"chamfer right"`), eliminating procedural primitive spawning on level load.
+  2. **Laser Bolt Volumetric Sweep & Rigidbody Integration**: Upgraded `LaserBolt.cs` from thin raycast to continuous volumetric `Physics.SphereCastAll` (radius $0.11\text{u}$ matching `SM_Paddle` bullet mesh) with `QueryTriggerInteraction.Ignore` to bypass falling powerup triggers. Added kinematic `Rigidbody` to `PF_LaserBolt.prefab` and `Spawn()` for native PhysX `OnTriggerEnter` trigger events. Multi-hit damage verified (1 damage/hit; glass and frozen blocks absorb 1 hit before shattering).
+  3. **Powerup & Hazard Icon Parenting & Zero Runtime Icon Instantiation**: Parented `Icon_Billboard` directly to `Visual_Capsule` in `PF_Drop_Powerup.prefab` and `PF_Drop_Hazard.prefab` so the billboard icon oscillates synchronously with the 3D model, permanently eliminating visual clipping. Fixed runtime duplicate icon creation; `PowerupCapsule.Initialize()` simply swaps `iconRenderer.sprite` without creating any new GameObjects.
+  4. **Mesh Particle Shuriken VFX Consolidation**: Consolidated all particle VFX across the project into unified Shuriken `ParticleSystem` prefabs under `Assets/Prefabs/VFX/` (`PF_VFX_BlockShatter`, `PF_VFX_BombExplosion`, `PF_VFX_PaddleSpark`, `PF_VFX_FallingTrail`). Integrated `SM_Block_Large_Particles`, `SM_Block_Small_Particles`, and `SM_Block_Frost_Particles` meshes into block shatter bursts with block-matching materials and falling trajectories.
+  5. **Arena Boundary & UI Alignment**: Fixed shield wall baseline to $Y = -7.75\text{f}$ to prevent crossing bottom wall frames. Raised "Tap to Launch" banner on UI Toolkit HUD to prevent ball and shield occlusion across tall mobile aspect ratios.
+  6. **Bullet 3D Model Integration**: Integrated `Bullet` mesh from `SM_Paddle.fbx` with bottom pivot at $Y = 0$ into `PF_LaserBolt.prefab` and calibrated muzzle socket alignment.
+  7. **Parent Prefab Scale Normalization to 1.0**: Normalized parent root scale to `Vector3(1, 1, 1)` across `PF_Paddle.prefab`, `PF_Ball_Standard.prefab`, and `PF_LaserBolt.prefab`.
+  8. **Authoritative Runtime Localization Tables**: Bound `LocalizationManager` directly to `LocalizationSettings.StringDatabase` and runtime `StringTable` loading with English and Turkish support.
 

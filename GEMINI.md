@@ -7,7 +7,7 @@ This file provides foundational mandates, architectural maps, key mathematical c
 ## 1. Project Specs & Key Paths
 - **Product Name / Bundle ID**: `BlockBreaker` / `com.RaminRasulzade.BlockBreaker`
 - **Unity Version**: Unity 6 (`6000.6.0f1`), Universal Render Pipeline (`URP 17.6.0`)
-- **Active Branch**: `feature/3d-models-and-scale-fixes` (Git LFS enabled)
+- **Active Branch**: `feature/misc-updates` (Git LFS enabled)
 - **Main Scenes**:
   1. `Assets/Scenes/LV_BlockBreaker_MainMenu.unity` (Build Index 0, Main Menu & Start Scene configured via `PlayModeSceneSetup.cs`)
   2. `Assets/Scenes/LV_BlockBreaker.unity` (Build Index 1, Primary Gameplay Arena)
@@ -51,7 +51,8 @@ This file provides foundational mandates, architectural maps, key mathematical c
 | **Projectiles** | `PF_LaserBolt.prefab` | Root (scale 1.0) + Child 1 `model` (`Bullet` mesh from `SM_Paddle.fbx` at scale 1.0 with bottom pivot $Y=0$). | `LaserBolt.cs`, root `CapsuleCollider` trigger ($R=0.10, H=0.54, \text{center } Y=0.27$), continuous sweep raycast. |
 | **Ball** | `PF_Ball_Standard.prefab` | Root (scale 1.0) + Child 1 `model` (Sphere scale $0.70, 0.70, 0.70$) + Child 2 `trail` + Child 3 `vfx`. | `BallController.cs`, root `SphereCollider` (radius 0.35, $D = 0.7\text{u}$), `Rigidbody` (interpolate, continuous dynamic, velocity-driven). |
 | **Blocks** | `PF_Block_Base.prefab`<br>`PF_Block_Red.prefab`<br>`PF_Block_Green.prefab`<br>`PF_Block_Blue.prefab`<br>`PF_Block_Bomb.prefab`<br>`PF_Block_Glass.prefab` | 4 standardized child sockets:<br>1. `brick`: PBR visual mesh (zero colliders).<br>2. `brick frost`: Ice encasement shell.<br>3. `brick special`: UI Toolkit badge element (`BlockBadge`).<br>4. `brick vfx`: Burst anchor. | `Block.cs`, root `BoxCollider` ($W = 1.15, H = 0.55, Z = 1.0$), `MaterialPropertyBlock` zero-allocation tinting. |
-| **Drops** | `PF_Drop_Powerup.prefab`<br>`PF_Drop_Hazard.prefab` | Root container + Child 1 visual mesh (Capsule scale 0.85 / Diamond Cube scale 0.72) + Child 2 `Icon_Billboard` ($Z = -0.6\text{f}$). | `PowerupCapsule.cs`, trigger `BoxCollider`, tumbling rotation ($120^\circ/\text{s}$), fall speed $4.5\text{ u/s}$ at $Z = -1.0\text{f}$. |
+| **Drops** | `PF_Drop_Powerup.prefab`<br>`PF_Drop_Hazard.prefab` | Root container + Child 1 visual mesh (Capsule scale 1.60 / Diamond Cube scale 1.33) + Child 1.1 `Icon_Billboard` (parented directly to `Visual_Capsule`, rotates synchronously with mesh). | `PowerupCapsule.cs`, trigger `BoxCollider`, tumbling rotation ($120^\circ/\text{s}$), fall speed $4.5\text{ u/s}$ at $Z = -1.0\text{f}$. Zero runtime object spawning: `Initialize()` swaps sprite directly. |
+| **VFX** | `PF_VFX_BlockShatter.prefab`<br>`PF_VFX_BombExplosion.prefab`<br>`PF_VFX_PaddleSpark.prefab`<br>`PF_VFX_FallingTrail.prefab` | Consolidated Shuriken `ParticleSystem` prefabs. `PF_VFX_BlockShatter` contains `Sparks_Emitter` (billboard sparks), `Large_Mesh_Emitter` (`SM_Block_Large_Particles`), `Small_Mesh_Emitter` (`SM_Block_Small_Particles`), and `Frost_Mesh_Emitter` (`SM_Block_Frost_Particles`). | `BlockVFXManager.cs`, prewarmed instance pool under `_Pool_VFX`, zero-allocation `MaterialPropertyBlock` tinting, dynamic block material inheritance. |
 
 ---
 
@@ -165,7 +166,7 @@ Use this architectural lookup table to locate subsystems, classes, and responsib
 ---
 
 ## 10. Testing & Verification Command
-All logic, boundaries, prefabs, hazards, scene setups, localization tables, touch ergonomics, and level scaling are strictly verified by **295 automated EditMode NUnit tests**. To execute:
+All logic, boundaries, prefabs, hazards, scene setups, localization tables, touch ergonomics, and level scaling are strictly verified by **296 automated EditMode NUnit tests**. To execute:
 ```bash
 unity cmd run_tests --mode editor --timeout 90
 ```
