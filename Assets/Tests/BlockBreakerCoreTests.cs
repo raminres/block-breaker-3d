@@ -5660,6 +5660,76 @@ namespace Arcade.Tests
             Object.DestroyImmediate(gmGo);
         }
 
+        [Test]
+        public void Block_Freeze_RefusesToFreezeSpecialPowerupOrPowerdownBlocks()
+        {
+            var expGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var expBlock = expGo.AddComponent<Block>();
+            expBlock.Initialize(BlockColorTier.Green, null, Color.green, BlockSpecialType.PaddleExpander);
+
+            var shortGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var shortBlock = shortGo.AddComponent<Block>();
+            shortBlock.Initialize(BlockColorTier.Red, null, Color.red, BlockSpecialType.PaddleShortener);
+
+            // Attempt to freeze both blocks
+            expBlock.Freeze(1);
+            shortBlock.Freeze(1);
+
+            Assert.IsFalse(expBlock.IsFrozen, "Special powerup block must refuse to be frozen.");
+            Assert.IsFalse(shortBlock.IsFrozen, "Special powerdown block must refuse to be frozen.");
+
+            Object.DestroyImmediate(expGo);
+            Object.DestroyImmediate(shortGo);
+        }
+
+        [Test]
+        public void ArcadeGameManager_ActivateBrickFreezer_OnlyFreezesNormalBlocks()
+        {
+            var gmGo = new GameObject("TestGM");
+            var gm = gmGo.AddComponent<Arcade.Core.ArcadeGameManager>();
+            Arcade.Core.ArcadeGameManager.SetInstanceForTesting(gm);
+
+            var normGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var normBlock = normGo.AddComponent<Block>();
+            normBlock.Initialize(BlockColorTier.Blue, null, Color.cyan, BlockSpecialType.Normal);
+
+            var specialGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var specialBlock = specialGo.AddComponent<Block>();
+            specialBlock.Initialize(BlockColorTier.Green, null, Color.green, BlockSpecialType.MultiBall);
+
+            gm.ActivateBrickFreezer(5);
+
+            Assert.IsTrue(normBlock.IsFrozen, "Normal block should be frozen by BrickFreezer.");
+            Assert.IsFalse(specialBlock.IsFrozen, "MultiBall powerup block must NEVER be frozen by BrickFreezer.");
+
+            Object.DestroyImmediate(normGo);
+            Object.DestroyImmediate(specialGo);
+            Object.DestroyImmediate(gmGo);
+        }
+
+        [Test]
+        public void Block_BrickFreezer_DefrostsToNormalBlock_AndAwardsStandardPointsOnBreak()
+        {
+            var blockGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var block = blockGo.AddComponent<Block>();
+            block.Initialize(BlockColorTier.Green, null, Color.green, BlockSpecialType.BrickFreezer);
+
+            Assert.IsTrue(block.IsFrozen, "BrickFreezer block must initialize in frozen state.");
+            Assert.AreEqual(BlockSpecialType.BrickFreezer, block.SpecialType);
+
+            // Hit 1: Absorbs hit, defrosted, transitions to Normal
+            block.TakeHit(Vector3.up);
+            Assert.IsFalse(block.IsFrozen, "Block must defrost upon first hit.");
+            Assert.AreEqual(BlockSpecialType.Normal, block.SpecialType, "Defrosted block must transition to BlockSpecialType.Normal.");
+            Assert.AreEqual(20, block.Points, "Defrosted green block must award 20 standard points.");
+
+            // Hit 2: Block is destroyed
+            block.TakeHit(Vector3.up);
+            Assert.IsTrue(block.IsDestroyed, "Block must be destroyed on second hit.");
+
+            Object.DestroyImmediate(blockGo);
+        }
+
         #endregion
 
         #endregion

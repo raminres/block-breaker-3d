@@ -117,6 +117,9 @@ namespace Arcade.BlockBreaker
         public void Freeze(int defrostHits = 1)
         {
             if (isDestroyed) return;
+            // Prevent special powerup or powerdown blocks from being frozen
+            if (specialType != BlockSpecialType.Normal && specialType != BlockSpecialType.BrickFreezer) return;
+
             isFrozen = true;
             requiredDefrostHits = defrostHits;
 
@@ -150,7 +153,13 @@ namespace Arcade.BlockBreaker
                 if (originalMaterial != null) meshRenderer.sharedMaterial = originalMaterial;
             }
 
-            // Remove or deactivate badge icon so the frozen icon disappears on the first hit
+            // Once defrosted, frost blocks transition to regular Normal blocks
+            if (specialType == BlockSpecialType.BrickFreezer)
+            {
+                specialType = BlockSpecialType.Normal;
+            }
+
+            // Remove or deactivate badge icon only if it specifically was a BrickFreezer badge
             if (brickSpecial != null)
             {
                 var badge = brickSpecial.GetComponent<BlockBadge>();
@@ -162,7 +171,7 @@ namespace Arcade.BlockBreaker
             else
             {
                 var badge = GetComponentInChildren<BlockBadge>();
-                if (badge != null)
+                if (badge != null && (badge.SpecialType == BlockSpecialType.BrickFreezer || badge.gameObject.name == "UI_Badge"))
                 {
                     if (Application.isPlaying)
                         Destroy(badge.gameObject);
@@ -215,6 +224,8 @@ namespace Arcade.BlockBreaker
             if (special == BlockSpecialType.BrickFreezer)
             {
                 Freeze(1);
+                // Frost blocks must not display a special badge icon
+                if (brickSpecial != null) brickSpecial.SetActive(false);
             }
         }
 

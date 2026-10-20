@@ -737,7 +737,8 @@ namespace Arcade.Core
             int frozenCount = 0;
             for (int i = 0; i < blocks.Length; i++)
             {
-                if (!blocks[i].IsDestroyed && !blocks[i].IsFrozen && blocks[i].SpecialType != BlockSpecialType.GlassEnclosed)
+                // Only freeze normal blocks; never freeze special powerup or powerdown blocks
+                if (!blocks[i].IsDestroyed && !blocks[i].IsFrozen && blocks[i].SpecialType == BlockSpecialType.Normal)
                 {
                     blocks[i].Freeze(1);
                     frozenCount++;

@@ -372,7 +372,7 @@ namespace Arcade.BlockBreaker
                             CreateGlassShellForBlock(blockObj, blockComp);
                         }
                     }
-                    else if (special != BlockSpecialType.Normal)
+                    else if (special != BlockSpecialType.Normal && special != BlockSpecialType.BrickFreezer)
                     {
                         if (blockComp.BrickSpecial != null)
                         {
@@ -392,7 +392,7 @@ namespace Arcade.BlockBreaker
                     else
                     {
                         if (blockComp.BrickSpecial != null) blockComp.BrickSpecial.SetActive(false);
-                        if (blockComp.BrickFrost != null) blockComp.BrickFrost.SetActive(false);
+                        if (special != BlockSpecialType.BrickFreezer && blockComp.BrickFrost != null) blockComp.BrickFrost.SetActive(false);
                     }
 
                     blockIndex++;
@@ -596,7 +596,7 @@ namespace Arcade.BlockBreaker
 
         private void CreateBadgeForBlock(GameObject blockObj, BlockSpecialType special)
         {
-            GameObject badgeGo = new GameObject("UI_Badge");
+            GameObject badgeGo = new GameObject("brick special");
             int uiLayer = LayerMask.NameToLayer("UI");
             if (uiLayer != -1) badgeGo.layer = uiLayer;
             badgeGo.transform.SetParent(blockObj.transform);
@@ -607,6 +607,12 @@ namespace Arcade.BlockBreaker
             var badge = badgeGo.AddComponent<BlockBadge>();
             Sprite badgeSprite = iconSet != null ? iconSet.GetSprite(special) : null;
             badge.Setup(special, badgePanelSettings, badgeVisualTreeAsset, badgeSprite);
+
+            var blockComp = blockObj.GetComponent<Block>();
+            if (blockComp != null)
+            {
+                blockComp.ResolveModularChildren();
+            }
         }
 
         public void EnsureCornerChamfers()
