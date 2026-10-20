@@ -117,6 +117,17 @@ namespace Arcade.BlockBreaker
                 var t = transform.Find("vfx");
                 if (t != null) vfxChild = t.gameObject;
             }
+            if (vfxChild == null)
+            {
+                var barrierPrefab = GetOrCreateShieldBarrierPrefab();
+                if (barrierPrefab != null)
+                {
+                    vfxChild = Instantiate(barrierPrefab, transform);
+                    vfxChild.name = "vfx";
+                    vfxChild.transform.localPosition = Vector3.zero;
+                    vfxChild.transform.localRotation = Quaternion.identity;
+                }
+            }
             if (shieldVfx == null && vfxChild != null)
             {
                 shieldVfx = vfxChild.GetComponent<ParticleSystem>() ?? vfxChild.GetComponentInChildren<ParticleSystem>();
@@ -468,6 +479,25 @@ namespace Arcade.BlockBreaker
                 ball.BounceFromShield(contact);
                 PulseOnHit();
             }
+        }
+
+        private static GameObject cachedShieldBarrierPrefab;
+        public const string SHIELD_BARRIER_PREFAB_PATH = "Assets/Prefabs/VFX/PF_VFX_ShieldBarrier.prefab";
+
+        public static GameObject GetOrCreateShieldBarrierPrefab()
+        {
+            if (cachedShieldBarrierPrefab == null)
+            {
+#if UNITY_EDITOR
+                cachedShieldBarrierPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(SHIELD_BARRIER_PREFAB_PATH);
+#endif
+            }
+            return cachedShieldBarrierPrefab;
+        }
+
+        public static void SetShieldBarrierPrefabForTesting(GameObject prefab)
+        {
+            cachedShieldBarrierPrefab = prefab;
         }
     }
 }

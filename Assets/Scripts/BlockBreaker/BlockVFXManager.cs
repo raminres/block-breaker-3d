@@ -14,8 +14,16 @@ namespace Arcade.BlockBreaker
     {
         public static BlockVFXManager Instance { get; private set; }
 
-        [Header("Shuriken Shatter Prefab")]
+        [Header("Shuriken Prefabs")]
         [SerializeField] private GameObject shatterPrefab;
+        [SerializeField] private GameObject powerupCollectPrefab;
+        [SerializeField] private GameObject paddleSparkPrefab;
+        [SerializeField] private GameObject bombExplosionPrefab;
+
+        public const string SHATTER_PREFAB_PATH = "Assets/Prefabs/VFX/PF_VFX_BlockShatter.prefab";
+        public const string POWERUP_COLLECT_PREFAB_PATH = "Assets/Prefabs/VFX/PF_VFX_PowerupCollect.prefab";
+        public const string PADDLE_SPARK_PREFAB_PATH = "Assets/Prefabs/VFX/PF_VFX_PaddleSpark.prefab";
+        public const string BOMB_EXPLOSION_PREFAB_PATH = "Assets/Prefabs/VFX/PF_VFX_BombExplosion.prefab";
 
         [Header("Materials")]
         [SerializeField] private Material particleMaterial;
@@ -39,10 +47,16 @@ namespace Arcade.BlockBreaker
         public Material DebrisMaterial => debrisMaterial;
         public Material ParticleMaterial => particleMaterial;
         public GameObject ShatterPrefab => shatterPrefab;
+        public GameObject PowerupCollectPrefab => powerupCollectPrefab;
+        public GameObject PaddleSparkPrefab => paddleSparkPrefab;
+        public GameObject BombExplosionPrefab => bombExplosionPrefab;
 
         public void SetDebrisMaterial(Material mat) => debrisMaterial = mat;
         public void SetParticleMaterial(Material mat) => particleMaterial = mat;
         public void SetShatterPrefab(GameObject prefab) => shatterPrefab = prefab;
+        public void SetPowerupCollectPrefab(GameObject prefab) => powerupCollectPrefab = prefab;
+        public void SetPaddleSparkPrefab(GameObject prefab) => paddleSparkPrefab = prefab;
+        public void SetBombExplosionPrefab(GameObject prefab) => bombExplosionPrefab = prefab;
 
         public static void SetInstanceForTesting(BlockVFXManager instance)
         {
@@ -66,12 +80,18 @@ namespace Arcade.BlockBreaker
             public ParticleSystemRenderer smallPsr;
             public ParticleSystem frostPs;
             public ParticleSystemRenderer frostPsr;
+            public ParticleSystem[] allPs;
+            public ParticleSystemRenderer[] allPsr;
             public float elapsed;
             public float duration;
             public int activeMeshCount;
+            public System.Action<ShatterInstance> recycleCallback;
         }
 
         private readonly Queue<ShatterInstance> shatterPool = new Queue<ShatterInstance>();
+        private readonly Queue<ShatterInstance> powerupCollectPool = new Queue<ShatterInstance>();
+        private readonly Queue<ShatterInstance> paddleSparkPool = new Queue<ShatterInstance>();
+        private readonly Queue<ShatterInstance> bombExplosionPool = new Queue<ShatterInstance>();
         private readonly List<ShatterInstance> activeShatterList = new List<ShatterInstance>(32);
         private int totalActiveDebrisCount = 0;
 
@@ -141,7 +161,19 @@ namespace Arcade.BlockBreaker
 #if UNITY_EDITOR
             if (shatterPrefab == null)
             {
-                shatterPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VFX/PF_VFX_BlockShatter.prefab");
+                shatterPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(SHATTER_PREFAB_PATH);
+            }
+            if (powerupCollectPrefab == null)
+            {
+                powerupCollectPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(POWERUP_COLLECT_PREFAB_PATH);
+            }
+            if (paddleSparkPrefab == null)
+            {
+                paddleSparkPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(PADDLE_SPARK_PREFAB_PATH);
+            }
+            if (bombExplosionPrefab == null)
+            {
+                bombExplosionPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(BOMB_EXPLOSION_PREFAB_PATH);
             }
             if (particleMaterial == null)
             {
@@ -217,7 +249,8 @@ namespace Arcade.BlockBreaker
 
         private ShatterInstance CreateShatterInstance()
         {
-            GameObject rootGo;
+            EnsureReferences();
+            GameObject rootGo = null;
             if (shatterPrefab != null)
             {
                 rootGo = Instantiate(shatterPrefab, GetOrCreatePoolContainer());
@@ -225,18 +258,35 @@ namespace Arcade.BlockBreaker
             }
             else
             {
-                rootGo = BuildProceduralShatterInstance();
+#if UNITY_EDITOR
+                shatterPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(SHATTER_PREFAB_PATH);
+                if (shatterPrefab != null)
+                {
+                    rootGo = Instantiate(shatterPrefab, GetOrCreatePoolContainer());
+                    rootGo.name = "VFX_Burst_Instance";
+                }
+#endif
+            }
+
+            if (rootGo == null)
+            {
+                rootGo = new GameObject("VFX_Burst_Instance");
                 rootGo.transform.SetParent(GetOrCreatePoolContainer());
             }
 
             rootGo.SetActive(false);
             rootGo.transform.position = new Vector3(0f, -500f, 0f);
 
-            var inst = new ShatterInstance { root = rootGo };
+            var inst = new ShatterInstance
+            {
+                root = rootGo,
+                allPs = rootGo.GetComponentsInChildren<ParticleSystem>(true),
+                allPsr = rootGo.GetComponentsInChildren<ParticleSystemRenderer>(true),
+                recycleCallback = i => { i.root.SetActive(false); shatterPool.Enqueue(i); }
+            };
 
             // Find child emitters
-            var allPs = rootGo.GetComponentsInChildren<ParticleSystem>(true);
-            foreach (var ps in allPs)
+            foreach (var ps in inst.allPs)
             {
                 string n = ps.gameObject.name.ToLower();
                 var psr = ps.GetComponent<ParticleSystemRenderer>();
@@ -263,48 +313,151 @@ namespace Arcade.BlockBreaker
             }
 
             // Fallback bindings if named children not matched
-            if (inst.sparksPs == null && allPs.Length > 0)
+            if (inst.sparksPs == null && inst.allPs.Length > 0)
             {
-                inst.sparksPs = allPs[0];
-                inst.sparksPsr = allPs[0].GetComponent<ParticleSystemRenderer>();
+                inst.sparksPs = inst.allPs[0];
+                inst.sparksPsr = inst.allPsr.Length > 0 ? inst.allPsr[0] : null;
             }
 
             return inst;
         }
 
-        private GameObject BuildProceduralShatterInstance()
+        private ShatterInstance CreatePowerupCollectInstance()
         {
-            GameObject root = new GameObject("VFX_Burst_Instance");
+            EnsureReferences();
+            GameObject rootGo = null;
+            if (powerupCollectPrefab != null)
+            {
+                rootGo = Instantiate(powerupCollectPrefab, GetOrCreatePoolContainer());
+                rootGo.name = "VFX_PowerupCollect_Instance";
+            }
+            else
+            {
+#if UNITY_EDITOR
+                powerupCollectPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(POWERUP_COLLECT_PREFAB_PATH);
+                if (powerupCollectPrefab != null)
+                {
+                    rootGo = Instantiate(powerupCollectPrefab, GetOrCreatePoolContainer());
+                    rootGo.name = "VFX_PowerupCollect_Instance";
+                }
+#endif
+            }
 
-            // Sparks
-            GameObject sparksGo = new GameObject("Sparks");
-            sparksGo.transform.SetParent(root.transform, false);
-            var psSparks = sparksGo.AddComponent<ParticleSystem>();
-            var psrSparks = sparksGo.GetComponent<ParticleSystemRenderer>();
-            ConfigureSparksEmitter(psSparks, psrSparks, GetOrCreateParticleMaterial());
+            if (rootGo == null)
+            {
+                return CreateShatterInstance();
+            }
 
-            // Large
-            GameObject largeGo = new GameObject("Large_Shards");
-            largeGo.transform.SetParent(root.transform, false);
-            var psLarge = largeGo.AddComponent<ParticleSystem>();
-            var psrLarge = largeGo.GetComponent<ParticleSystemRenderer>();
-            ConfigureMeshEmitter(psLarge, psrLarge, largeParticleMeshes, GetOrCreateDebrisMaterial(), 3.5f, 7.0f, 0.75f, 1.1f, 0.75f, 1.0f, 2.5f);
+            rootGo.SetActive(false);
+            rootGo.transform.position = new Vector3(0f, -500f, 0f);
 
-            // Small
-            GameObject smallGo = new GameObject("Small_Shards");
-            smallGo.transform.SetParent(root.transform, false);
-            var psSmall = smallGo.AddComponent<ParticleSystem>();
-            var psrSmall = smallGo.GetComponent<ParticleSystemRenderer>();
-            ConfigureMeshEmitter(psSmall, psrSmall, smallParticleMeshes, GetOrCreateDebrisMaterial(), 4.5f, 9.0f, 0.45f, 0.7f, 0.65f, 0.9f, 2.8f);
+            var inst = new ShatterInstance
+            {
+                root = rootGo,
+                allPs = rootGo.GetComponentsInChildren<ParticleSystem>(true),
+                allPsr = rootGo.GetComponentsInChildren<ParticleSystemRenderer>(true),
+                recycleCallback = i => { i.root.SetActive(false); powerupCollectPool.Enqueue(i); }
+            };
 
-            // Frost
-            GameObject frostGo = new GameObject("Frost_Shards");
-            frostGo.transform.SetParent(root.transform, false);
-            var psFrost = frostGo.AddComponent<ParticleSystem>();
-            var psrFrost = frostGo.GetComponent<ParticleSystemRenderer>();
-            ConfigureMeshEmitter(psFrost, psrFrost, frostParticleMeshes, GetOrCreateGlassMaterial(), 4.0f, 8.0f, 0.55f, 0.85f, 0.7f, 0.95f, 2.6f);
+            if (inst.allPs.Length > 0)
+            {
+                inst.sparksPs = inst.allPs[0];
+                inst.sparksPsr = inst.allPsr.Length > 0 ? inst.allPsr[0] : null;
+            }
 
-            return root;
+            return inst;
+        }
+
+        private ShatterInstance CreatePaddleSparkInstance()
+        {
+            EnsureReferences();
+            GameObject rootGo = null;
+            if (paddleSparkPrefab != null)
+            {
+                rootGo = Instantiate(paddleSparkPrefab, GetOrCreatePoolContainer());
+                rootGo.name = "VFX_PaddleSpark_Instance";
+            }
+            else
+            {
+#if UNITY_EDITOR
+                paddleSparkPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(PADDLE_SPARK_PREFAB_PATH);
+                if (paddleSparkPrefab != null)
+                {
+                    rootGo = Instantiate(paddleSparkPrefab, GetOrCreatePoolContainer());
+                    rootGo.name = "VFX_PaddleSpark_Instance";
+                }
+#endif
+            }
+
+            if (rootGo == null)
+            {
+                return CreateShatterInstance();
+            }
+
+            rootGo.SetActive(false);
+            rootGo.transform.position = new Vector3(0f, -500f, 0f);
+
+            var inst = new ShatterInstance
+            {
+                root = rootGo,
+                allPs = rootGo.GetComponentsInChildren<ParticleSystem>(true),
+                allPsr = rootGo.GetComponentsInChildren<ParticleSystemRenderer>(true),
+                recycleCallback = i => { i.root.SetActive(false); paddleSparkPool.Enqueue(i); }
+            };
+
+            if (inst.allPs.Length > 0)
+            {
+                inst.sparksPs = inst.allPs[0];
+                inst.sparksPsr = inst.allPsr.Length > 0 ? inst.allPsr[0] : null;
+            }
+
+            return inst;
+        }
+
+        private ShatterInstance CreateBombExplosionInstance()
+        {
+            EnsureReferences();
+            GameObject rootGo = null;
+            if (bombExplosionPrefab != null)
+            {
+                rootGo = Instantiate(bombExplosionPrefab, GetOrCreatePoolContainer());
+                rootGo.name = "VFX_BombExplosion_Instance";
+            }
+            else
+            {
+#if UNITY_EDITOR
+                bombExplosionPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(BOMB_EXPLOSION_PREFAB_PATH);
+                if (bombExplosionPrefab != null)
+                {
+                    rootGo = Instantiate(bombExplosionPrefab, GetOrCreatePoolContainer());
+                    rootGo.name = "VFX_BombExplosion_Instance";
+                }
+#endif
+            }
+
+            if (rootGo == null)
+            {
+                return CreateShatterInstance();
+            }
+
+            rootGo.SetActive(false);
+            rootGo.transform.position = new Vector3(0f, -500f, 0f);
+
+            var inst = new ShatterInstance
+            {
+                root = rootGo,
+                allPs = rootGo.GetComponentsInChildren<ParticleSystem>(true),
+                allPsr = rootGo.GetComponentsInChildren<ParticleSystemRenderer>(true),
+                recycleCallback = i => { i.root.SetActive(false); bombExplosionPool.Enqueue(i); }
+            };
+
+            if (inst.allPs.Length > 0)
+            {
+                inst.sparksPs = inst.allPs[0];
+                inst.sparksPsr = inst.allPsr.Length > 0 ? inst.allPsr[0] : null;
+            }
+
+            return inst;
         }
 
         private static void ConfigureSparksEmitter(ParticleSystem ps, ParticleSystemRenderer psr, Material mat)
@@ -630,11 +783,34 @@ namespace Arcade.BlockBreaker
         public void PlayPowerupCollect(Vector3 position, Color powerupColor)
         {
             EnsureReferences();
-            ShatterInstance inst = shatterPool.Count > 0 ? shatterPool.Dequeue() : CreateShatterInstance();
+            ShatterInstance inst = powerupCollectPool.Count > 0 ? powerupCollectPool.Dequeue() : CreatePowerupCollectInstance();
             inst.root.transform.position = position;
             inst.root.SetActive(true);
 
-            if (inst.sparksPs != null)
+            if (inst.allPs != null && inst.allPs.Length > 0)
+            {
+                for (int i = 0; i < inst.allPs.Length; i++)
+                {
+                    var ps = inst.allPs[i];
+                    if (inst.allPsr != null && i < inst.allPsr.Length && inst.allPsr[i] != null)
+                    {
+                        Material mat = GetOrCreateParticleMaterial();
+                        if (mat != null && inst.allPsr[i].sharedMaterial != mat)
+                        {
+                            inst.allPsr[i].sharedMaterial = mat;
+                        }
+                    }
+
+                    ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
+                    {
+                        startColor = powerupColor * 1.5f,
+                        applyShapeToPosition = true
+                    };
+                    int count = ps.gameObject.name.ToLower().Contains("ring") ? 1 : 28;
+                    ps.Emit(emitParams, count);
+                }
+            }
+            else if (inst.sparksPs != null)
             {
                 if (inst.sparksPsr != null)
                 {
@@ -667,11 +843,38 @@ namespace Arcade.BlockBreaker
         public void PlayPaddleHitSpark(Vector3 position, bool isSmash = false)
         {
             EnsureReferences();
-            ShatterInstance inst = shatterPool.Count > 0 ? shatterPool.Dequeue() : CreateShatterInstance();
+            ShatterInstance inst = paddleSparkPool.Count > 0 ? paddleSparkPool.Dequeue() : CreatePaddleSparkInstance();
             inst.root.transform.position = position;
             inst.root.SetActive(true);
 
-            if (inst.sparksPs != null)
+            Color sparkColor = isSmash ? new Color(0.2f, 1f, 1f, 1f) : new Color(0f, 0.85f, 1f, 0.8f);
+            int count = isSmash ? 24 : 12;
+            float lifetime = isSmash ? 0.45f : 0.35f;
+
+            if (inst.allPs != null && inst.allPs.Length > 0)
+            {
+                for (int i = 0; i < inst.allPs.Length; i++)
+                {
+                    var ps = inst.allPs[i];
+                    if (inst.allPsr != null && i < inst.allPsr.Length && inst.allPsr[i] != null)
+                    {
+                        Material mat = GetOrCreateParticleMaterial();
+                        if (mat != null && inst.allPsr[i].sharedMaterial != mat)
+                        {
+                            inst.allPsr[i].sharedMaterial = mat;
+                        }
+                    }
+
+                    ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
+                    {
+                        startColor = sparkColor * 1.5f,
+                        startLifetime = lifetime,
+                        applyShapeToPosition = true
+                    };
+                    ps.Emit(emitParams, count);
+                }
+            }
+            else if (inst.sparksPs != null)
             {
                 if (inst.sparksPsr != null)
                 {
@@ -681,10 +884,6 @@ namespace Arcade.BlockBreaker
                         inst.sparksPsr.sharedMaterial = mat;
                     }
                 }
-
-                Color sparkColor = isSmash ? new Color(0.2f, 1f, 1f, 1f) : new Color(0f, 0.85f, 1f, 0.8f);
-                int count = isSmash ? 24 : 10;
-                float lifetime = isSmash ? 0.45f : 0.35f;
 
                 ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
                 {
@@ -697,6 +896,34 @@ namespace Arcade.BlockBreaker
 
             inst.elapsed = 0f;
             inst.duration = isSmash ? 0.5f : 0.4f;
+            inst.activeMeshCount = 0;
+
+            activeShatterList.Add(inst);
+        }
+
+        /// <summary>
+        /// Fires an explosive shockwave and spark blast when a Bomb block detonates.
+        /// </summary>
+        public void PlayBombExplosion(Vector3 position)
+        {
+            EnsureReferences();
+            ShatterInstance inst = bombExplosionPool.Count > 0 ? bombExplosionPool.Dequeue() : CreateBombExplosionInstance();
+            inst.root.transform.position = position;
+            inst.root.SetActive(true);
+
+            if (inst.allPs != null && inst.allPs.Length > 0)
+            {
+                for (int i = 0; i < inst.allPs.Length; i++)
+                {
+                    var ps = inst.allPs[i];
+                    string n = ps.gameObject.name.ToLower();
+                    ParticleSystem.EmitParams ep = new ParticleSystem.EmitParams { applyShapeToPosition = true };
+                    ps.Emit(ep, n.Contains("shock") ? 1 : 36);
+                }
+            }
+
+            inst.elapsed = 0f;
+            inst.duration = 0.85f;
             inst.activeMeshCount = 0;
 
             activeShatterList.Add(inst);
@@ -732,30 +959,33 @@ namespace Arcade.BlockBreaker
             totalActiveDebrisCount = Mathf.Max(0, totalActiveDebrisCount - inst.activeMeshCount);
             inst.activeMeshCount = 0;
 
-            if (inst.sparksPs != null)
+            if (inst.allPs != null)
             {
-                inst.sparksPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                inst.sparksPs.Clear();
+                foreach (var ps in inst.allPs)
+                {
+                    if (ps != null)
+                    {
+                        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                        ps.Clear();
+                    }
+                }
             }
-            if (inst.largePs != null)
-            {
-                inst.largePs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                inst.largePs.Clear();
-            }
-            if (inst.smallPs != null)
-            {
-                inst.smallPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                inst.smallPs.Clear();
-            }
-            if (inst.frostPs != null)
-            {
-                inst.frostPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                inst.frostPs.Clear();
-            }
+            if (inst.sparksPs != null) { inst.sparksPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear); inst.sparksPs.Clear(); }
+            if (inst.largePs != null) { inst.largePs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear); inst.largePs.Clear(); }
+            if (inst.smallPs != null) { inst.smallPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear); inst.smallPs.Clear(); }
+            if (inst.frostPs != null) { inst.frostPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear); inst.frostPs.Clear(); }
 
             inst.root.SetActive(false);
             inst.root.transform.position = new Vector3(0f, -500f, 0f);
-            shatterPool.Enqueue(inst);
+
+            if (inst.recycleCallback != null)
+            {
+                inst.recycleCallback(inst);
+            }
+            else
+            {
+                shatterPool.Enqueue(inst);
+            }
         }
 
         /// <summary>

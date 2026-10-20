@@ -425,46 +425,49 @@ namespace Arcade.BlockBreaker
             }
             iconRenderer.sortingOrder = 35;
 
-            // 7. Configure Falling_Vfx (Particle System Trail)
+            // 7. Configure Falling_Vfx (Particle System Trail from Prefab)
             if (primaryVfx == null)
             {
-                var vfxGo = new GameObject("Falling_Vfx");
-                vfxGo.transform.SetParent(transform, false);
-                vfxGo.transform.localPosition = Vector3.zero;
-                vfxGo.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
-
-                var ps = vfxGo.AddComponent<ParticleSystem>();
-                var psr = vfxGo.GetComponent<ParticleSystemRenderer>();
-                Material vfxMat = GetOrCreateParticleMaterial();
-                if (vfxMat != null) psr.sharedMaterial = vfxMat;
-
-                var main = ps.main;
-                main.playOnAwake = true;
-                main.loop = true;
-                main.startLifetime = new ParticleSystem.MinMaxCurve(0.35f, 0.55f);
-                main.startSpeed = new ParticleSystem.MinMaxCurve(1.0f, 2.2f);
-                main.startSize = new ParticleSystem.MinMaxCurve(0.14f, 0.22f);
-                main.startColor = glowColor;
-                main.simulationSpace = ParticleSystemSimulationSpace.World;
-
-                var emission = ps.emission;
-                emission.enabled = true;
-                emission.rateOverTime = 25f;
-
-                var shape = ps.shape;
-                shape.enabled = true;
-                shape.shapeType = ParticleSystemShapeType.Sphere;
-                shape.radius = 0.35f;
-
-                var velocityOverLifetime = ps.velocityOverLifetime;
-                velocityOverLifetime.enabled = true;
-                velocityOverLifetime.y = new ParticleSystem.MinMaxCurve(1.5f, 2.5f);
-
-                primaryVfx = vfxGo.transform;
+                var trailPrefab = GetOrCreateFallingTrailPrefab();
+                if (trailPrefab != null)
+                {
+                    var vfxGo = Instantiate(trailPrefab, transform);
+                    vfxGo.name = "Falling_Vfx";
+                    vfxGo.transform.localPosition = Vector3.zero;
+                    vfxGo.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
+                    primaryVfx = vfxGo.transform;
+                }
             }
 
-            fallingVfxTransform = primaryVfx;
-            fallingVfx = primaryVfx.GetComponent<ParticleSystem>();
+            if (primaryVfx != null)
+            {
+                fallingVfxTransform = primaryVfx;
+                fallingVfx = primaryVfx.GetComponent<ParticleSystem>();
+                if (fallingVfx != null)
+                {
+                    var main = fallingVfx.main;
+                    main.startColor = glowColor;
+                }
+            }
+        }
+
+        private static GameObject cachedFallingTrailPrefab;
+        public const string FALLING_TRAIL_PREFAB_PATH = "Assets/Prefabs/VFX/PF_VFX_FallingTrail.prefab";
+
+        public static GameObject GetOrCreateFallingTrailPrefab()
+        {
+            if (cachedFallingTrailPrefab == null)
+            {
+#if UNITY_EDITOR
+                cachedFallingTrailPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(FALLING_TRAIL_PREFAB_PATH);
+#endif
+            }
+            return cachedFallingTrailPrefab;
+        }
+
+        public static void SetFallingTrailPrefabForTesting(GameObject prefab)
+        {
+            cachedFallingTrailPrefab = prefab;
         }
 
         public void EnsureBillboardIcon()

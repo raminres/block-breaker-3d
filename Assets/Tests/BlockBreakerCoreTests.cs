@@ -1039,6 +1039,98 @@ namespace Arcade.Tests
         }
 
         [Test]
+        public void All_ParticleEffect_Prefabs_ExistAndHaveValidParticleSystemsAndURPShaders()
+        {
+            string[] prefabPaths = new string[]
+            {
+                "Assets/Prefabs/VFX/PF_VFX_BlockShatter.prefab",
+                "Assets/Prefabs/VFX/PF_VFX_PowerupCollect.prefab",
+                "Assets/Prefabs/VFX/PF_VFX_PaddleSpark.prefab",
+                "Assets/Prefabs/VFX/PF_VFX_BombExplosion.prefab",
+                "Assets/Prefabs/VFX/PF_VFX_FallingTrail.prefab",
+                "Assets/Prefabs/VFX/PF_VFX_ShieldBarrier.prefab"
+            };
+
+            foreach (var path in prefabPaths)
+            {
+                var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                Assert.IsNotNull(prefab, $"VFX Prefab must exist at path: {path}");
+                Assert.AreEqual(Vector3.one, prefab.transform.localScale, $"VFX Prefab {prefab.name} root scale must be normalized Vector3.one.");
+
+                var particleSystems = prefab.GetComponentsInChildren<ParticleSystem>(true);
+                Assert.Greater(particleSystems.Length, 0, $"VFX Prefab {prefab.name} must contain at least one ParticleSystem.");
+
+                foreach (var ps in particleSystems)
+                {
+                    var psr = ps.GetComponent<ParticleSystemRenderer>();
+                    Assert.IsNotNull(psr, $"ParticleSystem {ps.name} in {prefab.name} must have a ParticleSystemRenderer.");
+                    Assert.IsNotNull(psr.sharedMaterial, $"ParticleSystemRenderer {ps.name} in {prefab.name} must have a valid sharedMaterial.");
+                    Assert.AreNotEqual("Hidden/InternalErrorShader", psr.sharedMaterial.shader.name, $"Shader on {ps.name} in {prefab.name} must not be missing/pink error shader.");
+                }
+            }
+        }
+
+        [Test]
+        public void BlockVFXManager_PlayPaddleHitSpark_EmitsSparks_UsingPrefab()
+        {
+            var vfxGo = new GameObject("TestVFXManager");
+            var vfx = vfxGo.AddComponent<BlockVFXManager>();
+            BlockVFXManager.SetInstanceForTesting(vfx);
+
+            vfx.PlayPaddleHitSpark(Vector3.zero, isSmash: true);
+
+            Assert.AreEqual(1, vfx.ActiveVfxCount, "PlayPaddleHitSpark must track exactly 1 active VFX burst.");
+            Assert.AreEqual(0, vfx.ActiveDebrisCount, "PlayPaddleHitSpark must NOT spawn block debris cubes.");
+
+            var ps = vfxGo.GetComponentInChildren<ParticleSystem>();
+            Assert.IsNotNull(ps, "Must have active ParticleSystem child for paddle hit spark.");
+
+            vfx.ClearAllActive();
+            Assert.AreEqual(0, vfx.ActiveVfxCount, "ClearAllActive must reset active VFX count.");
+
+            Object.DestroyImmediate(vfxGo);
+        }
+
+        [Test]
+        public void BlockVFXManager_PlayBombExplosion_EmitsShockwaveAndSparks_UsingPrefab()
+        {
+            var vfxGo = new GameObject("TestVFXManager");
+            var vfx = vfxGo.AddComponent<BlockVFXManager>();
+            BlockVFXManager.SetInstanceForTesting(vfx);
+
+            vfx.PlayBombExplosion(Vector3.zero);
+
+            Assert.AreEqual(1, vfx.ActiveVfxCount, "PlayBombExplosion must track exactly 1 active VFX burst.");
+            Assert.AreEqual(0, vfx.ActiveDebrisCount, "PlayBombExplosion must NOT spawn block debris cubes.");
+
+            var particleSystems = vfxGo.GetComponentsInChildren<ParticleSystem>();
+            Assert.GreaterOrEqual(particleSystems.Length, 1, "Must have active explosion ParticleSystems.");
+
+            vfx.ClearAllActive();
+            Assert.AreEqual(0, vfx.ActiveVfxCount, "ClearAllActive must reset active VFX count.");
+
+            Object.DestroyImmediate(vfxGo);
+        }
+
+        [Test]
+        public void PowerupCapsule_FallingTrailPrefab_IsValidAndAccessible()
+        {
+            var prefab = PowerupCapsule.GetOrCreateFallingTrailPrefab();
+            Assert.IsNotNull(prefab, "PowerupCapsule.GetOrCreateFallingTrailPrefab must return a non-null prefab.");
+            var ps = prefab.GetComponentInChildren<ParticleSystem>();
+            Assert.IsNotNull(ps, "Falling trail prefab must have ParticleSystem component.");
+        }
+
+        [Test]
+        public void ShieldWall_ShieldBarrierPrefab_IsValidAndAccessible()
+        {
+            var prefab = ShieldWall.GetOrCreateShieldBarrierPrefab();
+            Assert.IsNotNull(prefab, "ShieldWall.GetOrCreateShieldBarrierPrefab must return a non-null prefab.");
+            var ps = prefab.GetComponentInChildren<ParticleSystem>();
+            Assert.IsNotNull(ps, "Shield barrier prefab must have ParticleSystem component.");
+        }
+
+        [Test]
         public void Powerup_Sprites_AreConfiguredAsSprites()
         {
             var expanderSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/UI/Icons/TX_Powerup_Arrows_Outward.png");

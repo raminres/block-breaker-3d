@@ -321,6 +321,10 @@ namespace Arcade.BlockBreaker
                 if (specialType == BlockSpecialType.Bomb)
                 {
                     ArcadeAudioManager.Instance.PlayBombExplosion();
+                    if (BlockVFXManager.Instance != null)
+                    {
+                        BlockVFXManager.Instance.PlayBombExplosion(transform.position);
+                    }
                 }
                 else
                 {

@@ -57,40 +57,24 @@ namespace Arcade.Editor
             var modelRend = modelGo.GetComponent<MeshRenderer>();
             if (shieldMat != null && modelRend != null) modelRend.sharedMaterial = shieldMat;
 
-            // 3. Child 2: vfx (Energy Barrier Shimmering / Particle Sparks Effect)
-            GameObject vfxGo = new GameObject("vfx");
-            vfxGo.transform.SetParent(root.transform, false);
+            // 3. Child 2: vfx (Instantiated from PF_VFX_ShieldBarrier prefab)
+            GameObject vfxGo = null;
+            var barrierPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VFX/PF_VFX_ShieldBarrier.prefab");
+            if (barrierPrefab != null)
+            {
+                vfxGo = (GameObject)PrefabUtility.InstantiatePrefab(barrierPrefab, root.transform);
+                vfxGo.name = "vfx";
+            }
+            else
+            {
+                vfxGo = new GameObject("vfx");
+                vfxGo.transform.SetParent(root.transform, false);
+            }
             vfxGo.transform.localPosition = Vector3.zero;
             vfxGo.transform.localRotation = Quaternion.identity;
             vfxGo.transform.localScale = Vector3.one;
 
-            var ps = vfxGo.AddComponent<ParticleSystem>();
-            var psr = vfxGo.GetComponent<ParticleSystemRenderer>();
-            if (particleMat != null) psr.sharedMaterial = particleMat;
-
-            var main = ps.main;
-            main.playOnAwake = false;
-            main.loop = true;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(0.4f, 0.7f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(0.2f, 0.6f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.15f, 0.35f);
-            main.startColor = new Color(0.0f, 0.95f, 1.0f, 0.85f); // Electric Cyan
-            main.simulationSpace = ParticleSystemSimulationSpace.World;
-
-            var emission = ps.emission;
-            emission.enabled = true;
-            emission.rateOverTime = 18f;
-
-            var shape = ps.shape;
-            shape.enabled = true;
-            shape.shapeType = ParticleSystemShapeType.Box;
-            shape.scale = new Vector3(20.0f, 0.45f, 1.0f);
-
-            var vel = ps.velocityOverLifetime;
-            vel.enabled = true;
-            vel.x = new ParticleSystem.MinMaxCurve(-0.1f, 0.1f);
-            vel.y = new ParticleSystem.MinMaxCurve(0.2f, 0.6f);
-            vel.z = new ParticleSystem.MinMaxCurve(0f, 0f);
+            var ps = vfxGo.GetComponent<ParticleSystem>();
 
             // 4. Wire Serialized Fields on ShieldWall
             var so = new SerializedObject(shieldWall);
