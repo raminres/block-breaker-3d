@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5816364449661404762}
   - component: {fileID: 2523265878201978949}
   - component: {fileID: 7442940768648383508}
+  - component: {fileID: 612995806481830741}
   m_Layer: 0
   m_Name: PF_LaserBolt
   m_TagString: Untagged
@@ -73,6 +74,33 @@ MonoBehaviour:
   topBoundaryY: 25.5
   boltColor: {r: 1, g: 0.18, b: 0.28, a: 1}
   modelChild: {fileID: 6272447719779812011}
+--- !u!54 &612995806481830741
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3802064124626486475}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 3
 --- !u!1 &6272447719779812011
 GameObject:
   m_ObjectHideFlags: 0

@@ -316,6 +316,11 @@ namespace Arcade.Tests
             Assert.AreEqual(0.27f, col.center.y, 0.02f, "CapsuleCollider center Y must be at 0.27 to align with bottom pivot mesh.");
             Assert.AreEqual(0.54f, col.height, 0.02f, "CapsuleCollider height must match Bullet mesh height (0.54).");
 
+            var rb = prefab.GetComponent<Rigidbody>();
+            Assert.IsNotNull(rb, "Laser bolt must have kinematic Rigidbody for physics trigger events.");
+            Assert.IsTrue(rb.isKinematic);
+            Assert.IsFalse(rb.useGravity);
+
             var model = prefab.transform.Find("model");
             Assert.IsNotNull(model, "Laser bolt prefab must have child 'model'.");
             Assert.AreEqual(Vector3.one, model.localScale, "Child 'model' must be 1:1 scale (Vector3.one) matching Bullet mesh.");

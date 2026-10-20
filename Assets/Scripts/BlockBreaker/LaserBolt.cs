@@ -68,6 +68,15 @@ namespace Arcade.BlockBreaker
                 boltGo.AddComponent<LaserBolt>();
             }
 
+            var rb = boltGo.GetComponent<Rigidbody>();
+            if (rb == null)
+            {
+                rb = boltGo.AddComponent<Rigidbody>();
+            }
+            rb.isKinematic = true;
+            rb.useGravity = false;
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+
             var bolt = boltGo.GetComponent<LaserBolt>();
             if (bolt.modelChild == null)
             {
@@ -118,28 +127,68 @@ namespace Arcade.BlockBreaker
             if (hasHit) return;
             if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.IsLevelClearPending) return;
 
-            Vector3 prevPos = transform.position;
-            float stepDistance = speed * Time.deltaTime;
-            Vector3 nextPos = prevPos + Vector3.up * stepDistance;
+            SimulateStep(Time.deltaTime);
+        }
 
-            // Perform continuous sweep raycast to prevent tunneling through blocks at high velocity.
-            // Sweep through bullet tip (height = 0.54f from bottom pivot) to ensure crisp impact.
-            Ray ray = new Ray(prevPos, Vector3.up);
-            if (Physics.Raycast(ray, out RaycastHit hit, stepDistance + 0.54f))
+        public void SimulateStepForTesting(float deltaTime)
+        {
+            SimulateStep(deltaTime);
+        }
+
+        private void SimulateStep(float dt)
+        {
+            if (hasHit) return;
+
+            Vector3 prevPos = transform.position;
+            float effectiveSpeed = speed > 0f ? speed : 34f;
+            float stepDistance = effectiveSpeed * dt;
+            Vector3 nextPos = prevPos + Vector3.up * stepDistance;
+            const float bulletRadius = 0.11f;
+            const float bulletTipHeight = 0.54f;
+
+            // 1. Immediate volume overlap check along current/swept segment to catch penetrated or spawned blocks
+            Vector3 sweepCenter = prevPos + Vector3.up * ((stepDistance + bulletTipHeight) * 0.5f);
+            Vector3 halfExtents = new Vector3(bulletRadius + 0.10f, (stepDistance + bulletTipHeight) * 0.5f, 0.5f);
+            Collider[] overlaps = Physics.OverlapBox(sweepCenter, halfExtents, Quaternion.identity, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < overlaps.Length; i++)
             {
-                var block = hit.collider.GetComponent<Block>() ?? hit.collider.GetComponentInParent<Block>();
+                var block = overlaps[i].GetComponent<Block>() ?? overlaps[i].GetComponentInParent<Block>();
                 if (block != null && !block.IsDestroyed)
                 {
-                    hasHit = true;
-                    transform.position = hit.point;
-                    block.TakeHit(Vector3.down);
+                    ProcessHit(block, overlaps[i].ClosestPoint(prevPos));
+                    return;
+                }
+            }
 
-                    if (BlockVFXManager.Instance != null)
+            // 2. Continuous volumetric sweep (SphereCastAll) with bullet radius.
+            // Using SphereCast matching bullet mesh radius ensures grazing impacts on block edges are cleanly detected.
+            // Filtering all hits ensures powerup drops, triggers, or non-block colliders never obstruct detection of blocks behind them.
+            Ray ray = new Ray(prevPos, Vector3.up);
+            RaycastHit[] hits = Physics.SphereCastAll(ray, bulletRadius, stepDistance + bulletTipHeight, ~0, QueryTriggerInteraction.Ignore);
+            if (hits != null && hits.Length > 0)
+            {
+                RaycastHit closestHit = default;
+                Block closestBlock = null;
+                float closestDist = float.MaxValue;
+
+                for (int i = 0; i < hits.Length; i++)
+                {
+                    var block = hits[i].collider.GetComponent<Block>() ?? hits[i].collider.GetComponentInParent<Block>();
+                    if (block != null && !block.IsDestroyed)
                     {
-                        BlockVFXManager.Instance.PlayPowerupCollect(hit.point, boltColor);
+                        if (hits[i].distance < closestDist)
+                        {
+                            closestDist = hits[i].distance;
+                            closestHit = hits[i];
+                            closestBlock = block;
+                        }
                     }
+                }
 
-                    Destroy(gameObject);
+                if (closestBlock != null)
+                {
+                    Vector3 hitPt = closestHit.point != Vector3.zero ? closestHit.point : closestBlock.transform.position;
+                    ProcessHit(closestBlock, hitPt);
                     return;
                 }
             }
@@ -149,7 +198,10 @@ namespace Arcade.BlockBreaker
             // Despawn when exceeding top boundary
             if (transform.position.y >= topBoundaryY)
             {
-                Destroy(gameObject);
+                if (Application.isPlaying)
+                    Destroy(gameObject);
+                else
+                    DestroyImmediate(gameObject);
             }
         }
 
@@ -160,55 +212,26 @@ namespace Arcade.BlockBreaker
             var block = other.GetComponent<Block>() ?? other.GetComponentInParent<Block>();
             if (block != null && !block.IsDestroyed)
             {
-                hasHit = true;
-                block.TakeHit(Vector3.down);
-
-                if (BlockVFXManager.Instance != null)
-                {
-                    BlockVFXManager.Instance.PlayPowerupCollect(transform.position, boltColor);
-                }
-
-                Destroy(gameObject);
+                ProcessHit(block, other.ClosestPoint(transform.position));
             }
         }
 
-        public void SimulateStepForTesting(float deltaTime)
+        private void ProcessHit(Block block, Vector3 hitPoint)
         {
             if (hasHit) return;
+            hasHit = true;
+            transform.position = hitPoint;
+            block.TakeHit(Vector3.down);
 
-            Vector3 prevPos = transform.position;
-            float effectiveSpeed = speed > 0f ? speed : 34f;
-            float stepDistance = effectiveSpeed * deltaTime;
-            Vector3 nextPos = prevPos + Vector3.up * stepDistance;
-
-            Ray ray = new Ray(prevPos, Vector3.up);
-            if (Physics.Raycast(ray, out RaycastHit hit, stepDistance, ~0, QueryTriggerInteraction.Collide))
+            if (BlockVFXManager.Instance != null)
             {
-                var block = hit.collider.GetComponent<Block>() ?? hit.collider.GetComponentInParent<Block>();
-                if (block != null && !block.IsDestroyed)
-                {
-                    hasHit = true;
-                    transform.position = hit.point;
-                    block.TakeHit(Vector3.down);
-                    return;
-                }
+                BlockVFXManager.Instance.PlayPowerupCollect(hitPoint, boltColor);
             }
 
-            // Volume sweep check along projectile path
-            Collider[] overlaps = Physics.OverlapBox(prevPos + Vector3.up * (stepDistance * 0.5f), new Vector3(0.5f, stepDistance * 0.5f, 0.5f), Quaternion.identity, ~0, QueryTriggerInteraction.Collide);
-            for (int i = 0; i < overlaps.Length; i++)
-            {
-                var block = overlaps[i].GetComponent<Block>() ?? overlaps[i].GetComponentInParent<Block>();
-                if (block != null && !block.IsDestroyed)
-                {
-                    hasHit = true;
-                    transform.position = overlaps[i].transform.position;
-                    block.TakeHit(Vector3.down);
-                    return;
-                }
-            }
-
-            transform.position = nextPos;
+            if (Application.isPlaying)
+                Destroy(gameObject);
+            else
+                DestroyImmediate(gameObject);
         }
 
         /// <summary>

@@ -3846,6 +3846,37 @@ namespace Arcade.Tests
         }
 
         [Test]
+        public void LaserBolt_VolumetricEdgeImpact_HitsAndDestroysBlock_AndBypassesTriggerObstructions()
+        {
+            // Block positioned at (0, 3, 0) with width 1.0 (-0.5 to +0.5 on X)
+            var blockObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            blockObj.transform.position = new Vector3(0f, 3f, 0f);
+            var block = blockObj.AddComponent<Block>();
+            block.Initialize(BlockColorTier.Blue, null, Color.blue);
+
+            // A falling trigger capsule placed in the path between bolt and block
+            var triggerObstacle = new GameObject("FallingPowerupTrigger");
+            triggerObstacle.transform.position = new Vector3(0.55f, 1.5f, 0f);
+            var trigCol = triggerObstacle.AddComponent<BoxCollider>();
+            trigCol.isTrigger = true;
+            trigCol.size = new Vector3(1.6f, 1.6f, 4f);
+
+            // Bolt fired at X = 0.55 (grazing outer edge: center ray misses 0.50 boundary, but 0.11 radius hits)
+            var bolt = LaserBolt.Spawn(new Vector3(0.55f, 0f, 0f));
+
+            Physics.SyncTransforms();
+
+            // Simulate tick where bolt travels past block (0 -> 4 units upward)
+            bolt.SimulateStepForTesting(0.12f);
+
+            Assert.IsTrue(block.IsDestroyed, "Volumetric SphereCast must detect grazing edge impact and ignore trigger obstacles.");
+
+            if (triggerObstacle != null) Object.DestroyImmediate(triggerObstacle);
+            if (blockObj != null) Object.DestroyImmediate(blockObj);
+            if (bolt != null) Object.DestroyImmediate(bolt.gameObject);
+        }
+
+        [Test]
         public void PaddleLaserController_LaserPowerup_TwinBlastersFireOnInterval()
         {
             var laserCtrl = paddle.LaserController;
