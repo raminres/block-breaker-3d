@@ -79,7 +79,7 @@ namespace Arcade.Tests
 
             Assert.IsTrue(instance.activeSelf, "Instance must be active upon Activate().");
             Assert.IsTrue(wall.VfxChild.activeSelf, "VfxChild must be active upon Activate().");
-            Assert.AreEqual(-7.6f, instance.transform.position.y, 0.05f, "Shield wall must be positioned at wallY = -7.6.");
+            Assert.AreEqual(-7.75f, instance.transform.position.y, 0.05f, "Shield wall must be positioned at wallY = -7.75.");
 
             // Deactivate immediately
             wall.Deactivate(immediate: true);

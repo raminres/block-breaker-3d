@@ -99,7 +99,7 @@ This file provides foundational mandates, architectural maps, key mathematical c
   - **Ball Slower**: Slows ball velocity to $9.5\text{ u/s}$ (8s).
   - **Paddle Freezer**: Immobilizes paddle for $1.2\text{s}$; input triggers visible $45\text{Hz}$ tremor (`Mathf.Sin(Time.time * 45f) * 0.07f`).
 - **Physical Shield Wall (`PF_ShieldWall.prefab`)**:
-  - Deployed at $Y = -7.6\text{f}$ for 10s on shield pickup with smooth tween overshoot ($0 \to 1.08 \to 1.0$).
+  - Deployed at $Y = -7.75\text{f}$ for 10s on shield pickup with smooth tween overshoot ($0 \to 1.08 \to 1.0$).
   - Upward anti-trap one-way passthrough allows balls below to rise through collider without docking or life penalty. Bounces downward balls back upward at $\ge 35^\circ$.
   - Particle energy barrier emits 12-particle kinetic bursts on ball impacts.
 

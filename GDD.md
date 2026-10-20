@@ -91,7 +91,7 @@ Drops fall at $4.5\text{ u/s}$ with distinct 3D tumbling meshes and emissive col
 
 ### 4.3 Physical Shield Wall (`ShieldWall.cs`, `PF_ShieldWall.prefab`)
 - Modular prefab consisting of a root `BoxCollider` (`size = (1, 1, 1)` with `PM_ArcadeBounce.physicMaterial`), visual `model` child, and `vfx` child (`ParticleSystem` cyan energy barrier).
-- Deployed at arena bottom ($Y = -7.6\text{f}$) for 10s upon collecting a Shield drop.
+- Deployed at arena bottom ($Y = -7.75\text{f}$) for 10s upon collecting a Shield drop.
 - **Entrance Animation**: Smooth tween scale overshoot ($0 \to 1.08 \to 1.0$) with configurable parameters.
 - **Physical Collision & VFX**: Bounces balls upward ($\ge 35^\circ$) to keep them in play without docking or life penalty; impacts trigger `shieldVfx.Emit(12)` particle bursts.
 - **Anti-Trap One-Way Passthrough**: If a ball falls beneath the paddle and shield, upward trajectory passes through the shield collider cleanly without trapping.

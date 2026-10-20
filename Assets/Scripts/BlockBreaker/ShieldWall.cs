@@ -13,7 +13,7 @@ namespace Arcade.BlockBreaker
     {
         [Header("Dimensions & Placement")]
         [SerializeField] private Vector3 targetScale = Vector3.one;
-        [SerializeField] private float wallY = -7.6f;
+        [SerializeField] private float wallY = -7.75f;
 
         [Header("Tween & Animation Parameters")]
         [Tooltip("Duration in seconds for the shield to expand into place upon activation.")]

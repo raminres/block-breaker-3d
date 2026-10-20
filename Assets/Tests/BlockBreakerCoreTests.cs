@@ -5431,7 +5431,7 @@ namespace Arcade.Tests
             ballRb.linearVelocity = new Vector3(2f, -14.8f, 0f);
 
             // Bounce from shield wall contact at X = 2f
-            ball.BounceFromShield(new Vector3(2f, -7.6f, 0f));
+            ball.BounceFromShield(new Vector3(2f, -7.75f, 0f));
 
             // Verify upward deflection
             Assert.Greater(ballRb.linearVelocity.y, 0f, "Ball must deflect upward.");
@@ -5512,7 +5512,7 @@ namespace Arcade.Tests
             Assert.IsNotNull(wall.AppearCurve);
             Assert.IsNotNull(wall.DisappearCurve);
             Assert.AreEqual(1.0f, wall.TargetScale.x, 0.1f);
-            Assert.AreEqual(-7.6f, wall.WallY, 0.1f);
+            Assert.AreEqual(-7.75f, wall.WallY, 0.1f);
 
             wall.AppearDuration = 0.5f;
             Assert.AreEqual(0.5f, wall.AppearDuration, 0.001f);

@@ -189,7 +189,7 @@ namespace Arcade.Core
             if (template != null)
             {
                 var boundaries = GameObject.Find("Boundaries") ?? GameObject.Find("ArenaBoundaries") ?? GameObject.Find("PF_Walls");
-                var wallGo = Instantiate(template, new Vector3(0f, -7.6f, 0f), Quaternion.identity);
+                var wallGo = Instantiate(template, new Vector3(0f, -7.75f, 0f), Quaternion.identity);
                 wallGo.name = "ShieldWall";
                 if (boundaries != null) wallGo.transform.SetParent(boundaries.transform);
                 shieldWall = wallGo.GetComponent<BlockBreaker.ShieldWall>();

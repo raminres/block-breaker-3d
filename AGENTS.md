@@ -75,7 +75,7 @@ High-density technical context and architectural rules for BlockBreaker.
     - Paddle Shortener ($-18\%$, min $2.4\text{u}$, 10s), Paddle Slower (input drag, 8s), Brick Freezer (encases up to 5 bricks; absorbs 1 defrost hit before break), Ball Shrinker ($60\%$ radius, 10s), Ball Slower ($9.5\text{ u/s}$, 8s), Paddle Freezer ($1.2\text{s}$ immobilization with sinusoidal tremor `Mathf.Sin(Time.time * 45f) * 0.07f`).
 - **Physical Shield Wall ([ShieldWall.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/ShieldWall.cs), `PF_ShieldWall.prefab`)**:
   - Modular prefab: Root `BoxCollider` (`size = (1,1,1)`, `center = (0,0,0)`), Child 1 `model` (`MI_ShieldWall.mat`, zero collider), Child 2 `vfx` (`ParticleSystem` cyan energy barrier).
-  - Deployed at $Y = -7.6\text{f}$ for 10s on shield pickup with smooth tween scale overshoot ($0 \to 1.08 \to 1.0$).
+  - Deployed at $Y = -7.75\text{f}$ for 10s on shield pickup with smooth tween scale overshoot ($0 \to 1.08 \to 1.0$).
   - Physical collision reflection $\ge 35^\circ$ keeps balls live without life loss; impacts trigger `shieldVfx.Emit(12)` particle pulse.
   - Anti-trap one-way upward passthrough: balls moving upward beneath paddle/shield pass freely through collider.
 - **Environmental**: Bomb Bricks ($2.5\text{u}$ radius cascade), Glass Shells (2 hits: shatter shell, break brick for $2\times$).

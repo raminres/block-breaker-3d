@@ -33,7 +33,7 @@ namespace Arcade.Editor
 
             // 1. Root Container
             GameObject root = new GameObject("PF_ShieldWall");
-            root.transform.position = new Vector3(0f, -7.6f, 0f);
+            root.transform.position = new Vector3(0f, -7.75f, 0f);
             root.transform.rotation = Quaternion.identity;
             root.transform.localScale = Vector3.zero;
 

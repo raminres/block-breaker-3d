@@ -444,7 +444,7 @@ namespace Arcade.Editor
             GameObject shieldWallGo = (GameObject)PrefabUtility.InstantiatePrefab(shieldPrefab);
             shieldWallGo.name = "ShieldWall";
             shieldWallGo.transform.SetParent(boundariesRoot.transform);
-            shieldWallGo.transform.position = new Vector3(0f, -7.6f, 0f);
+            shieldWallGo.transform.position = new Vector3(0f, -7.75f, 0f);
             shieldWallGo.transform.localScale = Vector3.zero;
             var shieldWall = shieldWallGo.GetComponent<ShieldWall>();
             shieldWallGo.SetActive(false);
