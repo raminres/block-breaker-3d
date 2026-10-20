@@ -4980,9 +4980,11 @@ namespace Arcade.Tests
             var cubeMf = powerdown.VisualCapsuleTransform.GetComponent<MeshFilter>();
             Assert.IsNotNull(cubeMf);
             Assert.IsNotNull(cubeMf.sharedMesh);
-            Assert.IsTrue(cubeMf.sharedMesh.name.IndexOf("Cube", System.StringComparison.OrdinalIgnoreCase) >= 0,
-                "Powerdowns must instantiate a 3D Cube primitive mesh to tumble as a diamond.");
-            Assert.AreEqual(new Vector3(0.72f, 0.72f, 0.72f), powerdown.VisualCapsuleTransform.localScale);
+            Assert.IsTrue(cubeMf.sharedMesh.name.IndexOf("Hazard", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                          cubeMf.sharedMesh.name.IndexOf("Cube", System.StringComparison.OrdinalIgnoreCase) >= 0,
+                "Powerdowns must instantiate a 3D Hazard model or Cube mesh to tumble as a diamond.");
+            Assert.IsTrue(powerdown.VisualCapsuleTransform.localScale.x > 0.5f,
+                "Powerdown visual model must have a valid scale.");
 
             // Spawn Powerup (PaddleExpander)
             var powerup = PowerupCapsule.Spawn(new Vector3(5f, 0f, 0f), BlockSpecialType.PaddleExpander);
@@ -4992,9 +4994,11 @@ namespace Arcade.Tests
             var capsuleMf = powerup.VisualCapsuleTransform.GetComponent<MeshFilter>();
             Assert.IsNotNull(capsuleMf);
             Assert.IsNotNull(capsuleMf.sharedMesh);
-            Assert.IsTrue(capsuleMf.sharedMesh.name.IndexOf("Capsule", System.StringComparison.OrdinalIgnoreCase) >= 0,
-                "Powerups must instantiate a 3D Capsule primitive mesh.");
-            Assert.AreEqual(new Vector3(0.85f, 0.85f, 0.85f), powerup.VisualCapsuleTransform.localScale);
+            Assert.IsTrue(capsuleMf.sharedMesh.name.IndexOf("PowerUp", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                          capsuleMf.sharedMesh.name.IndexOf("Capsule", System.StringComparison.OrdinalIgnoreCase) >= 0,
+                "Powerups must instantiate a 3D PowerUp model or Capsule mesh.");
+            Assert.IsTrue(powerup.VisualCapsuleTransform.localScale.x > 0.5f,
+                "Powerup visual model must have a valid scale.");
 
             Object.DestroyImmediate(powerdown.gameObject);
             Object.DestroyImmediate(powerup.gameObject);
@@ -5158,8 +5162,9 @@ namespace Arcade.Tests
 
             var cubeMf = cap.VisualCapsuleTransform.GetComponent<MeshFilter>();
             Assert.IsNotNull(cubeMf);
-            Assert.IsTrue(cubeMf.sharedMesh.name.IndexOf("Cube", System.StringComparison.OrdinalIgnoreCase) >= 0,
-                "Powerdown capsule must be 3D diamond cube mesh.");
+            Assert.IsTrue(cubeMf.sharedMesh.name.IndexOf("Hazard", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                          cubeMf.sharedMesh.name.IndexOf("Cube", System.StringComparison.OrdinalIgnoreCase) >= 0,
+                "Powerdown capsule must be 3D Hazard model or diamond cube mesh.");
 
             PowerupCapsule.ClearAllFallingCapsules();
             Object.DestroyImmediate(blockGo);

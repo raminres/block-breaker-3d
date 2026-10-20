@@ -319,14 +319,19 @@ namespace Arcade.BlockBreaker
             bool isPowerdown = specialType.IsPowerdown();
             PrimitiveType desiredPrimitive = isPowerdown ? PrimitiveType.Cube : PrimitiveType.Capsule;
 
-            // Clean up existing visual if it has wrong primitive type (e.g. Capsule when Cube is needed for diamond powerdown)
+            // Only clean up existing visual if it is an obsolete procedural primitive of the wrong kind
+            // (e.g. primitive Capsule when Cube is needed for diamond powerdown, or primitive Cube when Capsule is needed).
+            // Hand-authored 3D meshes (such as 'Hazard' and 'PowerUp' from SM_Powerup_Hazard.fbx) are strictly preserved.
             if (primaryVisual != null)
             {
                 var mf = primaryVisual.GetComponent<MeshFilter>();
                 if (mf != null && mf.sharedMesh != null)
                 {
-                    bool isCubeMesh = mf.sharedMesh.name.IndexOf("Cube", System.StringComparison.OrdinalIgnoreCase) >= 0;
-                    if (isPowerdown != isCubeMesh)
+                    string meshName = mf.sharedMesh.name;
+                    bool isPrimitiveCube = meshName.Equals("Cube", System.StringComparison.OrdinalIgnoreCase);
+                    bool isPrimitiveCapsule = meshName.Equals("Capsule", System.StringComparison.OrdinalIgnoreCase);
+
+                    if ((isPowerdown && isPrimitiveCapsule) || (!isPowerdown && isPrimitiveCube))
                     {
                         if (Application.isPlaying) Destroy(primaryVisual.gameObject);
                         else DestroyImmediate(primaryVisual.gameObject);
@@ -816,6 +821,11 @@ namespace Arcade.BlockBreaker
                     ? "Assets/Prefabs/Powerups/PF_Drop_Hazard.prefab" 
                     : "Assets/Prefabs/Powerups/PF_Drop_Powerup.prefab";
                 template = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (template != null)
+                {
+                    if (isHazard) HazardPrefab = template;
+                    else PowerupPrefab = template;
+                }
 #endif
             }
 

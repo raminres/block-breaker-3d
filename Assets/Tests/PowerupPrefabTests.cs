@@ -35,7 +35,7 @@ namespace Arcade.Tests
             Assert.IsNotNull(visual, "Must have child 'Visual_Capsule'.");
             var mf = visual.GetComponent<MeshFilter>();
             Assert.IsNotNull(mf, "Visual_Capsule must have MeshFilter.");
-            Assert.IsTrue(mf.sharedMesh.name.Contains("Capsule"), "Powerup mesh must be a Capsule.");
+            Assert.IsTrue(mf.sharedMesh.name.Contains("PowerUp") || mf.sharedMesh.name.Contains("Capsule"), "Powerup mesh must be a PowerUp 3D model or Capsule.");
             Assert.IsNotNull(visual.GetComponent<MeshRenderer>(), "Visual_Capsule must have MeshRenderer.");
 
             // 2. Billboard Sprite Icon
@@ -64,7 +64,7 @@ namespace Arcade.Tests
             Assert.IsNotNull(visual, "Must have child 'Visual_Capsule'.");
             var mf = visual.GetComponent<MeshFilter>();
             Assert.IsNotNull(mf, "Visual_Capsule must have MeshFilter.");
-            Assert.IsTrue(mf.sharedMesh.name.Contains("Cube"), "Hazard mesh must be a faceted Cube diamond.");
+            Assert.IsTrue(mf.sharedMesh.name.Contains("Hazard") || mf.sharedMesh.name.Contains("Cube"), "Hazard mesh must be a Hazard 3D model or faceted Cube diamond.");
 
             // 2. Billboard Sprite Icon
             var icon = go.transform.Find("Icon_Billboard");
