@@ -21,11 +21,16 @@ namespace Arcade.BlockBreaker
         private bool hasHit = false;
         private static Material sharedLaserBoltMat;
         private static GameObject cachedLaserBoltPrefab;
-        private const string PREFAB_PATH = "Assets/Prefabs/Paddle/PF_LaserBolt.prefab";
+        public const string PREFAB_PATH = "Assets/Prefabs/Paddle/PF_LaserBolt.prefab";
 
         public float Speed => speed;
         public Color BoltColor => boltColor;
         public GameObject ModelChild => modelChild != null ? modelChild : (modelChild = transform.Find("model")?.gameObject);
+
+        public static void SetPrefab(GameObject prefab)
+        {
+            cachedLaserBoltPrefab = prefab;
+        }
 
         public static LaserBolt Spawn(Vector3 position, Color? color = null)
         {
@@ -49,19 +54,16 @@ namespace Arcade.BlockBreaker
 
                 var col = boltGo.AddComponent<CapsuleCollider>();
                 col.isTrigger = true;
-                col.radius = 0.09f;
-                col.height = 1.1f;
+                col.radius = 0.10f;
+                col.height = 0.54f;
+                col.center = new Vector3(0f, 0.27f, 0f);
                 col.direction = 1;
 
-                var modelGo = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                modelGo.name = "model";
+                var modelGo = new GameObject("model");
                 modelGo.transform.SetParent(boltGo.transform, false);
                 modelGo.transform.localPosition = Vector3.zero;
                 modelGo.transform.localRotation = Quaternion.identity;
-                modelGo.transform.localScale = new Vector3(0.18f, 0.55f, 0.18f);
-
-                var mCol = modelGo.GetComponent<Collider>();
-                if (mCol != null) Object.DestroyImmediate(mCol);
+                modelGo.transform.localScale = Vector3.one;
 
                 boltGo.AddComponent<LaserBolt>();
             }
@@ -73,12 +75,14 @@ namespace Arcade.BlockBreaker
                 if (m != null) bolt.modelChild = m.gameObject;
             }
 
-            if (color.HasValue) bolt.boltColor = color.Value;
-
-            var targetRend = bolt.modelChild != null ? bolt.modelChild.GetComponent<MeshRenderer>() : boltGo.GetComponent<MeshRenderer>();
-            if (targetRend != null)
+            if (color.HasValue)
             {
-                targetRend.sharedMaterial = GetOrCreateBoltMaterial(bolt.boltColor);
+                bolt.boltColor = color.Value;
+                var targetRend = bolt.modelChild != null ? bolt.modelChild.GetComponent<MeshRenderer>() : boltGo.GetComponent<MeshRenderer>();
+                if (targetRend != null)
+                {
+                    targetRend.sharedMaterial = GetOrCreateBoltMaterial(bolt.boltColor);
+                }
             }
 
             return bolt;
@@ -118,9 +122,10 @@ namespace Arcade.BlockBreaker
             float stepDistance = speed * Time.deltaTime;
             Vector3 nextPos = prevPos + Vector3.up * stepDistance;
 
-            // Perform continuous sweep raycast to prevent tunneling through blocks at high velocity
+            // Perform continuous sweep raycast to prevent tunneling through blocks at high velocity.
+            // Sweep through bullet tip (height = 0.54f from bottom pivot) to ensure crisp impact.
             Ray ray = new Ray(prevPos, Vector3.up);
-            if (Physics.Raycast(ray, out RaycastHit hit, stepDistance))
+            if (Physics.Raycast(ray, out RaycastHit hit, stepDistance + 0.54f))
             {
                 var block = hit.collider.GetComponent<Block>() ?? hit.collider.GetComponentInParent<Block>();
                 if (block != null && !block.IsDestroyed)

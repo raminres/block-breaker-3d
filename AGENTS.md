@@ -29,7 +29,7 @@ High-density technical context and architectural rules for BlockBreaker.
   - **Parent Scale Normalization**: All root prefab containers (`PF_Paddle.prefab`, `PF_Ball_Standard.prefab`, `PF_LaserBolt.prefab`) strictly maintain `transform.localScale = Vector3(1, 1, 1)`. Sizes are controlled via child mesh sockets and root colliders rather than warped parent transforms.
   - **Paddle (`PF_Paddle.prefab`)**: Root scale is `Vector3(1, 1, 1)`. Primary `BoxCollider` has `size = (5.0f, 0.24f, 2.8f)`. All child sockets (`visuals`, `guns`, `frost`, `laser_gun`, `Aperture`, `dock_point`, `vfx`) use resting local scale `Vector3(1, 1, 1)`. No reciprocal $0.20\text{f}$ squishing exists, enabling designers to parent new meshes under `visuals` at true 1:1 scale. Dynamic width expansions (Expander, Shortener) adjust child visual socket horizontal scale (`visuals.localScale.x = paddleWidth / 5.0f`) and collider `size.x`, keeping parent scale locked at `(1, 1, 1)`.
   - **Ball (`PF_Ball_Standard.prefab`)**: Root scale is `Vector3(1, 1, 1)` with `SphereCollider.radius = 0.35f`. Child `model` is `Vector3(0.70f, 0.70f, 0.70f)`, preserving visual dimensions and physics boundaries 1:1.
-  - **Laser Bolt (`PF_LaserBolt.prefab`)**: Root scale is `Vector3(1, 1, 1)` with trigger capsule collider; child `model` holds the visual mesh at `(0.18f, 0.55f, 0.18f)`.
+  - **Laser Bolt (`PF_LaserBolt.prefab`)**: Root scale is `Vector3(1, 1, 1)` with trigger capsule collider (`radius = 0.10f, height = 0.54f, center = (0, 0.27f, 0)`); child `model` holds the visual `Bullet` mesh from `SM_Paddle.fbx` at true 1:1 scale `Vector3(1, 1, 1)` with pivot at bottom (`Y = 0`) aligned to gun muzzles.
   - **Tier 1 (Strike Deck)**: $100\%$ width ($W = 5.0$), ultra-thin ($H = 0.24, Z = 1.0$), glowing neon cyan rim ([MI_Paddle_Deck.mat](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Materials/BlockBreaker/MI_Paddle_Deck.mat)). Top surface at $Y = -6.0$ for ball docking (`dock_point` at `(0, 0.88f, 0)`).
   - **Tier 2 (Mid Chassis)**: $72\%$ width ($W = 3.6, H = 0.20, Z = 0.88$) in dark brushed titanium ([MI_Paddle.mat](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Materials/BlockBreaker/MI_Paddle.mat)).
   - **Tier 3 (Keel / Thrusters)**: $44\%$ width ($W = 2.2, H = 0.16, Z = 0.72$) with engine vent glow ([MI_Paddle_Core.mat](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Materials/BlockBreaker/MI_Paddle_Core.mat)).
@@ -124,12 +124,12 @@ High-density technical context and architectural rules for BlockBreaker.
 ## 7. Modular Prefab Suite & Runtime Architecture
 - **Complete Prefab Suite (`Assets/Prefabs/`)**:
   - `Arena/`: `PF_Walls` (left/right/top walls, 45° chamfers, kill zone), `PF_Background` (quad mesh + `LevelBackgroundController`), `PF_ShieldWall` (decoupled physics, visual model, electric energy barrier).
-  - `Paddle/`: `PF_Paddle` (deck, chassis, keel from `SM_Paddle.fbx`, blaster cannons, laser aperture, frost shell, hit sparks; root scale normalized to `1.0`, all child sockets scale `1.0`), `PF_LaserBolt` (root scale `1.0` trigger capsule, child `model` mesh scaled `0.18, 0.55, 0.18`).
+  - `Paddle/`: `PF_Paddle` (deck, chassis, keel from `SM_Paddle.fbx`, blaster cannons, laser aperture, frost shell, hit sparks; root scale normalized to `1.0`, all child sockets scale `1.0`), `PF_LaserBolt` (root scale `1.0` trigger capsule, child `model` with `Bullet` mesh from `SM_Paddle.fbx` at scale `1.0` and bottom pivot `Y=0`).
   - `Balls/`: `PF_Ball_Standard` (root scale `1.0`, child `model` scaled `0.70, 0.70, 0.70`, SphereCollider radius `0.35`, TrailRenderer, BallController).
   - `Blocks/`: `PF_Block_Base`, `PF_Block_Red`, `PF_Block_Green`, `PF_Block_Blue`, `PF_Block_Bomb`, `PF_Block_Glass` (4 child sockets: `brick`, `brick frost`, `brick special`, `brick vfx`).
   - `Powerups/`: `PF_Drop_Powerup` (cyan capsule), `PF_Drop_Hazard` (crimson diamond).
 - **Zero Runtime Primitives**: All legacy procedural cube/quad fallbacks (`GameObject.CreatePrimitive`) removed from runtime and scene setups.
-- **Automated Tests**: 279 EditMode tests passing across core physics, normalized prefab parent scales, boundaries, powerups, hazards, UI harmonization, runtime localization tables, touch ergonomics, and level scaling:
+- **Automated Tests**: 295 EditMode tests passing across core physics, normalized prefab parent scales, boundaries, powerups, hazards, UI harmonization, runtime localization tables, touch ergonomics, and level scaling:
   ```bash
   unity cmd run_tests --mode editor
   ```
