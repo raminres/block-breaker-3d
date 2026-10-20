@@ -81,14 +81,14 @@ namespace Arcade.Editor
                 modelMr.sharedMaterial = matCapsule;
             }
 
-            // 2. Child 'Icon_Billboard' (Billboard Icon)
+            // 2. Child 'Icon_Billboard' parented under 'Visual_Capsule' so it moves and rotates with the 3D mesh
             GameObject spriteGo = new GameObject("Icon_Billboard");
             int uiLayer = LayerMask.NameToLayer("UI");
             if (uiLayer != -1) spriteGo.layer = uiLayer;
-            spriteGo.transform.SetParent(rootGo.transform);
-            spriteGo.transform.localPosition = new Vector3(0f, 0f, -0.60f);
+            spriteGo.transform.SetParent(modelGo.transform, false);
+            spriteGo.transform.localPosition = new Vector3(0f, 0f, -0.24f);
             spriteGo.transform.localRotation = Quaternion.identity;
-            spriteGo.transform.localScale = new Vector3(0.95f, 0.95f, 0.95f);
+            spriteGo.transform.localScale = new Vector3(0.95f / modelScale.x, 0.95f / modelScale.y, 0.95f / modelScale.z);
 
             var sr = spriteGo.AddComponent<SpriteRenderer>();
             if (defaultSprite != null) sr.sprite = defaultSprite;

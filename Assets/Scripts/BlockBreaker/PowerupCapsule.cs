@@ -145,7 +145,22 @@ namespace Arcade.BlockBreaker
 
             if (iconTransform == null)
             {
-                iconTransform = transform.Find("Icon_Billboard") ?? transform.Find("sprite");
+                // First check if Icon_Billboard is parented under Visual_Capsule (preferred)
+                if (visualCapsuleTransform != null)
+                {
+                    iconTransform = visualCapsuleTransform.Find("Icon_Billboard") ?? visualCapsuleTransform.Find("sprite");
+                }
+                // Fallback check directly under root container
+                if (iconTransform == null)
+                {
+                    iconTransform = transform.Find("Icon_Billboard") ?? transform.Find("sprite");
+                }
+                // Fallback recursive lookup
+                if (iconTransform == null)
+                {
+                    var sr = GetComponentInChildren<SpriteRenderer>(true);
+                    if (sr != null) iconTransform = sr.transform;
+                }
             }
             if (iconRenderer == null && iconTransform != null)
             {
@@ -164,7 +179,7 @@ namespace Arcade.BlockBreaker
 
         private void Start()
         {
-            EnsureVisualHierarchy();
+            ResolveModularChildren();
             ApplyGlowColor();
         }
 
@@ -191,8 +206,8 @@ namespace Arcade.BlockBreaker
             pos.z = FOREGROUND_Z;
             transform.position = pos;
 
-            // Smooth yaw oscillation (ping-pong between -20° and +20° strictly on the Y axis)
-            // to prevent the 3D model from intersecting the billboard sprite icon in front.
+            // Smooth yaw oscillation (ping-pong between -20° and +20° strictly on the Y axis).
+            // When Icon_Billboard is parented to Visual_Capsule, it rotates synchronously with the mesh to prevent intersection.
             UpdateOscillation(Time.time);
 
             // Destroy if fallen into bottom abyss
@@ -216,8 +231,9 @@ namespace Arcade.BlockBreaker
 
         public void UpdateBillboardOrientation()
         {
-            // Lock billboard icon upright facing camera in world space, preserving authored local Z offset
-            if (iconTransform != null)
+            // If the icon is parented to visualCapsuleTransform, it naturally moves and rotates
+            // with the 3D mesh to prevent intersection. Only unparented icons need manual billboard locking.
+            if (iconTransform != null && (visualCapsuleTransform == null || iconTransform.parent != visualCapsuleTransform))
             {
                 if (initialIconLocalZ == 0f)
                 {
@@ -241,9 +257,10 @@ namespace Arcade.BlockBreaker
             if (visual != null) visualCapsuleTransform = visual;
             if (icon != null) iconTransform = icon;
 
-            EnsureVisualHierarchy(sharedMat);
+            ResolveModularChildren();
             ApplyGlowColor();
 
+            // Simply change the sprite in the existing Icon_Billboard SpriteRenderer without spawning runtime objects
             Sprite sprite = GetSpriteForType(type);
             if (iconRenderer != null)
             {
@@ -259,11 +276,14 @@ namespace Arcade.BlockBreaker
         }
 
         /// <summary>
-        /// Ensures exactly 1 rotating 3D capsule mesh child (Visual_Capsule), exactly 1 non-rotating upright
-        /// camera-facing billboard sprite child (Icon_Billboard), and 1 falling particle VFX child (Falling_Vfx).
+        /// Validates modular children: exactly 1 visual mesh child (Visual_Capsule), exactly 1
+        /// billboard sprite child (Icon_Billboard, parented under Visual_Capsule), and 1 falling particle VFX child (Falling_Vfx).
+        /// Reuses existing authored prefab components without creating redundant runtime GameObjects.
         /// </summary>
         public void EnsureVisualHierarchy(Material baseMat = null)
         {
+            ResolveModularChildren();
+
             // 1. Ensure Root container does NOT have any stray MeshRenderer, MeshFilter, or SpriteRenderer
             var rootMr = GetComponent<MeshRenderer>();
             if (rootMr != null) { if (Application.isPlaying) Destroy(rootMr); else DestroyImmediate(rootMr); }
@@ -272,104 +292,20 @@ namespace Arcade.BlockBreaker
             var rootSr = GetComponent<SpriteRenderer>();
             if (rootSr != null) { if (Application.isPlaying) Destroy(rootSr); else DestroyImmediate(rootSr); }
 
-            // 2. Clean up duplicate Visual_Capsule children (keep only the first)
-            Transform primaryVisual = null;
-            for (int i = transform.childCount - 1; i >= 0; i--)
+            // 2. Resolve primary visual child
+            Transform primaryVisual = visualCapsuleTransform;
+            if (primaryVisual == null)
             {
-                Transform child = transform.GetChild(i);
-                if (child.name == "Visual_Capsule" || child.name == "model")
-                {
-                    if (primaryVisual == null)
-                    {
-                        primaryVisual = child;
-                    }
-                    else
-                    {
-                        if (Application.isPlaying) Destroy(child.gameObject);
-                        else DestroyImmediate(child.gameObject);
-                    }
-                }
-            }
-
-            // 3. Clean up duplicate Icon_Billboard children (keep only the first)
-            Transform primaryIcon = null;
-            for (int i = transform.childCount - 1; i >= 0; i--)
-            {
-                Transform child = transform.GetChild(i);
-                if (child.name == "Icon_Billboard" || child.name == "sprite")
-                {
-                    if (primaryIcon == null)
-                    {
-                        primaryIcon = child;
-                    }
-                    else
-                    {
-                        if (Application.isPlaying) Destroy(child.gameObject);
-                        else DestroyImmediate(child.gameObject);
-                    }
-                }
-            }
-
-            // 4. Clean up duplicate Falling_Vfx children (keep only the first)
-            Transform primaryVfx = null;
-            for (int i = transform.childCount - 1; i >= 0; i--)
-            {
-                Transform child = transform.GetChild(i);
-                if (child.name == "Falling_Vfx" || child.name == "falling vfx")
-                {
-                    if (primaryVfx == null)
-                    {
-                        primaryVfx = child;
-                    }
-                    else
-                    {
-                        if (Application.isPlaying) Destroy(child.gameObject);
-                        else DestroyImmediate(child.gameObject);
-                    }
-                }
-            }
-
-            // 5. Configure Visual_Capsule (3D rotating mesh child)
-            bool isPowerdown = specialType.IsPowerdown();
-            PrimitiveType desiredPrimitive = isPowerdown ? PrimitiveType.Cube : PrimitiveType.Capsule;
-
-            // Only clean up existing visual if it is an obsolete procedural primitive of the wrong kind
-            // (e.g. primitive Capsule when Cube is needed for diamond powerdown, or primitive Cube when Capsule is needed).
-            // Hand-authored 3D meshes (such as 'Hazard' and 'PowerUp' from SM_Powerup_Hazard.fbx) are strictly preserved.
-            if (primaryVisual != null)
-            {
-                var mf = primaryVisual.GetComponent<MeshFilter>();
-                if (mf != null && mf.sharedMesh != null)
-                {
-                    string meshName = mf.sharedMesh.name;
-                    bool isPrimitiveCube = meshName.Equals("Cube", System.StringComparison.OrdinalIgnoreCase);
-                    bool isPrimitiveCapsule = meshName.Equals("Capsule", System.StringComparison.OrdinalIgnoreCase);
-
-                    if ((isPowerdown && isPrimitiveCapsule) || (!isPowerdown && isPrimitiveCube))
-                    {
-                        if (Application.isPlaying) Destroy(primaryVisual.gameObject);
-                        else DestroyImmediate(primaryVisual.gameObject);
-                        primaryVisual = null;
-                    }
-                }
+                primaryVisual = transform.Find("Visual_Capsule") ?? transform.Find("model");
             }
 
             if (primaryVisual == null)
             {
-                var visualGo = GameObject.CreatePrimitive(desiredPrimitive);
-                visualGo.name = "Visual_Capsule";
+                var visualGo = new GameObject("Visual_Capsule");
                 visualGo.transform.SetParent(transform, false);
                 visualGo.transform.localPosition = Vector3.zero;
-                if (isPowerdown)
-                {
-                    visualGo.transform.localRotation = Quaternion.identity;
-                    visualGo.transform.localScale = new Vector3(0.72f, 0.72f, 0.72f);
-                }
-                else
-                {
-                    visualGo.transform.localRotation = Quaternion.identity;
-                    visualGo.transform.localScale = new Vector3(0.85f, 0.85f, 0.85f);
-                }
+                visualGo.transform.localRotation = Quaternion.identity;
+                visualGo.transform.localScale = specialType.IsPowerdown() ? new Vector3(0.72f, 0.72f, 0.72f) : new Vector3(0.85f, 0.85f, 0.85f);
                 primaryVisual = visualGo.transform;
             }
 
@@ -393,13 +329,38 @@ namespace Arcade.BlockBreaker
                 capsuleRenderer.sharedMaterial = resolvedMat;
             }
 
-            // 6. Configure Icon_Billboard (2D non-rotating camera-facing sprite child)
+            // 3. Resolve primary icon child (parented under Visual_Capsule or root)
+            Transform primaryIcon = iconTransform;
+            if (primaryIcon == null && visualCapsuleTransform != null)
+            {
+                primaryIcon = visualCapsuleTransform.Find("Icon_Billboard") ?? visualCapsuleTransform.Find("sprite");
+            }
+            if (primaryIcon == null)
+            {
+                primaryIcon = transform.Find("Icon_Billboard") ?? transform.Find("sprite");
+            }
+
             if (primaryIcon == null)
             {
                 var iconGo = new GameObject("Icon_Billboard");
-                iconGo.transform.SetParent(transform, false);
-                iconGo.transform.localPosition = new Vector3(0f, 0f, -0.60f);
-                iconGo.transform.localScale = new Vector3(0.95f, 0.95f, 0.95f);
+                if (visualCapsuleTransform != null)
+                {
+                    iconGo.transform.SetParent(visualCapsuleTransform, false);
+                    iconGo.transform.localPosition = new Vector3(0f, 0f, -0.24f);
+                    iconGo.transform.localRotation = Quaternion.identity;
+                    Vector3 pScale = visualCapsuleTransform.localScale;
+                    iconGo.transform.localScale = new Vector3(
+                        pScale.x > 0f ? 0.95f / pScale.x : 1f,
+                        pScale.y > 0f ? 0.95f / pScale.y : 1f,
+                        pScale.z > 0f ? 0.95f / pScale.z : 1f);
+                }
+                else
+                {
+                    iconGo.transform.SetParent(transform, false);
+                    iconGo.transform.localPosition = new Vector3(0f, 0f, -0.60f);
+                    iconGo.transform.localRotation = Quaternion.identity;
+                    iconGo.transform.localScale = new Vector3(0.95f, 0.95f, 0.95f);
+                }
                 primaryIcon = iconGo.transform;
             }
 
@@ -425,7 +386,13 @@ namespace Arcade.BlockBreaker
             }
             iconRenderer.sortingOrder = 35;
 
-            // 7. Configure Falling_Vfx (Particle System Trail from Prefab)
+            // 4. Configure Falling_Vfx (Particle System Trail from Prefab)
+            Transform primaryVfx = fallingVfxTransform;
+            if (primaryVfx == null)
+            {
+                primaryVfx = transform.Find("Falling_Vfx") ?? transform.Find("falling vfx");
+            }
+
             if (primaryVfx == null)
             {
                 var trailPrefab = GetOrCreateFallingTrailPrefab();

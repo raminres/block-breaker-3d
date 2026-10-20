@@ -3213,22 +3213,21 @@ namespace Arcade.Tests
             Assert.AreEqual("Visual_Capsule", capsule.VisualCapsuleTransform.name);
             Assert.GreaterOrEqual(capsule.VisualCapsuleTransform.localScale.x, 0.80f, "Capsule visual mesh must be prominently sized.");
 
-            // Verify billboard icon child
+            // Verify billboard icon child (parented under Visual_Capsule so it rotates with the mesh)
             Assert.IsNotNull(capsule.IconTransform, "Capsule must have IconTransform child.");
             Assert.AreEqual("Icon_Billboard", capsule.IconTransform.name);
-            Assert.GreaterOrEqual(capsule.IconTransform.localScale.x, 0.85f, "Billboard icon must be prominently sized.");
-            Assert.Less(capsule.IconTransform.localPosition.z, -0.30f, "Billboard icon must sit comfortably in front of the capsule.");
+            Assert.AreEqual(capsule.VisualCapsuleTransform, capsule.IconTransform.parent, "Icon_Billboard must be parented under Visual_Capsule.");
+            Assert.GreaterOrEqual(capsule.IconTransform.lossyScale.x, 0.85f, "Billboard icon must be prominently sized in world space.");
+            Assert.Less(capsule.IconTransform.localPosition.z, 0f, "Billboard icon must sit comfortably in front of the capsule face.");
 
             Assert.IsNotNull(capsule.IconRenderer, "IconTransform must have SpriteRenderer component.");
             Assert.IsNotNull(capsule.IconRenderer.sprite, "Billboard icon must have a sprite assigned.");
             Assert.GreaterOrEqual(capsule.IconRenderer.sortingOrder, 30, "Billboard icon must have foreground sortingOrder.");
 
-            // Test LateUpdate orientation lock
-            capsule.transform.rotation = Quaternion.Euler(45f, 90f, 30f);
-            capsule.UpdateBillboardOrientation();
-
-            Assert.Less(Quaternion.Angle(capsule.IconTransform.rotation, Quaternion.identity), 0.1f,
-                "Billboard icon must stay upright and unrotated facing camera regardless of parent capsule rotation.");
+            // Test oscillation: when Visual_Capsule rotates on Y, child Icon_Billboard moves/rotates with it to prevent intersection
+            capsule.UpdateOscillation(1.57f);
+            Assert.Greater(Mathf.Abs(capsule.VisualCapsuleTransform.localEulerAngles.y), 0f);
+            Assert.AreEqual(capsule.VisualCapsuleTransform, capsule.IconTransform.parent);
 
             Object.DestroyImmediate(capsule.gameObject);
         }
@@ -3561,14 +3560,15 @@ namespace Arcade.Tests
             Assert.IsNull(cap.GetComponent<MeshRenderer>(), "Root capsule container must not have MeshRenderer.");
             Assert.IsNull(cap.GetComponent<SpriteRenderer>(), "Root capsule container must not have SpriteRenderer.");
 
-            // 2. Exactly 3 children: Visual_Capsule, Icon_Billboard, and Falling_Vfx
-            Assert.AreEqual(3, cap.transform.childCount, "Powerup capsule must have exactly 3 children (1 visual mesh child, 1 billboard sprite child, 1 particle vfx child).");
+            // 2. Modular children: Visual_Capsule, Icon_Billboard (parented under Visual_Capsule), and Falling_Vfx
+            Assert.AreEqual(2, cap.transform.childCount, "Powerup capsule root has 2 direct children: Visual_Capsule and Falling_Vfx.");
 
             var visual = cap.VisualCapsuleTransform;
             var icon = cap.IconTransform;
             var vfx = cap.FallingVfxTransform;
             Assert.IsNotNull(visual, "Visual_Capsule child must exist.");
             Assert.IsNotNull(icon, "Icon_Billboard child must exist.");
+            Assert.AreEqual(visual, icon.parent, "Icon_Billboard must be parented under Visual_Capsule so it moves with the mesh.");
             Assert.IsNotNull(vfx, "Falling_Vfx child must exist.");
             Assert.AreEqual("Visual_Capsule", visual.name);
             Assert.AreEqual("Icon_Billboard", icon.name);

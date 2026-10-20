@@ -38,9 +38,10 @@ namespace Arcade.Tests
             Assert.IsTrue(mf.sharedMesh.name.Contains("PowerUp") || mf.sharedMesh.name.Contains("Capsule"), "Powerup mesh must be a PowerUp 3D model or Capsule.");
             Assert.IsNotNull(visual.GetComponent<MeshRenderer>(), "Visual_Capsule must have MeshRenderer.");
 
-            // 2. Billboard Sprite Icon
-            var icon = go.transform.Find("Icon_Billboard");
+            // 2. Billboard Sprite Icon (parented under Visual_Capsule so it rotates with the mesh)
+            var icon = visual.Find("Icon_Billboard") ?? go.transform.Find("Icon_Billboard");
             Assert.IsNotNull(icon, "Must have child 'Icon_Billboard'.");
+            Assert.AreEqual(visual, icon.parent, "Icon_Billboard must be parented under Visual_Capsule so it moves and rotates with the 3D model.");
             Assert.AreEqual(LayerMask.NameToLayer("UI"), icon.gameObject.layer, "Icon_Billboard must be on the UI layer to bypass Bloom.");
             Assert.IsNotNull(icon.GetComponent<SpriteRenderer>(), "Icon_Billboard must have SpriteRenderer.");
 
@@ -66,9 +67,10 @@ namespace Arcade.Tests
             Assert.IsNotNull(mf, "Visual_Capsule must have MeshFilter.");
             Assert.IsTrue(mf.sharedMesh.name.Contains("Hazard") || mf.sharedMesh.name.Contains("Cube"), "Hazard mesh must be a Hazard 3D model or faceted Cube diamond.");
 
-            // 2. Billboard Sprite Icon
-            var icon = go.transform.Find("Icon_Billboard");
+            // 2. Billboard Sprite Icon (parented under Visual_Capsule so it rotates with the mesh)
+            var icon = visual.Find("Icon_Billboard") ?? go.transform.Find("Icon_Billboard");
             Assert.IsNotNull(icon, "Must have child 'Icon_Billboard'.");
+            Assert.AreEqual(visual, icon.parent, "Icon_Billboard must be parented under Visual_Capsule so it moves and rotates with the 3D model.");
             Assert.AreEqual(LayerMask.NameToLayer("UI"), icon.gameObject.layer, "Icon_Billboard must be on the UI layer to bypass Bloom.");
             Assert.IsNotNull(icon.GetComponent<SpriteRenderer>(), "Icon_Billboard must have SpriteRenderer.");
 
