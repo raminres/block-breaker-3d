@@ -652,7 +652,7 @@
 
 .launch-banner {
     position: absolute;
-    bottom: 22%;
+    bottom: 35%;
     align-self: center;
     flex-direction: row;
     align-items: center;

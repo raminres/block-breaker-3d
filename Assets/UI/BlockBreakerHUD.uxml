@@ -74,7 +74,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="launch-banner" picking-mode="Ignore" class="launch-banner" style="bottom: 25%;">
+        <ui:VisualElement name="launch-banner" picking-mode="Ignore" class="launch-banner" style="bottom: 35%;">
             <ui:VisualElement picking-mode="Ignore" class="launch-arrow-left"/>
             <ui:VisualElement picking-mode="Ignore" class="launch-finger-icon"/>
             <ui:VisualElement picking-mode="Ignore" class="launch-arrow-right"/>

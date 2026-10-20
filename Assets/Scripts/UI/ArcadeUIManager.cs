@@ -352,11 +352,16 @@ namespace Arcade.UI
             Camera cam = Camera.main;
             if (cam != null && root != null && root.panel != null)
             {
-                // Project world position directly above paddle (paddle is at Y = -6.0)
-                Vector3 worldTarget = new Vector3(0f, -3.6f, 0f);
+                // Project world position comfortably above paddle and docked ball
+                // Paddle is at Y = -6.0, docked ball is at Y = -5.12, shield is at Y = -7.75.
+                // Placing world target at Y = -1.0f leaves ~3.5+ units of clear clearance above the ball.
+                Vector3 worldTarget = new Vector3(0f, -1.0f, 0f);
                 Vector3 screenPt = cam.WorldToScreenPoint(worldTarget);
                 Vector2 panelPt = RuntimePanelUtils.ScreenToPanel(root.panel, new Vector2(screenPt.x, Screen.height - screenPt.y));
-                launchBanner.style.top = panelPt.y;
+                
+                float bannerHeight = launchBanner.resolvedStyle.height;
+                float topOffset = bannerHeight > 0f ? bannerHeight * 0.5f : 40f;
+                launchBanner.style.top = panelPt.y - topOffset;
                 launchBanner.style.bottom = StyleKeyword.Auto;
             }
         }
