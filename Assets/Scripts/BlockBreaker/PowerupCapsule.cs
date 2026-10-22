@@ -175,17 +175,6 @@ namespace Arcade.BlockBreaker
             {
                 fallingVfx = fallingVfxTransform.GetComponent<ParticleSystem>();
             }
-
-            if (fallingVfx != null)
-            {
-                var vel = fallingVfx.velocityOverLifetime;
-                if (vel.enabled && (vel.x.mode != vel.y.mode || vel.y.mode != vel.z.mode))
-                {
-                    vel.x = new ParticleSystem.MinMaxCurve(-0.1f, 0.1f);
-                    vel.y = new ParticleSystem.MinMaxCurve(1.5f, 2.5f);
-                    vel.z = new ParticleSystem.MinMaxCurve(0f, 0f);
-                }
-            }
         }
 
         private void Start()
