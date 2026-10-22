@@ -19,7 +19,7 @@ This file provides foundational mandates, architectural maps, key mathematical c
   - Settings: `Assets/Settings/` (Levels `SO_Level_01` to `SO_Level_30`, `SO_PowerupIcons.asset`, URP Profiles)
   - Localization: `Assets/Localization/` (`Locales/`, `Tables/`, `LocalizationSettings.asset`)
   - UI Assets: `Assets/UI/` (UXML, USS, Fonts, Icons, procedural gradients under `Textures/Gradients/`)
-  - Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 308 EditMode NUnit unit & integration tests)
+  - Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 309 EditMode NUnit unit & integration tests)
 
 ---
 
@@ -180,7 +180,7 @@ Use this architectural lookup table to locate subsystems, classes, and responsib
 ---
 
 ## 10. Testing & Verification Command
-All logic, boundaries, prefabs, hazards, scene setups, localization tables, touch ergonomics, and level scaling are strictly verified by **308 automated EditMode NUnit tests**. To execute:
+All logic, boundaries, prefabs, hazards, scene setups, localization tables, touch ergonomics, and level scaling are strictly verified by **309 automated EditMode NUnit tests**. To execute:
 ```bash
 unity cmd run_tests --mode editor --timeout 90
 ```

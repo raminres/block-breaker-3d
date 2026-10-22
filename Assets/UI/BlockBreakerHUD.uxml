@@ -75,9 +75,11 @@
         </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="launch-banner" picking-mode="Ignore" class="launch-banner" style="bottom: 35%;">
-            <ui:VisualElement picking-mode="Ignore" class="launch-arrow-left"/>
-            <ui:VisualElement picking-mode="Ignore" class="launch-finger-icon"/>
-            <ui:VisualElement picking-mode="Ignore" class="launch-arrow-right"/>
+            <ui:VisualElement name="launch-motion-cue" picking-mode="Ignore" class="launch-motion-cue">
+                <ui:VisualElement name="launch-arrow-left" picking-mode="Ignore" class="launch-arrow-left"/>
+                <ui:VisualElement name="launch-finger-icon" picking-mode="Ignore" class="launch-finger-icon"/>
+                <ui:VisualElement name="launch-arrow-right" picking-mode="Ignore" class="launch-arrow-right"/>
+            </ui:VisualElement>
             <ui:Label name="launch-text" text="TAP TO LAUNCH" picking-mode="Ignore" class="launch-text"/>
         </ui:VisualElement>
         <ui:VisualElement name="level-clear-banner" picking-mode="Ignore" class="level-clear-banner level-clear-banner-hidden">

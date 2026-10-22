@@ -129,7 +129,7 @@ High-density technical context and architectural rules for BlockBreaker.
   - `Blocks/`: `PF_Block_Base`, `PF_Block_Red`, `PF_Block_Green`, `PF_Block_Blue`, `PF_Block_Bomb`, `PF_Block_Glass` (4 child sockets: `brick`, `brick frost`, `brick special`, `brick vfx`).
   - `Powerups/`: `PF_Drop_Powerup` (cyan capsule), `PF_Drop_Hazard` (crimson diamond).
 - **Zero Runtime Primitives**: All legacy procedural cube/quad fallbacks (`GameObject.CreatePrimitive`) removed from runtime and scene setups.
-- **Automated Tests**: 308 EditMode tests passing across core physics, normalized prefab parent scales, boundaries, powerups, hazards, UI harmonization, runtime localization tables, touch ergonomics, and level scaling:
+- **Automated Tests**: 309 EditMode tests passing across core physics, normalized prefab parent scales, boundaries, powerups, hazards, UI harmonization, runtime localization tables, touch ergonomics, and level scaling:
   ```bash
   unity cmd run_tests --mode editor
   ```
@@ -162,7 +162,7 @@ High-density technical context and architectural rules for BlockBreaker.
 
 ## 10. Current Handoff State & Verification
 - **Active Branch**: `feature/level-expansion-and-fixes` (Up to date with origin, clean working tree)
-- **Automated Tests**: 308/308 EditMode tests passing (100% pass rate)
+- **Automated Tests**: 309/309 EditMode tests passing (100% pass rate)
 - **Verification Command**:
   ```bash
   unity cmd run_tests --mode editor --timeout 90
@@ -195,6 +195,11 @@ High-density technical context and architectural rules for BlockBreaker.
      - Leaderboard Date Shortening: Formatted all high score dates to `dd/MM` via `HighScoreManager.FormatShortDate` with `CultureInfo.InvariantCulture`. Expanded `.score-row-date` USS width to `min-width: 220px` to prevent text intrusion with scores on iPhone screens.
      - 30-Level Campaign: Created `SO_Level_16` to `SO_Level_30` with speed progression from $0.92\times$ to $1.80\times$, escalating hazards (up to 20), and varied layout archetypes. Connected serialized `levelPresets` across both `LV_BlockBreaker.unity` and `LV_BlockBreaker_MainMenu.unity`.
      - Level Select UI Expansion: Expanded `.level-modal-card` to `height: 1850px; max-height: 94%;` and `.level-grid-scroll-view` to `height: 920px; flex-grow: 1;` so all 30 level cards fit comfortably with smooth mobile scrolling.
-     - Test Suite Invariants: Fixed `GetLevelConfig` preset-boundary check, safeguarded hyper-beam against destroyed block colliders, and added test cleanup in `BlockBreakerCoreTests`. All 308 tests passing.
+     - Test Suite Invariants: Fixed `GetLevelConfig` preset-boundary check, safeguarded hyper-beam against destroyed block colliders, and added test cleanup in `BlockBreakerCoreTests`.
+  11. **Launch Prompt Stacked Redesign & Finger Swipe Animation**:
+     - Restructured launch banner in `BlockBreakerHUD.uxml` and `BlockBreakerHUD.uss` with a vertical stacked layout (motion cue icons row on top, "TAP TO LAUNCH" label below).
+     - Enlarged finger icon to $96\text{px} \times 96\text{px}$ (+44% scale) and directional arrows to $80\text{px} \times 80\text{px}$ for tactile readability.
+     - Added continuous left-to-right swipe motion animation via `UIAnimationHelper.StartHorizontalSwipe` with native USS ease-in-out translation.
+     - Calibrated world projection to $Y = -0.5\text{f}$ in `ArcadeUIManager`, ensuring $> 240\text{px}$ clearance above the ball/paddle and $> 340\text{px}$ below the bricks. All 309 tests passing.
 
 

@@ -19,6 +19,8 @@ namespace Arcade.UI
         public const string ClassModalBackdropHidden = "modal-backdrop-hidden";
         public const string ClassModalBackdropVisible = "modal-backdrop-visible";
         public const string ClassBtnPunched = "ui-btn-punched";
+        public const string ClassLaunchFingerLeft = "launch-finger-swipe-left";
+        public const string ClassLaunchFingerRight = "launch-finger-swipe-right";
 
         private static readonly Dictionary<VisualElement, Coroutine> activeCoroutines = new Dictionary<VisualElement, Coroutine>();
 
@@ -377,6 +379,57 @@ namespace Arcade.UI
                 yield return new WaitForSecondsRealtime(halfPeriod);
             }
             if (element != null) activeCoroutines.Remove(element);
+        }
+
+        /// <summary>
+        /// Continuously animates an element smoothly swaying left and right (e.g. finger drag tutorial cue).
+        /// Toggles between left-swipe and right-swipe classes using USS transition timing.
+        /// </summary>
+        public static Coroutine StartHorizontalSwipe(
+            MonoBehaviour host,
+            VisualElement element,
+            string leftClass = ClassLaunchFingerLeft,
+            string rightClass = ClassLaunchFingerRight,
+            float halfPeriod = 0.55f)
+        {
+            if (element == null || !Application.isPlaying || host == null || !host.gameObject.activeInHierarchy)
+                return null;
+
+            StopActiveAnimation(host, element);
+            var coroutine = host.StartCoroutine(DoHorizontalSwipe(element, leftClass, rightClass, halfPeriod));
+            activeCoroutines[element] = coroutine;
+            return coroutine;
+        }
+
+        private static IEnumerator DoHorizontalSwipe(
+            VisualElement element,
+            string leftClass,
+            string rightClass,
+            float halfPeriod)
+        {
+            bool toRight = true;
+            while (element != null && element.panel != null)
+            {
+                if (toRight)
+                {
+                    element.RemoveFromClassList(leftClass);
+                    element.AddToClassList(rightClass);
+                }
+                else
+                {
+                    element.RemoveFromClassList(rightClass);
+                    element.AddToClassList(leftClass);
+                }
+                toRight = !toRight;
+                yield return new WaitForSecondsRealtime(halfPeriod);
+            }
+
+            if (element != null)
+            {
+                element.RemoveFromClassList(leftClass);
+                element.RemoveFromClassList(rightClass);
+                activeCoroutines.Remove(element);
+            }
         }
 
         public static void StopActiveAnimation(MonoBehaviour host, VisualElement element)

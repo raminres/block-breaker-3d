@@ -917,6 +917,37 @@ namespace Arcade.Tests
             Assert.AreEqual(30, lvl30.LevelNumber);
             Object.DestroyImmediate(go);
         }
+
+        [Test]
+        public void Test_LaunchBanner_VerticalLayout_LargerIcons_And_FingerSwipeAnimation_Configured()
+        {
+            var hudUxml = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uxml");
+            Assert.IsTrue(hudUxml.Contains("class=\"launch-motion-cue\""), "BlockBreakerHUD.uxml must contain launch-motion-cue container.");
+            Assert.IsTrue(hudUxml.Contains("class=\"launch-finger-icon\""), "BlockBreakerHUD.uxml must contain launch-finger-icon.");
+            Assert.IsTrue(hudUxml.Contains("class=\"launch-arrow-left\""), "BlockBreakerHUD.uxml must contain launch-arrow-left.");
+            Assert.IsTrue(hudUxml.Contains("class=\"launch-arrow-right\""), "BlockBreakerHUD.uxml must contain launch-arrow-right.");
+            Assert.IsTrue(hudUxml.Contains("class=\"launch-text\""), "BlockBreakerHUD.uxml must contain launch-text.");
+
+            // Verify text is placed below the icons row in UXML
+            int motionCueIndex = hudUxml.IndexOf("launch-motion-cue");
+            int launchTextIndex = hudUxml.IndexOf("launch-text");
+            Assert.IsTrue(launchTextIndex > motionCueIndex, "launch-text must be positioned after (below) launch-motion-cue.");
+
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains("flex-direction: column;"), "BlockBreakerHUD.uss .launch-banner must use flex-direction: column.");
+            Assert.IsTrue(hudUss.Contains("width: 96px;"), "BlockBreakerHUD.uss .launch-finger-icon must have enlarged width 96px.");
+            Assert.IsTrue(hudUss.Contains("height: 96px;"), "BlockBreakerHUD.uss .launch-finger-icon must have enlarged height 96px.");
+            Assert.IsTrue(hudUss.Contains("width: 80px;"), "BlockBreakerHUD.uss .launch-arrow-left/.launch-arrow-right must have enlarged width 80px.");
+            Assert.IsTrue(hudUss.Contains(".launch-finger-swipe-left"), "BlockBreakerHUD.uss must define .launch-finger-swipe-left.");
+            Assert.IsTrue(hudUss.Contains(".launch-finger-swipe-right"), "BlockBreakerHUD.uss must define .launch-finger-swipe-right.");
+
+            // Verify UIAnimationHelper constants and method safety
+            Assert.AreEqual("launch-finger-swipe-left", UIAnimationHelper.ClassLaunchFingerLeft);
+            Assert.AreEqual("launch-finger-swipe-right", UIAnimationHelper.ClassLaunchFingerRight);
+            var finger = new VisualElement();
+            var coroutine = UIAnimationHelper.StartHorizontalSwipe(null, finger);
+            Assert.IsNull(coroutine, "StartHorizontalSwipe must safely return null when called in EditMode without active host.");
+        }
     }
 }
 

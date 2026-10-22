@@ -37,6 +37,9 @@ namespace Arcade.UI
 
         // Banner
         private VisualElement launchBanner;
+        private VisualElement launchFingerIcon;
+        private VisualElement launchArrowLeft;
+        private VisualElement launchArrowRight;
         private VisualElement levelClearBanner;
         private Label levelClearBannerText;
         private Label levelClearBannerSubtext;
@@ -236,6 +239,10 @@ namespace Arcade.UI
         [SerializeField] private Sprite playSprite;
 
         // Public accessors for testing & verification
+        public VisualElement LaunchBanner => launchBanner;
+        public VisualElement LaunchFingerIcon => launchFingerIcon;
+        public VisualElement LaunchArrowLeft => launchArrowLeft;
+        public VisualElement LaunchArrowRight => launchArrowRight;
         public VisualElement IconQuickPause => iconQuickPause;
         public VisualElement IconQuickMute => iconQuickMute;
         public VisualElement IconQuickOptions => iconQuickOptions;
@@ -354,13 +361,14 @@ namespace Arcade.UI
             {
                 // Project world position comfortably above paddle and docked ball
                 // Paddle is at Y = -6.0, docked ball is at Y = -5.12, shield is at Y = -7.75.
-                // Placing world target at Y = -1.0f leaves ~3.5+ units of clear clearance above the ball.
-                Vector3 worldTarget = new Vector3(0f, -1.0f, 0f);
+                // Placing world target at Y = -0.5f leaves ~4.2 units (>250px) of clear clearance above the ball,
+                // and >340px below the lowest blocks row (~Y=5.0).
+                Vector3 worldTarget = new Vector3(0f, -0.5f, 0f);
                 Vector3 screenPt = cam.WorldToScreenPoint(worldTarget);
                 Vector2 panelPt = RuntimePanelUtils.ScreenToPanel(root.panel, new Vector2(screenPt.x, Screen.height - screenPt.y));
                 
                 float bannerHeight = launchBanner.resolvedStyle.height;
-                float topOffset = bannerHeight > 0f ? bannerHeight * 0.5f : 40f;
+                float topOffset = bannerHeight > 0f ? bannerHeight * 0.5f : 85f;
                 launchBanner.style.top = panelPt.y - topOffset;
                 launchBanner.style.bottom = StyleKeyword.Auto;
             }
@@ -511,6 +519,10 @@ namespace Arcade.UI
             levelClearBanner = null;
             levelClearBannerText = null;
             levelClearBannerSubtext = null;
+            launchBanner = null;
+            launchFingerIcon = null;
+            launchArrowLeft = null;
+            launchArrowRight = null;
         }
 
         private void BindElements()
@@ -732,6 +744,9 @@ namespace Arcade.UI
                 iconQuickOptions.style.rotate = new StyleRotate(new Rotate(Angle.Degrees(0f)));
 
             launchBanner = root.Q<VisualElement>("launch-banner");
+            launchFingerIcon = root.Q<VisualElement>("launch-finger-icon") ?? launchBanner?.Q(className: "launch-finger-icon");
+            launchArrowLeft = root.Q<VisualElement>("launch-arrow-left") ?? launchBanner?.Q(className: "launch-arrow-left");
+            launchArrowRight = root.Q<VisualElement>("launch-arrow-right") ?? launchBanner?.Q(className: "launch-arrow-right");
             levelClearBanner = root.Q<VisualElement>("level-clear-banner");
             levelClearBannerText = root.Q<Label>("level-clear-banner-text");
             levelClearBannerSubtext = root.Q<Label>("level-clear-banner-subtext");
@@ -1478,10 +1493,20 @@ namespace Arcade.UI
                 {
                     launchBanner.RemoveFromClassList("launch-banner-hidden");
                     UIAnimationHelper.StartBreathe(this, launchBanner, "launch-banner-pulse", 0.55f);
+                    if (launchFingerIcon != null)
+                    {
+                        UIAnimationHelper.StartHorizontalSwipe(this, launchFingerIcon, UIAnimationHelper.ClassLaunchFingerLeft, UIAnimationHelper.ClassLaunchFingerRight, 0.55f);
+                    }
                 }
                 else
                 {
                     UIAnimationHelper.StopActiveAnimation(this, launchBanner);
+                    if (launchFingerIcon != null)
+                    {
+                        UIAnimationHelper.StopActiveAnimation(this, launchFingerIcon);
+                        launchFingerIcon.RemoveFromClassList(UIAnimationHelper.ClassLaunchFingerLeft);
+                        launchFingerIcon.RemoveFromClassList(UIAnimationHelper.ClassLaunchFingerRight);
+                    }
                     launchBanner.RemoveFromClassList("launch-banner-pulse");
                     launchBanner.AddToClassList("launch-banner-hidden");
                 }
