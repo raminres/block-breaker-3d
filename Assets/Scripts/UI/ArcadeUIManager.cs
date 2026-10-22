@@ -37,6 +37,9 @@ namespace Arcade.UI
 
         // Banner
         private VisualElement launchBanner;
+        private VisualElement launchFingerIcon;
+        private VisualElement launchArrowLeft;
+        private VisualElement launchArrowRight;
         private VisualElement levelClearBanner;
         private Label levelClearBannerText;
         private Label levelClearBannerSubtext;
@@ -184,6 +187,23 @@ namespace Arcade.UI
         private SliderInt sliderLaser;
         private Label valLaser;
 
+        public enum SpeedPopupType
+        {
+            Turbo,
+            Dampen,
+            ActiveStrike,
+            Slowed,
+            VolleyRamp
+        }
+
+        // Active Speed Pod
+        private VisualElement speedContainer;
+        private Label speedLabel;
+        private VisualElement speedIcon;
+
+        public VisualElement SpeedContainer => speedContainer;
+        public Label SpeedLabel => speedLabel;
+
         // Active Powerup Badges
         private VisualElement shieldStatusBadge;
         private Label shieldTimerLabel;
@@ -236,6 +256,10 @@ namespace Arcade.UI
         [SerializeField] private Sprite playSprite;
 
         // Public accessors for testing & verification
+        public VisualElement LaunchBanner => launchBanner;
+        public VisualElement LaunchFingerIcon => launchFingerIcon;
+        public VisualElement LaunchArrowLeft => launchArrowLeft;
+        public VisualElement LaunchArrowRight => launchArrowRight;
         public VisualElement IconQuickPause => iconQuickPause;
         public VisualElement IconQuickMute => iconQuickMute;
         public VisualElement IconQuickOptions => iconQuickOptions;
@@ -354,13 +378,14 @@ namespace Arcade.UI
             {
                 // Project world position comfortably above paddle and docked ball
                 // Paddle is at Y = -6.0, docked ball is at Y = -5.12, shield is at Y = -7.75.
-                // Placing world target at Y = -1.0f leaves ~3.5+ units of clear clearance above the ball.
-                Vector3 worldTarget = new Vector3(0f, -1.0f, 0f);
+                // Placing world target at Y = -0.5f leaves ~4.2 units (>250px) of clear clearance above the ball,
+                // and >340px below the lowest blocks row (~Y=5.0).
+                Vector3 worldTarget = new Vector3(0f, -0.5f, 0f);
                 Vector3 screenPt = cam.WorldToScreenPoint(worldTarget);
                 Vector2 panelPt = RuntimePanelUtils.ScreenToPanel(root.panel, new Vector2(screenPt.x, Screen.height - screenPt.y));
                 
                 float bannerHeight = launchBanner.resolvedStyle.height;
-                float topOffset = bannerHeight > 0f ? bannerHeight * 0.5f : 40f;
+                float topOffset = bannerHeight > 0f ? bannerHeight * 0.5f : 85f;
                 launchBanner.style.top = panelPt.y - topOffset;
                 launchBanner.style.bottom = StyleKeyword.Auto;
             }
@@ -511,6 +536,10 @@ namespace Arcade.UI
             levelClearBanner = null;
             levelClearBannerText = null;
             levelClearBannerSubtext = null;
+            launchBanner = null;
+            launchFingerIcon = null;
+            launchArrowLeft = null;
+            launchArrowRight = null;
         }
 
         private void BindElements()
@@ -520,6 +549,9 @@ namespace Arcade.UI
             scoreLabel = root.Q<Label>("score-label");
             scoreContainer = root.Q<VisualElement>("score-container");
             highscoreLabel = root.Q<Label>("highscore-label");
+            speedContainer = root.Q<VisualElement>("speed-container");
+            speedLabel = root.Q<Label>("speed-label");
+            speedIcon = root.Q<VisualElement>("icon-speed");
             timerLabel = root.Q<Label>("timer-label");
             scoreDeltaLabel = root.Q<Label>("score-delta-label");
             comboStatusBadge = root.Q<VisualElement>("combo-status-badge");
@@ -732,6 +764,9 @@ namespace Arcade.UI
                 iconQuickOptions.style.rotate = new StyleRotate(new Rotate(Angle.Degrees(0f)));
 
             launchBanner = root.Q<VisualElement>("launch-banner");
+            launchFingerIcon = root.Q<VisualElement>("launch-finger-icon") ?? launchBanner?.Q(className: "launch-finger-icon");
+            launchArrowLeft = root.Q<VisualElement>("launch-arrow-left") ?? launchBanner?.Q(className: "launch-arrow-left");
+            launchArrowRight = root.Q<VisualElement>("launch-arrow-right") ?? launchBanner?.Q(className: "launch-arrow-right");
             levelClearBanner = root.Q<VisualElement>("level-clear-banner");
             levelClearBannerText = root.Q<Label>("level-clear-banner-text");
             levelClearBannerSubtext = root.Q<Label>("level-clear-banner-subtext");
@@ -780,7 +815,7 @@ namespace Arcade.UI
             {
                 levelGridContainer.Clear();
                 if (levelGenerator == null) levelGenerator = FindAnyObjectByType<LevelGenerator>();
-                int totalLevels = levelGenerator != null ? levelGenerator.TotalLevels : 15;
+                int totalLevels = levelGenerator != null ? levelGenerator.TotalLevels : 30;
                 for (int i = 0; i < totalLevels; i++)
                 {
                     int lvlNum = i + 1;
@@ -817,7 +852,11 @@ namespace Arcade.UI
                     levelGridContainer.Add(cardBtn);
                     menuLevelTabButtons.Add(cardBtn);
                     int captureLvl = lvlNum;
-                    cardBtn.clicked += () => SelectLevel(captureLvl);
+                    cardBtn.clicked += () =>
+                    {
+                        UIAnimationHelper.PunchElement(this, cardBtn, "ui-punch-pop", 0.10f);
+                        SelectLevel(captureLvl);
+                    };
                 }
             }
 
@@ -990,7 +1029,7 @@ namespace Arcade.UI
                 if (tabsContainer != null)
                 {
                     tabsContainer.Clear();
-                    int totalLevels = levelGenerator != null ? levelGenerator.TotalLevels : 15;
+                    int totalLevels = levelGenerator != null ? levelGenerator.TotalLevels : 30;
                     for (int i = 0; i < totalLevels; i++)
                     {
                         int lvlNum = i + 1;
@@ -1144,6 +1183,8 @@ namespace Arcade.UI
                 ArcadeGameManager.Instance.OnLevelClearPending += HandleLevelClearPending;
                 ArcadeGameManager.Instance.OnPowerdownStateChanged += HandlePowerdownStateChanged;
                 ArcadeGameManager.Instance.OnPowerdownTick += HandlePowerdownTick;
+                BallController.OnAnyBallSpeedChanged -= HandleBallSpeedChanged;
+                BallController.OnAnyBallSpeedChanged += HandleBallSpeedChanged;
             }
         }
 
@@ -1172,6 +1213,7 @@ namespace Arcade.UI
                 ArcadeGameManager.Instance.OnLevelClearPending -= HandleLevelClearPending;
                 ArcadeGameManager.Instance.OnPowerdownStateChanged -= HandlePowerdownStateChanged;
                 ArcadeGameManager.Instance.OnPowerdownTick -= HandlePowerdownTick;
+                BallController.OnAnyBallSpeedChanged -= HandleBallSpeedChanged;
             }
         }
 
@@ -1213,6 +1255,7 @@ namespace Arcade.UI
             UpdateLocalizedTexts();
 
             UpdatePauseButtonIcon(ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused);
+            UpdateSpeedDisplay(14f, 1.0f);
 
             targetFps = PlayerPrefs.GetInt("Arcade_TargetFPS", 60);
             Application.targetFrameRate = targetFps;
@@ -1432,6 +1475,37 @@ namespace Arcade.UI
             }
         }
 
+        public System.Collections.Generic.List<VisualElement> GetPauseButtons()
+        {
+            var list = new System.Collections.Generic.List<VisualElement>();
+            if (btnResume != null) list.Add(btnResume);
+            if (btnLevelSelectPause != null) list.Add(btnLevelSelectPause);
+            if (btnOptionsPause != null) list.Add(btnOptionsPause);
+            if (btnHighscoresPause != null) list.Add(btnHighscoresPause);
+            if (btnHowToPlayPause != null) list.Add(btnHowToPlayPause);
+            if (btnCreditsPause != null) list.Add(btnCreditsPause);
+            if (btnRestartPause != null) list.Add(btnRestartPause);
+            if (btnMenuPause != null) list.Add(btnMenuPause);
+            return list;
+        }
+
+        public System.Collections.Generic.List<VisualElement> GetLevelClearButtons()
+        {
+            var list = new System.Collections.Generic.List<VisualElement>();
+            if (btnNextLevel != null) list.Add(btnNextLevel);
+            if (btnReplayLevel != null) list.Add(btnReplayLevel);
+            if (btnClearMenu != null) list.Add(btnClearMenu);
+            return list;
+        }
+
+        public System.Collections.Generic.List<VisualElement> GetGameOverButtons()
+        {
+            var list = new System.Collections.Generic.List<VisualElement>();
+            if (btnRetry != null) list.Add(btnRetry);
+            if (btnOverMenu != null) list.Add(btnOverMenu);
+            return list;
+        }
+
         private void HandleGameStateChanged(GameState state)
         {
             UpdatePauseButtonIcon(state == GameState.Paused);
@@ -1440,9 +1514,26 @@ namespace Arcade.UI
             if (launchBanner != null)
             {
                 if (state == GameState.ReadyToLaunch || state == GameState.BallLost)
+                {
                     launchBanner.RemoveFromClassList("launch-banner-hidden");
+                    UIAnimationHelper.StartBreathe(this, launchBanner, "launch-banner-pulse", 0.55f);
+                    if (launchFingerIcon != null)
+                    {
+                        UIAnimationHelper.StartHorizontalSwipe(this, launchFingerIcon, UIAnimationHelper.ClassLaunchFingerLeft, UIAnimationHelper.ClassLaunchFingerRight, 0.55f);
+                    }
+                }
                 else
+                {
+                    UIAnimationHelper.StopActiveAnimation(this, launchBanner);
+                    if (launchFingerIcon != null)
+                    {
+                        UIAnimationHelper.StopActiveAnimation(this, launchFingerIcon);
+                        launchFingerIcon.RemoveFromClassList(UIAnimationHelper.ClassLaunchFingerLeft);
+                        launchFingerIcon.RemoveFromClassList(UIAnimationHelper.ClassLaunchFingerRight);
+                    }
+                    launchBanner.RemoveFromClassList("launch-banner-pulse");
                     launchBanner.AddToClassList("launch-banner-hidden");
+                }
             }
 
             if (levelClearBanner != null && state != GameState.Playing)
@@ -1453,13 +1544,21 @@ namespace Arcade.UI
             // Pause Modal
             if (pauseModal != null)
             {
-                if (state == GameState.Paused) pauseModal.RemoveFromClassList("modal-hidden");
-                else pauseModal.AddToClassList("modal-hidden");
+                var card = pauseModal.Q(className: "modal-card");
+                if (state == GameState.Paused)
+                {
+                    UIAnimationHelper.ShowModal(this, pauseModal, card, GetPauseButtons());
+                }
+                else
+                {
+                    UIAnimationHelper.HideModal(this, pauseModal, card);
+                }
             }
 
             // Level Clear Modal
             if (levelClearModal != null)
             {
+                var card = levelClearModal.Q(className: "scorecard-card") ?? levelClearModal.Q(className: "modal-card");
                 if (state == GameState.LevelClear)
                 {
                     if (clearScoreLabel != null && ArcadeGameManager.Instance != null)
@@ -1470,7 +1569,7 @@ namespace Arcade.UI
                         if (levelGenerator == null) levelGenerator = FindAnyObjectByType<LevelGenerator>();
                         int currentLvl = levelGenerator != null && levelGenerator.CurrentConfig != null ? levelGenerator.CurrentConfig.LevelNumber : 1;
                         int nextLvl = currentLvl + 1;
-                        int total = levelGenerator != null ? levelGenerator.TotalLevels : 15;
+                        int total = levelGenerator != null ? levelGenerator.TotalLevels : 30;
                         btnNextLevel.text = nextLvl > total ? "PLAY AGAIN (LOOP)" : $"NEXT LEVEL ({nextLvl})";
                     }
 
@@ -1479,28 +1578,29 @@ namespace Arcade.UI
                         HandleLevelCompletedWithTally(ArcadeGameManager.Instance.CurrentLevelSummary);
                     }
 
-                    levelClearModal.RemoveFromClassList("modal-hidden");
+                    UIAnimationHelper.ShowModal(this, levelClearModal, card, GetLevelClearButtons());
                 }
                 else
                 {
-                    levelClearModal.AddToClassList("modal-hidden");
+                    UIAnimationHelper.HideModal(this, levelClearModal, card);
                 }
             }
 
             // Game Over Modal
             if (gameOverModal != null)
             {
+                var card = gameOverModal.Q(className: "modal-card");
                 if (state == GameState.GameOver)
                 {
                     if (overScoreLabel != null && ArcadeGameManager.Instance != null)
                         overScoreLabel.text = $"FINAL SCORE: {ArcadeGameManager.Instance.Score}";
                     if (overHighLabel != null && ArcadeGameManager.Instance != null)
                         overHighLabel.text = $"HIGH SCORE: {ArcadeGameManager.Instance.HighScore}";
-                    gameOverModal.RemoveFromClassList("modal-hidden");
+                    UIAnimationHelper.ShowModal(this, gameOverModal, card, GetGameOverButtons());
                 }
                 else
                 {
-                    gameOverModal.AddToClassList("modal-hidden");
+                    UIAnimationHelper.HideModal(this, gameOverModal, card);
                 }
             }
         }
@@ -1512,6 +1612,7 @@ namespace Arcade.UI
             {
                 shieldStatusBadge.RemoveFromClassList("powerup-hidden");
                 shieldStatusBadge.style.display = DisplayStyle.Flex;
+                UIAnimationHelper.PunchElement(this, shieldStatusBadge, "ui-punch-pop", 0.14f);
                 if (shieldTimerLabel != null) shieldTimerLabel.text = $"{Mathf.CeilToInt(remaining)}s";
             }
             else
@@ -1534,6 +1635,7 @@ namespace Arcade.UI
             {
                 multiballStatusBadge.RemoveFromClassList("powerup-hidden");
                 multiballStatusBadge.style.display = DisplayStyle.Flex;
+                UIAnimationHelper.PunchElement(this, multiballStatusBadge, "ui-punch-pop", 0.14f);
                 if (multiballCountLabel != null) multiballCountLabel.text = $"{count} BALLS";
             }
             else
@@ -1550,6 +1652,7 @@ namespace Arcade.UI
             {
                 paddleStatusBadge.RemoveFromClassList("powerup-hidden");
                 paddleStatusBadge.style.display = DisplayStyle.Flex;
+                UIAnimationHelper.PunchElement(this, paddleStatusBadge, "ui-punch-pop", 0.14f);
                 if (paddleTimerLabel != null) paddleTimerLabel.text = $"{Mathf.CeilToInt(remaining)}s";
             }
             else
@@ -1572,6 +1675,7 @@ namespace Arcade.UI
             {
                 multiplierStatusBadge.RemoveFromClassList("powerup-hidden");
                 multiplierStatusBadge.style.display = DisplayStyle.Flex;
+                UIAnimationHelper.PunchElement(this, multiplierStatusBadge, "ui-punch-pop", 0.14f);
 
                 var iconMultiplier = multiplierStatusBadge.Q<VisualElement>("multiplier-status-icon");
                 if (iconMultiplier != null && multiplierSprite != null)
@@ -1608,6 +1712,7 @@ namespace Arcade.UI
             {
                 laserStatusBadge.RemoveFromClassList("powerup-hidden");
                 laserStatusBadge.style.display = DisplayStyle.Flex;
+                UIAnimationHelper.PunchElement(this, laserStatusBadge, "ui-punch-pop", 0.14f);
                 if (laserTimerLabel != null) laserTimerLabel.text = $"{Mathf.CeilToInt(remaining)}s";
             }
             else
@@ -1658,6 +1763,7 @@ namespace Arcade.UI
             {
                 badge.RemoveFromClassList("powerup-hidden");
                 badge.style.display = DisplayStyle.Flex;
+                UIAnimationHelper.PunchElement(this, badge, "ui-punch-pop", 0.14f);
                 if (timerLbl != null) timerLbl.text = $"{Mathf.CeilToInt(remaining)}s";
             }
             else
@@ -1692,6 +1798,7 @@ namespace Arcade.UI
             {
                 clutchStatusBadge.RemoveFromClassList("powerup-hidden");
                 clutchStatusBadge.style.display = DisplayStyle.Flex;
+                UIAnimationHelper.PunchElement(this, clutchStatusBadge, "ui-punch-pop", 0.14f);
                 if (clutchMultiplierLabel != null) clutchMultiplierLabel.text = $"{multiplier}X";
                 if (clutchTimerLabel != null) clutchTimerLabel.text = $"{Mathf.CeilToInt(remaining)}s";
             }
@@ -1749,6 +1856,7 @@ namespace Arcade.UI
                 comboStatusBadge.RemoveFromClassList("mult-tier-4x");
                 comboStatusBadge.RemoveFromClassList("mult-tier-5x");
                 comboStatusBadge.AddToClassList($"mult-tier-{Mathf.Clamp(multiplier, 2, 5)}x");
+                UIAnimationHelper.PunchElement(this, comboStatusBadge, "combo-pop", 0.14f);
 
                 if (comboLabel != null)
                 {
@@ -1955,6 +2063,136 @@ namespace Arcade.UI
             scorePulseCoroutine = null;
         }
 
+        public void HandleBallSpeedChanged(BallController ball, float currentSpeed, float speedMultiplier)
+        {
+            UpdateSpeedDisplay(currentSpeed, speedMultiplier);
+        }
+
+        public void UpdateSpeedDisplay(float currentSpeed, float speedMultiplier)
+        {
+            if (speedLabel != null)
+            {
+                speedLabel.text = $"{speedMultiplier.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}x";
+            }
+
+            if (speedContainer != null)
+            {
+                speedContainer.RemoveFromClassList("speed-tier-slow");
+                speedContainer.RemoveFromClassList("speed-tier-normal");
+                speedContainer.RemoveFromClassList("speed-tier-boost");
+                speedContainer.RemoveFromClassList("speed-tier-turbo");
+
+                if (currentSpeed < 12f)
+                {
+                    speedContainer.AddToClassList("speed-tier-slow");
+                }
+                else if (currentSpeed < 17f)
+                {
+                    speedContainer.AddToClassList("speed-tier-normal");
+                }
+                else if (currentSpeed < 20f)
+                {
+                    speedContainer.AddToClassList("speed-tier-boost");
+                }
+                else
+                {
+                    speedContainer.AddToClassList("speed-tier-turbo");
+                }
+
+                if (gameObject.activeInHierarchy)
+                {
+                    UIAnimationHelper.PunchElement(this, speedContainer, "ui-punch-pop", 0.12f);
+                }
+            }
+        }
+
+        public void AnimateSpeedPopup(Vector3 worldPosition, string text, SpeedPopupType type)
+        {
+            if (gameObject.activeInHierarchy && root != null)
+            {
+                StartCoroutine(DoSpeedPopupAnimation(worldPosition, text, type));
+            }
+        }
+
+        private System.Collections.IEnumerator DoSpeedPopupAnimation(Vector3 worldPos, string text, SpeedPopupType type)
+        {
+            if (root == null) yield break;
+
+            Camera cam = Camera.main;
+            Vector2 panelPos;
+            if (cam != null)
+            {
+                Vector3 screenPt = cam.WorldToScreenPoint(worldPos);
+                panelPos = new Vector2(screenPt.x, Screen.height - screenPt.y);
+                if (root.panel != null)
+                {
+                    panelPos = RuntimePanelUtils.ScreenToPanel(root.panel, panelPos);
+                }
+            }
+            else
+            {
+                panelPos = new Vector2(root.resolvedStyle.width * 0.5f, root.resolvedStyle.height * 0.5f);
+            }
+
+            Label popup = new Label(text);
+            popup.AddToClassList("speed-popup");
+
+            switch (type)
+            {
+                case SpeedPopupType.Turbo:
+                    popup.AddToClassList("speed-popup-turbo");
+                    break;
+                case SpeedPopupType.Dampen:
+                    popup.AddToClassList("speed-popup-dampen");
+                    break;
+                case SpeedPopupType.ActiveStrike:
+                    popup.AddToClassList("speed-popup-strike");
+                    break;
+                case SpeedPopupType.Slowed:
+                    popup.AddToClassList("speed-popup-slowed");
+                    break;
+                case SpeedPopupType.VolleyRamp:
+                    popup.AddToClassList("speed-popup-ramp");
+                    break;
+            }
+
+            popup.pickingMode = PickingMode.Ignore;
+            popup.style.left = panelPos.x - 45f;
+            popup.style.top = panelPos.y - 25f;
+            root.Add(popup);
+
+            float duration = 0.70f;
+            float elapsed = 0f;
+            float startY = panelPos.y - 25f;
+            float driftDist = 42f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+
+                float easeT = Mathf.SmoothStep(0f, 1f, t);
+                popup.style.top = startY - (easeT * driftDist);
+
+                float scale = t < 0.20f
+                    ? Mathf.Lerp(0.75f, 1.25f, t / 0.20f)
+                    : Mathf.Lerp(1.25f, 1.0f, (t - 0.20f) / 0.80f);
+                popup.style.scale = new StyleScale(new Scale(new Vector2(scale, scale)));
+
+                if (t > 0.65f)
+                {
+                    popup.style.opacity = Mathf.Lerp(1f, 0f, (t - 0.65f) / 0.35f);
+                }
+
+                yield return null;
+            }
+
+            if (root.Contains(popup))
+            {
+                root.Remove(popup);
+            }
+        }
+
         private System.Collections.IEnumerator DoScoreDeltaAnimation(int points, int multiplier)
         {
             if (scoreDeltaLabel == null) yield break;
@@ -2083,6 +2321,7 @@ namespace Arcade.UI
                 {
                     stars[i].RemoveFromClassList("star-empty");
                     stars[i].AddToClassList("star-earned");
+                    UIAnimationHelper.PunchElement(this, stars[i], "star-pop", 0.16f);
                     if (ArcadeAudioManager.Instance != null)
                     {
                         ArcadeAudioManager.Instance.PlayStarEarned(i + 1);
@@ -2246,6 +2485,7 @@ namespace Arcade.UI
 
         private void HandleQuickPauseClicked()
         {
+            UIAnimationHelper.PunchButton(this, btnQuickPause);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             if (Arcade.Input.ArcadeInputHandler.Instance != null)
             {
@@ -2260,6 +2500,7 @@ namespace Arcade.UI
 
         private void HandleResumeClicked()
         {
+            UIAnimationHelper.PunchButton(this, btnResume);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             if (Arcade.Input.ArcadeInputHandler.Instance != null)
             {
@@ -2274,6 +2515,8 @@ namespace Arcade.UI
 
         private void HandleRestartClicked()
         {
+            UIAnimationHelper.PunchButton(this, btnRestartPause);
+            UIAnimationHelper.PunchButton(this, btnRetry);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             if (ArcadeGameManager.Instance != null)
             {
@@ -2283,6 +2526,7 @@ namespace Arcade.UI
 
         private void HandleNextLevelClicked()
         {
+            UIAnimationHelper.PunchButton(this, btnNextLevel);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             if (scorecardStarsCoroutine != null)
             {
@@ -2311,6 +2555,9 @@ namespace Arcade.UI
 
         private void HandleMenuClicked()
         {
+            UIAnimationHelper.PunchButton(this, btnMenuPause);
+            UIAnimationHelper.PunchButton(this, btnClearMenu);
+            UIAnimationHelper.PunchButton(this, btnOverMenu);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             if (ArcadeGameManager.Instance != null)
             {
@@ -2321,6 +2568,8 @@ namespace Arcade.UI
         public void ShowOptions()
         {
             TriggerSettingsButtonSpin();
+            UIAnimationHelper.PunchButton(this, btnQuickOptions);
+            UIAnimationHelper.PunchButton(this, btnOptionsPause);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
 
             if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State != GameState.Paused)
@@ -2338,22 +2587,53 @@ namespace Arcade.UI
                 Arcade.Input.ArcadeInputHandler.Instance.ResetTouchState();
             }
 
-            if (optionsModal != null) optionsModal.RemoveFromClassList("modal-hidden");
+            var pauseCard = pauseModal != null ? pauseModal.Q(className: "modal-card") : null;
+            var optionsCard = optionsModal != null ? optionsModal.Q(className: "modal-card") : null;
+            var optionsButtons = new System.Collections.Generic.List<VisualElement>();
+            if (btnLangEn != null) optionsButtons.Add(btnLangEn);
+            if (btnLangTr != null) optionsButtons.Add(btnLangTr);
+            if (btnFps != null) optionsButtons.Add(btnFps);
+            if (btnCloseOptions != null) optionsButtons.Add(btnCloseOptions);
+
+            if (pauseModal != null && !pauseModal.ClassListContains("modal-hidden"))
+            {
+                UIAnimationHelper.HideModal(this, pauseModal, pauseCard, () =>
+                {
+                    UIAnimationHelper.ShowModal(this, optionsModal, optionsCard, optionsButtons);
+                });
+            }
+            else
+            {
+                UIAnimationHelper.ShowModal(this, optionsModal, optionsCard, optionsButtons);
+            }
         }
 
         public void HideOptions()
         {
+            UIAnimationHelper.PunchButton(this, btnCloseOptions);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (optionsModal != null) optionsModal.AddToClassList("modal-hidden");
 
-            if (wasPausedByOptions)
+            var pauseCard = pauseModal != null ? pauseModal.Q(className: "modal-card") : null;
+            var optionsCard = optionsModal != null ? optionsModal.Q(className: "modal-card") : null;
+
+            UIAnimationHelper.HideModal(this, optionsModal, optionsCard, () =>
             {
-                wasPausedByOptions = false;
-                if (ArcadeGameManager.Instance != null)
+                if (wasPausedByOptions)
                 {
-                    ArcadeGameManager.Instance.ResumeGame();
+                    wasPausedByOptions = false;
+                    if (ArcadeGameManager.Instance != null)
+                    {
+                        ArcadeGameManager.Instance.ResumeGame();
+                    }
                 }
-            }
+                else
+                {
+                    if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused && pauseModal != null)
+                    {
+                        UIAnimationHelper.ShowModal(this, pauseModal, pauseCard, GetPauseButtons());
+                    }
+                }
+            });
 
             if (Arcade.Input.ArcadeInputHandler.Instance != null)
             {
@@ -2364,6 +2644,7 @@ namespace Arcade.UI
 
         public void ShowLevelSettings()
         {
+            UIAnimationHelper.PunchButton(this, btnLevelSettingsPause);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
 
             if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State != GameState.Paused)
@@ -2394,31 +2675,47 @@ namespace Arcade.UI
 
             UpdateLevelSettingsUI();
 
-            if (pauseModal != null) pauseModal.AddToClassList("modal-hidden");
-            if (levelSettingsModal != null) levelSettingsModal.RemoveFromClassList("modal-hidden");
+            var pauseCard = pauseModal != null ? pauseModal.Q(className: "modal-card") : null;
+            var settingsCard = levelSettingsModal != null ? levelSettingsModal.Q(className: "modal-card") : null;
+
+            if (pauseModal != null && !pauseModal.ClassListContains("modal-hidden"))
+            {
+                UIAnimationHelper.HideModal(this, pauseModal, pauseCard, () =>
+                {
+                    UIAnimationHelper.ShowModal(this, levelSettingsModal, settingsCard);
+                });
+            }
+            else
+            {
+                UIAnimationHelper.ShowModal(this, levelSettingsModal, settingsCard);
+            }
         }
 
         public void HideLevelSettings()
         {
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (levelSettingsModal != null) levelSettingsModal.AddToClassList("modal-hidden");
 
-            if (wasPausedByLevelSettings)
+            var pauseCard = pauseModal != null ? pauseModal.Q(className: "modal-card") : null;
+            var settingsCard = levelSettingsModal != null ? levelSettingsModal.Q(className: "modal-card") : null;
+
+            UIAnimationHelper.HideModal(this, levelSettingsModal, settingsCard, () =>
             {
-                wasPausedByLevelSettings = false;
-                if (ArcadeGameManager.Instance != null)
+                if (wasPausedByLevelSettings)
                 {
-                    ArcadeGameManager.Instance.ResumeGame();
+                    wasPausedByLevelSettings = false;
+                    if (ArcadeGameManager.Instance != null)
+                    {
+                        ArcadeGameManager.Instance.ResumeGame();
+                    }
                 }
-            }
-            else
-            {
-                // If game was paused before opening level settings (e.g. from pause modal), re-show pause modal
-                if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused && pauseModal != null)
+                else
                 {
-                    pauseModal.RemoveFromClassList("modal-hidden");
+                    if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused && pauseModal != null)
+                    {
+                        UIAnimationHelper.ShowModal(this, pauseModal, pauseCard, GetPauseButtons());
+                    }
                 }
-            }
+            });
 
             if (Arcade.Input.ArcadeInputHandler.Instance != null)
             {
@@ -2535,10 +2832,27 @@ namespace Arcade.UI
 
         public void ShowHighScores()
         {
+            UIAnimationHelper.PunchButton(this, btnHighscoresPause);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             PopulateHighScoresTable();
-            if (pauseModal != null) pauseModal.AddToClassList("modal-hidden");
-            if (highscoresModal != null) highscoresModal.RemoveFromClassList("modal-hidden");
+
+            var pauseCard = pauseModal != null ? pauseModal.Q(className: "modal-card") : null;
+            var scoresCard = highscoresModal != null ? highscoresModal.Q(className: "modal-card") : null;
+            var buttons = new System.Collections.Generic.List<VisualElement>();
+            if (btnResetHighscores != null) buttons.Add(btnResetHighscores);
+            if (btnCloseHighscores != null) buttons.Add(btnCloseHighscores);
+
+            if (pauseModal != null && !pauseModal.ClassListContains("modal-hidden"))
+            {
+                UIAnimationHelper.HideModal(this, pauseModal, pauseCard, () =>
+                {
+                    UIAnimationHelper.ShowModal(this, highscoresModal, scoresCard, buttons);
+                });
+            }
+            else
+            {
+                UIAnimationHelper.ShowModal(this, highscoresModal, scoresCard, buttons);
+            }
 
             if (Arcade.Input.ArcadeInputHandler.Instance != null)
             {
@@ -2548,13 +2862,19 @@ namespace Arcade.UI
 
         public void HideHighScores()
         {
+            UIAnimationHelper.PunchButton(this, btnCloseHighscores);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (highscoresModal != null) highscoresModal.AddToClassList("modal-hidden");
 
-            if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused && pauseModal != null)
+            var pauseCard = pauseModal != null ? pauseModal.Q(className: "modal-card") : null;
+            var scoresCard = highscoresModal != null ? highscoresModal.Q(className: "modal-card") : null;
+
+            UIAnimationHelper.HideModal(this, highscoresModal, scoresCard, () =>
             {
-                pauseModal.RemoveFromClassList("modal-hidden");
-            }
+                if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused && pauseModal != null)
+                {
+                    UIAnimationHelper.ShowModal(this, pauseModal, pauseCard, GetPauseButtons());
+                }
+            });
 
             if (Arcade.Input.ArcadeInputHandler.Instance != null)
             {
@@ -2565,6 +2885,7 @@ namespace Arcade.UI
 
         private void HandleResetHighScores()
         {
+            UIAnimationHelper.PunchButton(this, btnResetHighscores);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             HighScoreManager.ResetScores();
             PopulateHighScoresTable();
@@ -2593,7 +2914,8 @@ namespace Arcade.UI
                     if (i < scores.Count && scores[i].score > 0)
                     {
                         string timeStr = scores[i].time > 0f ? $" • {HighScoreManager.FormatTime(scores[i].time)}" : "";
-                        dateLabel.text = $"L{scores[i].level}{timeStr} • {scores[i].date}";
+                        string shortDate = HighScoreManager.FormatShortDate(scores[i].date);
+                        dateLabel.text = $"L{scores[i].level}{timeStr} • {shortDate}";
                     }
                     else
                         dateLabel.text = "---";
@@ -2603,9 +2925,25 @@ namespace Arcade.UI
 
         public void ShowHowToPlay()
         {
+            UIAnimationHelper.PunchButton(this, btnHowToPlayPause);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (pauseModal != null) pauseModal.AddToClassList("modal-hidden");
-            if (howToPlayModal != null) howToPlayModal.RemoveFromClassList("modal-hidden");
+
+            var pauseCard = pauseModal != null ? pauseModal.Q(className: "modal-card") : null;
+            var howCard = howToPlayModal != null ? howToPlayModal.Q(className: "modal-card") : null;
+            var buttons = new System.Collections.Generic.List<VisualElement>();
+            if (btnCloseHowToPlay != null) buttons.Add(btnCloseHowToPlay);
+
+            if (pauseModal != null && !pauseModal.ClassListContains("modal-hidden"))
+            {
+                UIAnimationHelper.HideModal(this, pauseModal, pauseCard, () =>
+                {
+                    UIAnimationHelper.ShowModal(this, howToPlayModal, howCard, buttons);
+                });
+            }
+            else
+            {
+                UIAnimationHelper.ShowModal(this, howToPlayModal, howCard, buttons);
+            }
 
             if (Arcade.Input.ArcadeInputHandler.Instance != null)
             {
@@ -2615,13 +2953,19 @@ namespace Arcade.UI
 
         public void HideHowToPlay()
         {
+            UIAnimationHelper.PunchButton(this, btnCloseHowToPlay);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (howToPlayModal != null) howToPlayModal.AddToClassList("modal-hidden");
 
-            if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused && pauseModal != null)
+            var pauseCard = pauseModal != null ? pauseModal.Q(className: "modal-card") : null;
+            var howCard = howToPlayModal != null ? howToPlayModal.Q(className: "modal-card") : null;
+
+            UIAnimationHelper.HideModal(this, howToPlayModal, howCard, () =>
             {
-                pauseModal.RemoveFromClassList("modal-hidden");
-            }
+                if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused && pauseModal != null)
+                {
+                    UIAnimationHelper.ShowModal(this, pauseModal, pauseCard, GetPauseButtons());
+                }
+            });
 
             if (Arcade.Input.ArcadeInputHandler.Instance != null)
             {
@@ -2632,9 +2976,29 @@ namespace Arcade.UI
 
         public void ShowCredits()
         {
+            UIAnimationHelper.PunchButton(this, btnCreditsPause);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (pauseModal != null) pauseModal.AddToClassList("modal-hidden");
-            if (creditsModal != null) creditsModal.RemoveFromClassList("modal-hidden");
+
+            var pauseCard = pauseModal != null ? pauseModal.Q(className: "modal-card") : null;
+            var creditsCard = creditsModal != null ? creditsModal.Q(className: "modal-card") : null;
+            var buttons = new System.Collections.Generic.List<VisualElement>();
+            if (btnCreditWebsite != null) buttons.Add(btnCreditWebsite);
+            if (btnCreditEmail != null) buttons.Add(btnCreditEmail);
+            if (btnCreditLinkedin != null) buttons.Add(btnCreditLinkedin);
+            if (btnCreditGithub != null) buttons.Add(btnCreditGithub);
+            if (btnCloseCredits != null) buttons.Add(btnCloseCredits);
+
+            if (pauseModal != null && !pauseModal.ClassListContains("modal-hidden"))
+            {
+                UIAnimationHelper.HideModal(this, pauseModal, pauseCard, () =>
+                {
+                    UIAnimationHelper.ShowModal(this, creditsModal, creditsCard, buttons);
+                });
+            }
+            else
+            {
+                UIAnimationHelper.ShowModal(this, creditsModal, creditsCard, buttons);
+            }
 
             if (Arcade.Input.ArcadeInputHandler.Instance != null)
             {
@@ -2644,13 +3008,19 @@ namespace Arcade.UI
 
         public void HideCredits()
         {
+            UIAnimationHelper.PunchButton(this, btnCloseCredits);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (creditsModal != null) creditsModal.AddToClassList("modal-hidden");
 
-            if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused && pauseModal != null)
+            var pauseCard = pauseModal != null ? pauseModal.Q(className: "modal-card") : null;
+            var creditsCard = creditsModal != null ? creditsModal.Q(className: "modal-card") : null;
+
+            UIAnimationHelper.HideModal(this, creditsModal, creditsCard, () =>
             {
-                pauseModal.RemoveFromClassList("modal-hidden");
-            }
+                if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused && pauseModal != null)
+                {
+                    UIAnimationHelper.ShowModal(this, pauseModal, pauseCard, GetPauseButtons());
+                }
+            });
 
             if (Arcade.Input.ArcadeInputHandler.Instance != null)
             {
@@ -2661,6 +3031,8 @@ namespace Arcade.UI
 
         public void ShowLevelModal()
         {
+            UIAnimationHelper.PunchButton(this, btnLevelSelectPause);
+            UIAnimationHelper.PunchButton(this, btnQuickLevels);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             if (levelGenerator == null) levelGenerator = FindAnyObjectByType<LevelGenerator>();
 
@@ -2676,8 +3048,23 @@ namespace Arcade.UI
             selectedLevelNumber = currentLvl;
             SelectLevel(selectedLevelNumber, false);
 
-            if (pauseModal != null) pauseModal.AddToClassList("modal-hidden");
-            if (levelModal != null) levelModal.RemoveFromClassList("modal-hidden");
+            var pauseCard = pauseModal != null ? pauseModal.Q(className: "modal-card") : null;
+            var lvlCard = levelModal != null ? (levelModal.Q(className: "level-modal-card") ?? levelModal.Q(className: "modal-card")) : null;
+            var buttons = new System.Collections.Generic.List<VisualElement>();
+            if (btnStartSelectedLevel != null) buttons.Add(btnStartSelectedLevel);
+            if (btnCloseLevelModal != null) buttons.Add(btnCloseLevelModal);
+
+            if (pauseModal != null && !pauseModal.ClassListContains("modal-hidden"))
+            {
+                UIAnimationHelper.HideModal(this, pauseModal, pauseCard, () =>
+                {
+                    UIAnimationHelper.ShowModal(this, levelModal, lvlCard, buttons);
+                });
+            }
+            else
+            {
+                UIAnimationHelper.ShowModal(this, levelModal, lvlCard, buttons);
+            }
 
             if (Arcade.Input.ArcadeInputHandler.Instance != null)
             {
@@ -2687,13 +3074,19 @@ namespace Arcade.UI
 
         public void HideLevelModal()
         {
+            UIAnimationHelper.PunchButton(this, btnCloseLevelModal);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (levelModal != null) levelModal.AddToClassList("modal-hidden");
 
-            if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused && pauseModal != null)
+            var pauseCard = pauseModal != null ? pauseModal.Q(className: "modal-card") : null;
+            var lvlCard = levelModal != null ? (levelModal.Q(className: "level-modal-card") ?? levelModal.Q(className: "modal-card")) : null;
+
+            UIAnimationHelper.HideModal(this, levelModal, lvlCard, () =>
             {
-                pauseModal.RemoveFromClassList("modal-hidden");
-            }
+                if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused && pauseModal != null)
+                {
+                    UIAnimationHelper.ShowModal(this, pauseModal, pauseCard, GetPauseButtons());
+                }
+            });
 
             if (Arcade.Input.ArcadeInputHandler.Instance != null)
             {
@@ -2789,17 +3182,24 @@ namespace Arcade.UI
         private void OpenLinkedIn() => Application.OpenURL("https://linkedin.com/in/ramin-rasulzade");
         private void OpenGitHub() => Application.OpenURL("https://github.com/raminres");
 
+        private bool IsModalOpen(VisualElement modal)
+        {
+            return modal != null &&
+                   !modal.ClassListContains("modal-hidden") &&
+                   !modal.ClassListContains(UIAnimationHelper.ClassModalBackdropHidden);
+        }
+
         public bool IsAnyModalVisible()
         {
-            return (optionsModal != null && !optionsModal.ClassListContains("modal-hidden")) ||
-                   (levelSettingsModal != null && !levelSettingsModal.ClassListContains("modal-hidden")) ||
-                   (levelModal != null && !levelModal.ClassListContains("modal-hidden")) ||
-                   (creditsModal != null && !creditsModal.ClassListContains("modal-hidden")) ||
-                   (pauseModal != null && !pauseModal.ClassListContains("modal-hidden")) ||
-                   (gameOverModal != null && !gameOverModal.ClassListContains("modal-hidden")) ||
-                   (levelClearModal != null && !levelClearModal.ClassListContains("modal-hidden")) ||
-                   (highscoresModal != null && !highscoresModal.ClassListContains("modal-hidden")) ||
-                   (howToPlayModal != null && !howToPlayModal.ClassListContains("modal-hidden"));
+            return IsModalOpen(optionsModal) ||
+                   IsModalOpen(levelSettingsModal) ||
+                   IsModalOpen(levelModal) ||
+                   IsModalOpen(creditsModal) ||
+                   IsModalOpen(pauseModal) ||
+                   IsModalOpen(gameOverModal) ||
+                   IsModalOpen(levelClearModal) ||
+                   IsModalOpen(highscoresModal) ||
+                   IsModalOpen(howToPlayModal);
         }
 
         public bool IsPointerOverUI(Vector2 screenPos)
@@ -2808,17 +3208,21 @@ namespace Arcade.UI
 
             if (root != null && root.panel != null)
             {
-                Vector2 panelPos = RuntimePanelUtils.ScreenToPanel(root.panel, screenPos);
+                // In Unity, screenPos has origin at bottom-left (Y increasing up).
+                // UI Toolkit ScreenToPanel expects GUI screen coordinates with origin at top-left (Y increasing down).
+                float screenH = Screen.height > 0 ? Screen.height : 1080f;
+                Vector2 guiPos = new Vector2(screenPos.x, screenH - screenPos.y);
+                Vector2 panelPos = RuntimePanelUtils.ScreenToPanel(root.panel, guiPos);
                 VisualElement picked = root.panel.Pick(panelPos);
-                if (picked != null && picked != root && 
-                    picked.name != "hud-root" && 
-                    picked.name != "safe-area-content" && 
-                    picked.name != "root-container" && 
-                    picked.name != "main-menu-content" &&
-                    picked.name != "touch-guideline" &&
-                    picked.pickingMode != PickingMode.Ignore)
+                if (picked != null)
                 {
-                    return true;
+                    // Only interactive buttons (or elements inside a button, e.g. Pause button) block gameplay input.
+                    // Passive HUD indicators (score, lives, timer, powerup badges, etc.) should never block paddle movement.
+                    Button btn = (picked as Button) ?? picked.GetFirstAncestorOfType<Button>();
+                    if (btn != null && btn.pickingMode != PickingMode.Ignore && btn.enabledInHierarchy)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;

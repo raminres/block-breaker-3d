@@ -42,6 +42,9 @@ namespace Arcade.Tests
             Arcade.Input.ArcadeInputHandler.SetInstanceForTesting(null);
             BlockVFXManager.SetInstanceForTesting(null);
 
+            PowerupCapsule.ClearAllFallingCapsules();
+            LaserBolt.ClearAllActiveBolts();
+
             if (testRoot != null)
             {
                 Object.DestroyImmediate(testRoot);
@@ -1066,8 +1069,30 @@ namespace Arcade.Tests
                     Assert.IsNotNull(psr, $"ParticleSystem {ps.name} in {prefab.name} must have a ParticleSystemRenderer.");
                     Assert.IsNotNull(psr.sharedMaterial, $"ParticleSystemRenderer {ps.name} in {prefab.name} must have a valid sharedMaterial.");
                     Assert.AreNotEqual("Hidden/InternalErrorShader", psr.sharedMaterial.shader.name, $"Shader on {ps.name} in {prefab.name} must not be missing/pink error shader.");
+
+                    // Editor Preview & Inspector visibility assertions
+                    Assert.IsTrue(ps.main.playOnAwake, $"ParticleSystem {ps.name} in {prefab.name} must have playOnAwake=true so it previews automatically when opened.");
+                    Assert.IsTrue(ps.main.loop, $"ParticleSystem {ps.name} in {prefab.name} must have loop=true so it loops in the editor inspector.");
+                    Assert.IsTrue(ps.emission.enabled, $"ParticleSystem {ps.name} in {prefab.name} must have emission.enabled=true so it emits particles.");
+                    Assert.IsTrue(ps.emission.burstCount > 0 || ps.emission.rateOverTime.constant > 0, $"ParticleSystem {ps.name} in {prefab.name} must have bursts or rateOverTime > 0.");
                 }
             }
+        }
+
+        [Test]
+        public void BombExplosion_VFXPrefab_HasValidShockwaveMaterialAndTexture_NotFlatQuad()
+        {
+            var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VFX/PF_VFX_BombExplosion.prefab");
+            Assert.IsNotNull(prefab, "PF_VFX_BombExplosion must exist.");
+            var shockwave = prefab.transform.Find("Shockwave");
+            Assert.IsNotNull(shockwave, "Bomb explosion prefab must have 'Shockwave' child.");
+            var psr = shockwave.GetComponent<ParticleSystemRenderer>();
+            Assert.IsNotNull(psr, "Shockwave must have ParticleSystemRenderer.");
+            Assert.IsNotNull(psr.sharedMaterial, "Shockwave must have sharedMaterial assigned.");
+            Assert.AreEqual("MI_VFX_Shockwave", psr.sharedMaterial.name, "Shockwave must use MI_VFX_Shockwave material.");
+            Assert.IsTrue(psr.sharedMaterial.HasProperty("_MainTex"), "Shockwave material must support _MainTex.");
+            var mainTex = psr.sharedMaterial.GetTexture("_MainTex");
+            Assert.IsNotNull(mainTex, "Shockwave material must have a circular/ring texture assigned (not untextured quad).");
         }
 
         [Test]
@@ -3457,12 +3482,12 @@ namespace Arcade.Tests
             var cap1 = PowerupCapsule.Spawn(new Vector3(-2f, 5f, 0f), BlockSpecialType.MultiBall);
             var cap2 = PowerupCapsule.Spawn(new Vector3(2f, 5f, 0f), BlockSpecialType.PaddleExpander);
 
-            var existing = Object.FindObjectsByType<PowerupCapsule>(FindObjectsSortMode.None);
+            var existing = Object.FindObjectsByType<PowerupCapsule>();
             Assert.AreEqual(2, existing.Length, "Must have 2 active capsules in scene.");
 
             PowerupCapsule.ClearAllFallingCapsules();
 
-            var remaining = Object.FindObjectsByType<PowerupCapsule>(FindObjectsSortMode.None);
+            var remaining = Object.FindObjectsByType<PowerupCapsule>();
             Assert.AreEqual(0, remaining.Length, "ClearAllFallingCapsules must destroy all falling capsules.");
         }
 
@@ -3476,7 +3501,7 @@ namespace Arcade.Tests
 
             // Because game is in ReadyToLaunch and not Playing, capsule must NOT be intercepted
             Assert.IsFalse(interceptedWhileDocked, "TryIntercept must return false when docked in ReadyToLaunch.");
-            var remaining = Object.FindObjectsByType<PowerupCapsule>(FindObjectsSortMode.None);
+            var remaining = Object.FindObjectsByType<PowerupCapsule>();
             Assert.AreEqual(1, remaining.Length, "Capsule must not be collected while docked in ReadyToLaunch.");
             Assert.AreEqual(0, gameManager.ActiveBallCount, "MultiBall must not spawn extra balls while docked.");
 
@@ -3492,11 +3517,11 @@ namespace Arcade.Tests
             gameManager.SetState(GameState.Playing);
 
             var cap = PowerupCapsule.Spawn(new Vector3(0f, 5f, 0f), BlockSpecialType.Shield);
-            Assert.AreEqual(1, Object.FindObjectsByType<PowerupCapsule>(FindObjectsSortMode.None).Length);
+            Assert.AreEqual(1, Object.FindObjectsByType<PowerupCapsule>().Length);
 
             gameManager.RecordBallLost();
 
-            Assert.AreEqual(0, Object.FindObjectsByType<PowerupCapsule>(FindObjectsSortMode.None).Length, "Losing life must clear all falling capsules.");
+            Assert.AreEqual(0, Object.FindObjectsByType<PowerupCapsule>().Length, "Losing life must clear all falling capsules.");
         }
 
         [Test]
@@ -3887,7 +3912,7 @@ namespace Arcade.Tests
 
             laserCtrl.SimulateStepForTesting(0.35f);
 
-            var bolts = Object.FindObjectsByType<LaserBolt>(FindObjectsSortMode.None);
+            var bolts = Object.FindObjectsByType<LaserBolt>();
             Assert.GreaterOrEqual(bolts.Length, 2, "Twin blaster cannons must spawn at least 2 bolts on firing interval.");
 
             foreach (var b in bolts) Object.DestroyImmediate(b.gameObject);
@@ -5309,7 +5334,7 @@ namespace Arcade.Tests
             block.DestroyBlock(Vector3.up);
             Assert.IsTrue(block.IsDestroyed);
 
-            var capsules = Object.FindObjectsByType<PowerupCapsule>(FindObjectsSortMode.None);
+            var capsules = Object.FindObjectsByType<PowerupCapsule>();
             Assert.AreEqual(1, capsules.Length, "Destroying collectible powerdown block must spawn falling capsule.");
 
             var cap = capsules[0];

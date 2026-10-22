@@ -2,26 +2,30 @@
     <Style src="project://database/Assets/UI/BlockBreakerHUD.uss?fileID=7433441132597879392&amp;guid=d9e32c29aa4aec84999245c32d7b51d4&amp;type=3#BlockBreakerHUD"/>
     <ui:VisualElement name="hud-root" class="hud-root">
         <ui:VisualElement name="safe-area-content" picking-mode="Ignore" class="safe-area-content">
-            <ui:VisualElement name="top-bar" class="top-bar">
-            <ui:VisualElement name="lives-container" class="lives-container hud-pod lives-compact-pod">
-                <ui:VisualElement name="life-heart-icon" class="life-compact-heart"/>
-                <ui:Label name="lives-count-label" text="x3" class="lives-compact-text"/>
+            <ui:VisualElement name="top-bar" picking-mode="Ignore" class="top-bar">
+            <ui:VisualElement name="lives-container" picking-mode="Ignore" class="lives-container hud-pod lives-compact-pod">
+                <ui:VisualElement name="life-heart-icon" picking-mode="Ignore" class="life-compact-heart"/>
+                <ui:Label name="lives-count-label" text="x3" picking-mode="Ignore" class="lives-compact-text"/>
             </ui:VisualElement>
-            <ui:VisualElement name="score-container" class="score-container hud-pod score-pod">
-                <ui:Label name="score-label" text="SCORE: 0" class="score-main"/>
+            <ui:VisualElement name="score-container" picking-mode="Ignore" class="score-container hud-pod score-pod">
+                <ui:Label name="score-label" text="SCORE: 0" picking-mode="Ignore" class="score-main"/>
                 <ui:Label name="score-delta-label" text="" picking-mode="Ignore" class="score-delta delta-hidden"/>
             </ui:VisualElement>
-            <ui:VisualElement name="timer-container" class="timer-container hud-pod timer-pod">
-                <ui:VisualElement name="icon-timer" picking-mode="Ignore" class="timer-icon"/>
-                <ui:Label name="timer-label" text="00:00" class="timer-main"/>
+            <ui:VisualElement name="speed-container" picking-mode="Ignore" class="speed-container hud-pod speed-pod">
+                <ui:VisualElement name="icon-speed" picking-mode="Ignore" class="speed-icon"/>
+                <ui:Label name="speed-label" text="1.0x" picking-mode="Ignore" class="speed-main"/>
             </ui:VisualElement>
-            <ui:VisualElement name="quick-controls" class="quick-controls">
+            <ui:VisualElement name="timer-container" picking-mode="Ignore" class="timer-container hud-pod timer-pod">
+                <ui:VisualElement name="icon-timer" picking-mode="Ignore" class="timer-icon"/>
+                <ui:Label name="timer-label" text="00:00" picking-mode="Ignore" class="timer-main"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="quick-controls" picking-mode="Ignore" class="quick-controls">
                 <ui:Button name="btn-quick-pause" text="" tooltip="Pause Game" class="quick-btn pause-quick-btn">
                     <ui:VisualElement name="icon-quick-pause" picking-mode="Ignore" class="quick-btn-icon icon-pause"/>
                 </ui:Button>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="powerup-status-container" class="powerup-status-container">
+        <ui:VisualElement name="powerup-status-container" picking-mode="Ignore" class="powerup-status-container">
             <ui:VisualElement name="shield-status-badge" class="powerup-badge shield-badge powerup-hidden">
                 <ui:VisualElement name="shield-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-shield"/>
                 <ui:Label name="shield-timer-label" text="10s" class="powerup-timer-label"/>
@@ -75,12 +79,13 @@
         </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="launch-banner" picking-mode="Ignore" class="launch-banner" style="bottom: 35%;">
-            <ui:VisualElement picking-mode="Ignore" class="launch-arrow-left"/>
-            <ui:VisualElement picking-mode="Ignore" class="launch-finger-icon"/>
-            <ui:VisualElement picking-mode="Ignore" class="launch-arrow-right"/>
+            <ui:VisualElement name="launch-motion-cue" picking-mode="Ignore" class="launch-motion-cue">
+                <ui:VisualElement name="launch-arrow-left" picking-mode="Ignore" class="launch-arrow-left"/>
+                <ui:VisualElement name="launch-finger-icon" picking-mode="Ignore" class="launch-finger-icon"/>
+                <ui:VisualElement name="launch-arrow-right" picking-mode="Ignore" class="launch-arrow-right"/>
+            </ui:VisualElement>
             <ui:Label name="launch-text" text="TAP TO LAUNCH" picking-mode="Ignore" class="launch-text"/>
         </ui:VisualElement>
-        <ui:VisualElement name="touch-guideline" picking-mode="Ignore" class="touch-guideline"/>
         <ui:VisualElement name="level-clear-banner" picking-mode="Ignore" class="level-clear-banner level-clear-banner-hidden">
             <ui:Label name="level-clear-banner-text" text="LEVEL CLEARED!" picking-mode="Ignore" class="level-clear-banner-text"/>
             <ui:Label name="level-clear-banner-subtext" text="STAGE COMPLETE!" picking-mode="Ignore" class="level-clear-banner-subtext"/>
@@ -167,7 +172,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="how-to-play-modal" class="modal-backdrop modal-hidden">
-            <ui:VisualElement class="modal-card modal-card-wide how-to-play-card">
+            <ui:VisualElement name="how-to-play-card" class="modal-card modal-card-wide how-to-play-card safe-area-fullscreen">
                 <ui:Label name="modal-title-how-to-play" text="HOW TO PLAY" class="modal-title"/>
                 <ui:ScrollView class="guide-scroll">
                     <ui:VisualElement class="guide-card">

@@ -7,7 +7,7 @@ This file provides foundational mandates, architectural maps, key mathematical c
 ## 1. Project Specs & Key Paths
 - **Product Name / Bundle ID**: `BlockBreaker` / `com.RaminRasulzade.BlockBreaker`
 - **Unity Version**: Unity 6 (`6000.6.0f1`), Universal Render Pipeline (`URP 17.6.0`)
-- **Active Branch**: `feature/misc-updates` (Git LFS enabled)
+- **Active Branch**: `feature/level-expansion-and-fixes` (Git LFS enabled)
 - **Main Scenes**:
   1. `Assets/Scenes/LV_BlockBreaker_MainMenu.unity` (Build Index 0, Main Menu & Start Scene configured via `PlayModeSceneSetup.cs`)
   2. `Assets/Scenes/LV_BlockBreaker.unity` (Build Index 1, Primary Gameplay Arena)
@@ -16,10 +16,10 @@ This file provides foundational mandates, architectural maps, key mathematical c
   - Editor Tools: `Assets/Editor/` (Assembly: `Arcade.Editor.asmdef`)
   - Prefabs: `Assets/Prefabs/` (100% prefab-driven suite: Arena, Paddle, Balls, Blocks, Powerups)
   - Materials: `Assets/Materials/BlockBreaker/` (`MT_Master_PBR_URP.mat` master, `MI_*` instances)
-  - Settings: `Assets/Settings/` (Levels `SO_Level_01` to `SO_Level_15`, `SO_PowerupIcons.asset`, URP Profiles)
+  - Settings: `Assets/Settings/` (Levels `SO_Level_01` to `SO_Level_30`, `SO_PowerupIcons.asset`, URP Profiles)
   - Localization: `Assets/Localization/` (`Locales/`, `Tables/`, `LocalizationSettings.asset`)
   - UI Assets: `Assets/UI/` (UXML, USS, Fonts, Icons, procedural gradients under `Textures/Gradients/`)
-  - Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 279 EditMode NUnit unit & integration tests)
+  - Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 312 EditMode NUnit unit & integration tests)
 
 ---
 
@@ -36,6 +36,14 @@ This file provides foundational mandates, architectural maps, key mathematical c
   - Localization: `Assets/Localization/Tables/ArcadeTable.asset` (`ArcadeTable_en.asset`, `ArcadeTable_tr.asset`)
   - Prefabs: `PF_*` under `Assets/Prefabs/`
   - Presets: `PR_*` under `Assets/Presets/`
+- **Prefab-Driven Authoring & Zero Hardcoded Visual/Transform Invariants**:
+  - Particle System settings (velocities, curve modes, lifetime, color gradients), materials, transforms, and collider dimensions MUST be authored directly on Prefab assets or Scene GameObjects—NEVER hardcoded in C# scripts.
+  - Do NOT write runtime overrides in `Awake()`, `Start()`, or `Update()` that modify particle velocity curves (e.g. `vel.x = new ParticleSystem.MinMaxCurve(...)`), materials, or child transforms if they are already baked into the prefab.
+  - Scripts must preserve user craftsmanship and existing authored components rather than stomping them with hardcoded numbers.
+- **Standalone/iOS Build Bundling Without Resources**:
+  - Unity's build linker bundles assets into player builds based on references reachable from Scenes in Build Settings.
+  - Every prefab required at runtime (`PF_Drop_Powerup`, `PF_Drop_Hazard`, `PF_LaserBolt`, `PF_ShieldWall`, `PF_VFX_BlockShatter`, `PF_VFX_PowerupCollect`, `PF_VFX_PaddleSpark`, `PF_VFX_BombExplosion`) MUST be serialized on a Scene GameObject (`ArcadeGameManager`, `LevelGenerator`, `BlockVFXManager`, or `PF_Paddle`) in `LV_BlockBreaker.unity`.
+  - `#if UNITY_EDITOR AssetDatabase.LoadAssetAtPath` is strictly an Editor-time fallback for testing; all assets must be wired directly in the scene.
 - **Warning Suppression**: NEVER suppress/disable compiler warnings, use hacks, or bypass type systems.
 
 ---
@@ -52,7 +60,7 @@ This file provides foundational mandates, architectural maps, key mathematical c
 | **Ball** | `PF_Ball_Standard.prefab` | Root (scale 1.0) + Child 1 `model` (Sphere scale $0.70, 0.70, 0.70$) + Child 2 `trail` + Child 3 `vfx`. | `BallController.cs`, root `SphereCollider` (radius 0.35, $D = 0.7\text{u}$), `Rigidbody` (interpolate, continuous dynamic, velocity-driven). |
 | **Blocks** | `PF_Block_Base.prefab`<br>`PF_Block_Red.prefab`<br>`PF_Block_Green.prefab`<br>`PF_Block_Blue.prefab`<br>`PF_Block_Bomb.prefab`<br>`PF_Block_Glass.prefab` | 4 standardized child sockets:<br>1. `brick`: PBR visual mesh (zero colliders).<br>2. `brick frost`: Ice encasement shell.<br>3. `brick special`: UI Toolkit badge element (`BlockBadge`).<br>4. `brick vfx`: Burst anchor. | `Block.cs`, root `BoxCollider` ($W = 1.15, H = 0.55, Z = 1.0$), `MaterialPropertyBlock` zero-allocation tinting. |
 | **Drops** | `PF_Drop_Powerup.prefab`<br>`PF_Drop_Hazard.prefab` | Root container + Child 1 visual mesh (Capsule scale 1.60 / Diamond Cube scale 1.33) + Child 1.1 `Icon_Billboard` (parented directly to `Visual_Capsule`, rotates synchronously with mesh). | `PowerupCapsule.cs`, trigger `BoxCollider`, tumbling rotation ($120^\circ/\text{s}$), fall speed $4.5\text{ u/s}$ at $Z = -1.0\text{f}$. Zero runtime object spawning: `Initialize()` swaps sprite directly. |
-| **VFX** | `PF_VFX_BlockShatter.prefab`<br>`PF_VFX_BombExplosion.prefab`<br>`PF_VFX_PaddleSpark.prefab`<br>`PF_VFX_FallingTrail.prefab` | Consolidated Shuriken `ParticleSystem` prefabs. `PF_VFX_BlockShatter` contains `Sparks_Emitter` (billboard sparks), `Large_Mesh_Emitter` (`SM_Block_Large_Particles`), `Small_Mesh_Emitter` (`SM_Block_Small_Particles`), and `Frost_Mesh_Emitter` (`SM_Block_Frost_Particles`). | `BlockVFXManager.cs`, prewarmed instance pool under `_Pool_VFX`, zero-allocation `MaterialPropertyBlock` tinting, dynamic block material inheritance. |
+| **VFX** | `PF_VFX_BlockShatter.prefab`<br>`PF_VFX_BombExplosion.prefab`<br>`PF_VFX_PaddleSpark.prefab`<br>`PF_VFX_PowerupCollect.prefab`<br>`PF_VFX_FallingTrail.prefab`<br>`PF_VFX_ShieldBarrier.prefab` | Consolidated Shuriken `ParticleSystem` prefabs with `playOnAwake = true`, `loop = true`, `emission.enabled = true`, and authored bursts for instant Editor/Prefab Mode previewing. `PF_VFX_BombExplosion` uses `MI_VFX_Shockwave.mat` (`TX_VFX_Shockwave_Ring.png`) and procedural circle falloff in `VFX_ParticleBurst.shader`. Shaders registered in `GraphicsSettings.asset` `AlwaysIncludedShaders`. | `BlockVFXManager.cs`, prewarmed instance pool under `_Pool_VFX`, zero-allocation `MaterialPropertyBlock` tinting, dynamic block material inheritance. |
 
 ---
 
@@ -117,14 +125,22 @@ This file provides foundational mandates, architectural maps, key mathematical c
 - **UI Toolkit & Screen Harmonization**:
   - Unity 6 `PanelRenderer` on `UI_HUD` and `UI_MainMenu` with iPhone portrait reference resolution (`1170x2532`).
   - **Mobile Safe Area & Dynamic Island Adaptation**: `SafeAreaController.cs` calculates Yoga width-relative insets via `CalculateYogaInsets`, ensuring complete clearance from Dynamic Island and device notches on iPhone 15/15 Pro in physical builds and Unity Device Simulator. `#safe-area-content` wraps top bar dashboard pods and powerup rows, while modals maintain full-bleed coverage.
-  - **Touch Ergonomics & System Gesture Deferral**: `PlayerSettings.iOS.deferSystemGesturesMode = UnityEngine.iOS.SystemGestureDeferMode.All` configures iOS to require a deliberate double-swipe for Home bar navigation, preventing edge gesture drops. Input position clamps to $Y \ge 4\text{px}$ and a minimal, transparent touch guideline (`#touch-guideline`, `opacity: 0.16`, `pickingMode: Ignore`) sits comfortably above the iOS Home bar indicator.
+  - **Touch Ergonomics & System Gesture Deferral**: `PlayerSettings.iOS.deferSystemGesturesMode = UnityEngine.iOS.SystemGestureDeferMode.All` configures iOS to require a deliberate double-swipe for Home bar navigation, preventing edge gesture drops. In `ArcadeUIManager`, `IsPointerOverUI` flips the $Y$ coordinate to match UI Toolkit top-left panel coordinates and only intercepts touches on interactive buttons, ensuring bottom 15% screen touches reliably drive paddle movement without UI interception. Touch sessions also seamlessly initialize on `pointerHeld` if iOS disambiguation delays frame 0 `pointerDown`.
   - **Tactile 3D Extruded Gradient Design System & Radiant Glow**:
     - Solid opaque obsidian navy backgrounds (`rgb(18, 24, 40)`) with 4 procedural vertical gradient sprites in `Assets/UI/Textures/Gradients/` (`TX_Grad_Card_Bg`, `TX_Grad_Ruby_Btn`, `TX_Grad_Emerald_Btn`, `TX_Grad_Titanium_Btn`).
     - Mechanical 3D extruded button geometry: resting 7px bottom shelf (`border-bottom-width: 7px;`), 2px top/side bevels, and active physical depression (`translate: 0 5px; border-bottom-width: 2px; border-top-width: 4px;`).
     - Radiant neon HUD pod glows (`box-shadow`), neon cyan/magenta dashboard contrast, and radiant `TAP TO LAUNCH` pill banner.
     - Propagated across all modal cards (`.modal-card`, `.level-modal-card`, `.scorecard-card`) and button styles (`.arcade-btn`, `.arcade-button`, `.btn-primary`, `.btn-secondary`, `.btn-default`, `.warning-btn`) across both Main Menu and Gameplay HUD.
   - **Menu Parity**: Pause Menu sub-screens (How to Play, Credits, Level Select, and Options) match Main Menu in layout structure, fonts, button styling, and responsive proportions.
-  - **Custom Animated Mute Toggles**: Both Main Menu and In-Game Pause Options panels feature custom checkmark toggles for SFX and Music sliders (`68px × 68px`). Toggles dynamically switch between speaker/mute icons with glowing cyan (`#21d4fd`) and crimson (`#ff3b56`) tints.
+  - **Dynamic UI Motion, Snappy Scale Pops & Cascading Buttons**:
+    - `UIAnimationHelper.cs` drives snappy arcade UI motion across `MainMenuUIManager` and `ArcadeUIManager`.
+    - Modal appear/disappear: Punchy scale transitions (modal card springs `0.82 \to 1.0` with `ease-out-back` over $0.18\text{s}$; scales down to $0.82$ with $0.10\text{s}$ exit fade before `.modal-hidden`).
+    - Staggered button cascades: Sequential top-to-bottom entrance (`CascadeIn`) with $0.035\text{s}$ stagger on Main Menu buttons, Pause Menu buttons, Scorecard buttons, and Level Grid selection cards.
+    - Tactile button clicks: `PunchButton` micro-depression ($0.93 \to 1.0$ over $0.08\text{s}$) upon tap/click.
+    - Punch pops & movement: Score pod punch pop on scoring, combo multiplier badge pop (`1.25\times` scale) on combo steps, scorecard star bursts ($1.45\times$ scale) on level clear, powerup/hazard badge entrance pops, and continuous animated horizontal swipe on redesigned stacked `TAP TO LAUNCH` banner (`StartHorizontalSwipe`).
+    - Tablet Safe Real-Estate: Active powerup and hazard badges feature compact dimensions ($60\text{px}$ height, $36\text{px}$ icons) on squarer tablet aspect ratios (iPad Mini 6th gen, 3:2), strictly eliminating block occlusion.
+    - Synchronized 3-Layer Ball Speed Hybrid System: (1) In-world diegetic trail length scaling ($0.55\times \to 1.75\times$) with 4-tier color shifts (Ice Blue, Electric Cyan, Solar Gold, Plasma Flame); (2) Event-driven floating text popups (`TURBO +10%`, `DAMPEN -1.2`, `STRIKE! +8%`, `BALL SLOWED!`, `SPEED UP! +8%`); and (3) Cockpit HUD Speed Pod (`#speed-container`) displaying live multiplier with tier glows and micro punch-pops.
+    - Full EditMode safety: Synchronous fallback for test environments (`!Application.isPlaying`).
   - Safe area insets handled by `SafeAreaController.cs`. Sprites managed via `SO_PowerupIcons.asset`.
 - **Unity Localization Tables (`com.unity.localization` 1.5.13)**:
   - Multi-language StringTableCollection `ArcadeTable.asset` under `Assets/Localization/Tables/` containing English (`en`) and Turkish (`tr`) locales.
@@ -137,8 +153,8 @@ This file provides foundational mandates, architectural maps, key mathematical c
 - **Lone Block Countdown**: Triggered when exactly 1 brick remains. Starts a 12s countdown with score multiplier decaying from $10\times \to 1\times$.
 - **Railgun Hyper-Beam**: On countdown expiration, fires vertical railgun beam ($W \approx 3.2$, surge duration $0.65\text{s}$), destroying remaining bricks.
 - **Victory Freeze**: When level clears, freeze all ball velocities, lock paddle input, freeze falling capsules, wait $1.0\text{s}$ (or $1.5\text{s}$ for Hyper-Beam) before displaying scorecard.
-- **15-Level Campaign**: High-density grids (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with outer flank bumper blocks. Ball speed scales from $0.92\times$ to $1.48\times$, paddle narrows from $5.0\text{u}$ to $4.5\text{u}$, and hazards escalate from 0 to 13.
-- **Onboarding Block Scale (+20% on Levels 1–3)**: Levels 1, 2, and 3 (`SO_Level_01`, `SO_Level_02`, `SO_Level_03`) feature enlarged blocks (`blockSize = 1.20f`) with adjusted horizontal spacing ($1.50\text{u}, 1.45\text{u}, 1.40\text{u}$) to maximize readability and touch targeting comfort while strictly preserving $> 1.0\text{u}$ clearance to arena walls ($X = \pm 10.25$). Levels 4–15 retain standard $1.00\text{u}$ scale. Runtime setters: `SetBlockSize`, `SetHorizontalSpacing`, `SetVerticalSpacing` in `LevelConfiguration.cs`.
+- **30-Level Campaign**: High-density grids (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with outer flank bumper blocks. Ball speed scales from $0.92\times$ (Level 1) to $1.80\times$ (Level 30), paddle narrows from $5.0\text{u}$ to $4.2\text{u}$, and hazards escalate from 0 to 20.
+- **Onboarding Block Scale (+20% on Levels 1–3)**: Levels 1, 2, and 3 (`SO_Level_01`, `SO_Level_02`, `SO_Level_03`) feature enlarged blocks (`blockSize = 1.20f`) with adjusted horizontal spacing ($1.50\text{u}, 1.45\text{u}, 1.40\text{u}$) to maximize readability and touch targeting comfort while strictly preserving $> 1.0\text{u}$ clearance to arena walls ($X = \pm 10.25$). Levels 4–30 retain standard $1.00\text{u}$ scale. Runtime setters: `SetBlockSize`, `SetHorizontalSpacing`, `SetVerticalSpacing` in `LevelConfiguration.cs`.
 
 ---
 
@@ -166,7 +182,7 @@ Use this architectural lookup table to locate subsystems, classes, and responsib
 ---
 
 ## 10. Testing & Verification Command
-All logic, boundaries, prefabs, hazards, scene setups, localization tables, touch ergonomics, and level scaling are strictly verified by **296 automated EditMode NUnit tests**. To execute:
+All logic, boundaries, prefabs, hazards, scene setups, localization tables, touch ergonomics, and level scaling are strictly verified by **312 automated EditMode NUnit tests**. To execute:
 ```bash
 unity cmd run_tests --mode editor --timeout 90
 ```

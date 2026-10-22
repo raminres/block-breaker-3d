@@ -249,9 +249,9 @@ namespace Arcade.Tests
             Assert.IsTrue(LocalizationManager.Get("guide_p4").Contains("Clutch Countdown"));
 
             LocalizationManager.SetLanguage(GameLanguage.Turkish);
-            Assert.AreEqual("NASIL OYNANIR", LocalizationManager.Get("guide_title"));
+            Assert.AreEqual("NASIL OYNARIM?", LocalizationManager.Get("guide_title"));
             Assert.AreEqual("1. KONTROLLER VE FIRLATMA", LocalizationManager.Get("guide_h1"));
-            Assert.IsTrue(LocalizationManager.Get("guide_p1").Contains("parmağınızı veya fareyi"));
+            Assert.IsTrue(LocalizationManager.Get("guide_p1").Contains("parmağınız") && LocalizationManager.Get("guide_p1").Contains("fareyi"));
             Assert.AreEqual("4. GÜÇLENDİRMELER VE TEHLİKELER", LocalizationManager.Get("guide_h4"));
             Assert.IsTrue(LocalizationManager.Get("guide_p4").Contains("Kritik Geri Sayım"));
 
@@ -381,15 +381,33 @@ namespace Arcade.Tests
         }
 
         [Test]
-        public void BlockBreakerHUD_UXML_ContainsMinimalTouchGuidelineWithIgnorePicking()
+        public void BlockBreakerHUD_UXML_DoesNotContainTouchGuideline()
         {
             var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/BlockBreakerHUD.uxml");
             Assert.IsNotNull(uxml, "BlockBreakerHUD.uxml must exist.");
 
             var root = uxml.Instantiate();
             var guideline = root.Q("touch-guideline");
-            Assert.IsNotNull(guideline, "BlockBreakerHUD.uxml must contain 'touch-guideline' visual element.");
-            Assert.AreEqual(PickingMode.Ignore, guideline.pickingMode, "touch-guideline must have pickingMode=Ignore so it never blocks gameplay input.");
+            Assert.IsNull(guideline, "touch-guideline must not exist in BlockBreakerHUD.uxml.");
+        }
+
+        [Test]
+        public void ArcadeUIManager_IsPointerOverUI_BottomScreenTouchesDoNotHitUI()
+        {
+            var uiObj = new GameObject("UI_HUD_Test");
+            uiObj.AddComponent<PanelRenderer>();
+            var uiMgr = uiObj.AddComponent<ArcadeUIManager>();
+
+            var root = new VisualElement { name = "hud-root" };
+            var rootField = typeof(ArcadeUIManager).GetField("root", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            rootField.SetValue(uiMgr, root);
+
+            // A touch at the bottom 15% of the screen (e.g. y = 50 in 1080x1920 or 2532x1170)
+            // must NOT be intercepted as UI when no modals are active.
+            Assert.IsFalse(uiMgr.IsPointerOverUI(new Vector2(Screen.width * 0.5f, 50f)));
+            Assert.IsFalse(uiMgr.IsPointerOverUI(new Vector2(100f, 20f)));
+
+            Object.DestroyImmediate(uiObj);
         }
 
         [Test]
@@ -685,7 +703,417 @@ namespace Arcade.Tests
             Assert.IsTrue(hudUss.Contains(".warning-btn {"), "BlockBreakerHUD.uss must define .warning-btn.");
             Assert.IsTrue(hudUss.Contains("border-bottom-width: 6px;"), "Modals must have 6px bottom beveled border.");
         }
+
+        [Test]
+        public void Step5_HowToPlayModal_IsFullscreen_AndProtectedBySafeArea()
+        {
+            // 1. Verify UXML has safe-area-fullscreen class on how-to-play-card
+            var menuTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MainMenuUI.uxml");
+            var menuRoot = menuTree.CloneTree();
+            var menuCard = menuRoot.Q<VisualElement>("how-to-play-card");
+            Assert.IsNotNull(menuCard, "how-to-play-card must exist in MainMenuUI.");
+            Assert.IsTrue(menuCard.ClassListContains("safe-area-fullscreen"), "how-to-play-card must have safe-area-fullscreen class in MainMenuUI.");
+
+            var hudTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/BlockBreakerHUD.uxml");
+            var hudRoot = hudTree.CloneTree();
+            var hudCard = hudRoot.Q<VisualElement>("how-to-play-card");
+            Assert.IsNotNull(hudCard, "how-to-play-card must exist in BlockBreakerHUD.");
+            Assert.IsTrue(hudCard.ClassListContains("safe-area-fullscreen"), "how-to-play-card must have safe-area-fullscreen class in BlockBreakerHUD.");
+
+            // 2. Verify USS defines fullscreen dimensions (100% width and height) and flexible scroll container
+            var menuUss = System.IO.File.ReadAllText("Assets/UI/MainMenuUI.uss");
+            Assert.IsTrue(menuUss.Contains("width: 100%;"), "how-to-play-card must be 100% width.");
+            Assert.IsTrue(menuUss.Contains("height: 100%;"), "how-to-play-card must be 100% height.");
+            Assert.IsTrue(menuUss.Contains("flex-grow: 1;"), "guide-scroll must have flex-grow: 1.");
+
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains("width: 100%;"), "how-to-play-card must be 100% width in HUD.");
+            Assert.IsTrue(hudUss.Contains("height: 100%;"), "how-to-play-card must be 100% height in HUD.");
+
+            // 3. Verify SafeAreaController applies insets to safe-area-fullscreen elements
+            var testObj = new GameObject("SafeAreaTestObj", typeof(PanelRenderer), typeof(SafeAreaController));
+            var controller = testObj.GetComponent<SafeAreaController>();
+            controller.ForceEditorSimulation = true;
+
+            var testRoot = new VisualElement { name = "root" };
+            var htpElem = new VisualElement { name = "how-to-play-card" };
+            htpElem.AddToClassList("safe-area-fullscreen");
+            testRoot.Add(htpElem);
+
+            var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            typeof(SafeAreaController).GetField("root", flags).SetValue(controller, testRoot);
+
+            controller.ApplySafeArea();
+
+            Assert.Greater(htpElem.style.paddingTop.value.value, 0f, "SafeAreaController must apply top padding to protect from notch.");
+            Assert.Greater(htpElem.style.paddingBottom.value.value, 0f, "SafeAreaController must apply bottom padding to protect from home bar.");
+            Assert.Greater(htpElem.style.paddingLeft.value.value, 0f, "SafeAreaController must apply side padding to protect from screen corners.");
+
+            Object.DestroyImmediate(testObj);
+        }
+
+        [Test]
+        public void Step6_UIAnimationHelper_ScalePopAndButtonCascade_AppliesTransitionsCorrectly()
+        {
+            // 1. Verify USS files define scale pop and motion classes
+            var menuUss = System.IO.File.ReadAllText("Assets/UI/MainMenuUI.uss");
+            Assert.IsTrue(menuUss.Contains(".modal-card-hidden"), "MainMenuUI.uss must define .modal-card-hidden.");
+            Assert.IsTrue(menuUss.Contains(".modal-card-visible"), "MainMenuUI.uss must define .modal-card-visible.");
+            Assert.IsTrue(menuUss.Contains(".modal-backdrop-hidden"), "MainMenuUI.uss must define .modal-backdrop-hidden.");
+            Assert.IsTrue(menuUss.Contains(".modal-backdrop-visible"), "MainMenuUI.uss must define .modal-backdrop-visible.");
+            Assert.IsTrue(menuUss.Contains(".ui-btn-pop-hidden"), "MainMenuUI.uss must define .ui-btn-pop-hidden.");
+            Assert.IsTrue(menuUss.Contains(".ui-btn-pop-visible"), "MainMenuUI.uss must define .ui-btn-pop-visible.");
+            Assert.IsTrue(menuUss.Contains(".ui-btn-punched"), "MainMenuUI.uss must define .ui-btn-punched.");
+
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains(".modal-card-hidden"), "BlockBreakerHUD.uss must define .modal-card-hidden.");
+            Assert.IsTrue(hudUss.Contains(".modal-card-visible"), "BlockBreakerHUD.uss must define .modal-card-visible.");
+            Assert.IsTrue(hudUss.Contains(".modal-backdrop-hidden"), "BlockBreakerHUD.uss must define .modal-backdrop-hidden.");
+            Assert.IsTrue(hudUss.Contains(".modal-backdrop-visible"), "BlockBreakerHUD.uss must define .modal-backdrop-visible.");
+            Assert.IsTrue(hudUss.Contains(".ui-btn-pop-hidden"), "BlockBreakerHUD.uss must define .ui-btn-pop-hidden.");
+            Assert.IsTrue(hudUss.Contains(".ui-btn-pop-visible"), "BlockBreakerHUD.uss must define .ui-btn-pop-visible.");
+            Assert.IsTrue(hudUss.Contains(".ui-btn-punched"), "BlockBreakerHUD.uss must define .ui-btn-punched.");
+            Assert.IsTrue(hudUss.Contains(".combo-pop"), "BlockBreakerHUD.uss must define .combo-pop.");
+            Assert.IsTrue(hudUss.Contains(".star-pop"), "BlockBreakerHUD.uss must define .star-pop.");
+            Assert.IsTrue(hudUss.Contains(".launch-banner-pulse"), "BlockBreakerHUD.uss must define .launch-banner-pulse.");
+            Assert.IsTrue(hudUss.Contains(".ui-punch-pop"), "BlockBreakerHUD.uss must define .ui-punch-pop.");
+
+            // 2. Verify UIAnimationHelper CascadeIn and CascadeOut synchronous state application
+            var button1 = new Button { name = "btn-1" };
+            var button2 = new Button { name = "btn-2" };
+            var button3 = new Button { name = "btn-3" };
+            var buttons = new System.Collections.Generic.List<VisualElement> { button1, button2, button3 };
+
+            UIAnimationHelper.CascadeIn(null, buttons);
+            for (int i = 0; i < buttons.Count; i++)
+            {
+                Assert.IsTrue(buttons[i].ClassListContains(UIAnimationHelper.ClassBtnPopVisible), $"Button {i} must have ClassBtnPopVisible after CascadeIn.");
+                Assert.IsFalse(buttons[i].ClassListContains(UIAnimationHelper.ClassBtnPopHidden), $"Button {i} must not have ClassBtnPopHidden after CascadeIn.");
+            }
+
+            UIAnimationHelper.CascadeOut(null, buttons);
+            for (int i = 0; i < buttons.Count; i++)
+            {
+                Assert.IsTrue(buttons[i].ClassListContains(UIAnimationHelper.ClassBtnPopHidden), $"Button {i} must have ClassBtnPopHidden after CascadeOut.");
+                Assert.IsFalse(buttons[i].ClassListContains(UIAnimationHelper.ClassBtnPopVisible), $"Button {i} must not have ClassBtnPopVisible after CascadeOut.");
+            }
+
+            // 3. Verify UIAnimationHelper ShowModal and HideModal synchronous state application
+            var backdrop = new VisualElement { name = "modal-backdrop" };
+            var card = new VisualElement { name = "modal-card" };
+            backdrop.AddToClassList("modal-hidden");
+
+            UIAnimationHelper.ShowModal(null, backdrop, card, buttons);
+            Assert.IsFalse(backdrop.ClassListContains("modal-hidden"), "Backdrop must not have modal-hidden after ShowModal.");
+            Assert.IsTrue(backdrop.ClassListContains(UIAnimationHelper.ClassModalBackdropVisible), "Backdrop must have ClassModalBackdropVisible after ShowModal.");
+            Assert.IsTrue(card.ClassListContains(UIAnimationHelper.ClassModalCardVisible), "Card must have ClassModalCardVisible after ShowModal.");
+
+            UIAnimationHelper.HideModal(null, backdrop, card);
+            Assert.IsTrue(backdrop.ClassListContains("modal-hidden"), "Backdrop must have modal-hidden after HideModal.");
+
+            // 4. Verify ArcadeUIManager button group helpers
+            var uiObj = new GameObject("TestArcadeUIMgr", typeof(PanelRenderer), typeof(ArcadeUIManager));
+            var uiMgr = uiObj.GetComponent<ArcadeUIManager>();
+
+            var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            typeof(ArcadeUIManager).GetField("btnResume", flags).SetValue(uiMgr, button1);
+            typeof(ArcadeUIManager).GetField("btnLevelSelectPause", flags).SetValue(uiMgr, button2);
+            typeof(ArcadeUIManager).GetField("btnNextLevel", flags).SetValue(uiMgr, button3);
+
+            var pauseBtns = uiMgr.GetPauseButtons();
+            Assert.IsNotNull(pauseBtns);
+            Assert.IsTrue(pauseBtns.Contains(button1));
+            Assert.IsTrue(pauseBtns.Contains(button2));
+
+            var clearBtns = uiMgr.GetLevelClearButtons();
+            Assert.IsNotNull(clearBtns);
+            Assert.IsTrue(clearBtns.Contains(button3));
+
+            Object.DestroyImmediate(uiObj);
+        }
+
+        [Test]
+        public void Test_HighScoreManager_FormatShortDate_FormatsToDayAndMonth()
+        {
+            // Converts legacy yyyy-MM-dd to dd/MM
+            Assert.AreEqual("22/10", HighScoreManager.FormatShortDate("2026-10-22"));
+            Assert.AreEqual("05/03", HighScoreManager.FormatShortDate("2026-03-05"));
+
+            // Preserves dd/MM format
+            Assert.AreEqual("15/08", HighScoreManager.FormatShortDate("15/08"));
+
+            // Handles empty or null strings gracefully
+            Assert.AreEqual("", HighScoreManager.FormatShortDate(""));
+            Assert.AreEqual("", HighScoreManager.FormatShortDate(null));
+        }
+
+        [Test]
+        public void Test_HighScoreEntry_DefaultsToDayAndMonthShortDate()
+        {
+            var entry = new HighScoreEntry(1000, 1);
+            Assert.IsNotNull(entry.date);
+            Assert.AreEqual(5, entry.date.Length, "Date string should be in dd/MM format (length 5).");
+            Assert.AreEqual('/', entry.date[2], "Date string should contain slash separator at index 2.");
+        }
+
+        [Test]
+        public void Test_ScoreRowDate_USSStyling_HasExpandedMinWidthAndShortDateFormatting()
+        {
+            var mainMenuUss = System.IO.File.ReadAllText("Assets/UI/MainMenuUI.uss");
+            Assert.IsTrue(mainMenuUss.Contains(".score-row-date {"), "MainMenuUI.uss must define .score-row-date.");
+            Assert.IsTrue(mainMenuUss.Contains("min-width: 220px;"), "MainMenuUI.uss must define min-width: 220px for .score-row-date.");
+
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains(".score-row-date {"), "BlockBreakerHUD.uss must define .score-row-date.");
+            Assert.IsTrue(hudUss.Contains("min-width: 220px;"), "BlockBreakerHUD.uss must define min-width: 220px for .score-row-date.");
+        }
+
+        [Test]
+        public void Test_Campaign_AllThirtyLevels_ExistWithValidConfigurationAndProgressiveSpeed()
+        {
+            float lastSpeed = 0f;
+            for (int i = 1; i <= 30; i++)
+            {
+                string path = $"Assets/Settings/Levels/SO_Level_{i:D2}.asset";
+                var config = AssetDatabase.LoadAssetAtPath<LevelConfiguration>(path);
+                Assert.IsNotNull(config, $"SO_Level_{i:D2}.asset must exist at {path}.");
+                Assert.AreEqual(i, config.LevelNumber, $"Level {i} must have LevelNumber == {i}.");
+                Assert.IsFalse(string.IsNullOrEmpty(config.LevelName), $"Level {i} must have non-empty LevelName.");
+                Assert.IsFalse(string.IsNullOrEmpty(config.Description), $"Level {i} must have non-empty Description.");
+                Assert.Greater(config.TotalBlocks, 0, $"Level {i} must contain active blocks.");
+
+                Assert.Greater(config.BallSpeedMultiplier, lastSpeed, $"Level {i} speed ({config.BallSpeedMultiplier}) must be faster than previous ({lastSpeed}).");
+                lastSpeed = config.BallSpeedMultiplier;
+            }
+
+            var lvl30 = AssetDatabase.LoadAssetAtPath<LevelConfiguration>("Assets/Settings/Levels/SO_Level_30.asset");
+            Assert.AreEqual(1.80f, lvl30.BallSpeedMultiplier, 0.001f, "Level 30 speed must be 1.80f.");
+            Assert.AreEqual(LevelLayoutType.Custom, lvl30.LayoutType, "Level 30 must be Custom layout archetype.");
+            int lvl30Hazards = lvl30.PaddleShortenerCount + lvl30.PaddleSlowerCount + lvl30.BrickFreezerCount +
+                               lvl30.BallSizeDecreaserCount + lvl30.BallSlowerCount + lvl30.PaddleFreezerCount;
+            Assert.AreEqual(20, lvl30Hazards, "Level 30 must feature 20 hazard blocks for the grand master finale.");
+        }
+
+        [Test]
+        public void Test_Campaign_ThirtyLevels_LevelSelectModalHeightAndScrollViewExpanded()
+        {
+            var mainMenuUss = System.IO.File.ReadAllText("Assets/UI/MainMenuUI.uss");
+            Assert.IsTrue(mainMenuUss.Contains("height: 1850px;"), "MainMenuUI.uss .level-modal-card must have expanded height 1850px.");
+            Assert.IsTrue(mainMenuUss.Contains("height: 920px;"), "MainMenuUI.uss .level-grid-scroll-view must have expanded height 920px.");
+
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains("height: 1850px;"), "BlockBreakerHUD.uss .level-modal-card must have expanded height 1850px.");
+            Assert.IsTrue(hudUss.Contains("height: 920px;"), "BlockBreakerHUD.uss .level-grid-scroll-view must have expanded height 920px.");
+        }
+
+        [Test]
+        public void Test_LevelGenerator_And_MainMenu_SupportThirtyLevels()
+        {
+            var go = new GameObject("TestLevelGen", typeof(LevelGenerator));
+            var gen = go.GetComponent<LevelGenerator>();
+            Assert.AreEqual(30, gen.TotalLevels, "LevelGenerator TotalLevels must default to 30.");
+            var lvl30 = gen.GetLevelConfig(30);
+            Assert.IsNotNull(lvl30, "GetLevelConfig(30) must return Level 30 configuration.");
+            Assert.AreEqual(30, lvl30.LevelNumber);
+            Object.DestroyImmediate(go);
+        }
+
+        [Test]
+        public void Test_LaunchBanner_VerticalLayout_LargerIcons_And_FingerSwipeAnimation_Configured()
+        {
+            var hudUxml = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uxml");
+            Assert.IsTrue(hudUxml.Contains("class=\"launch-motion-cue\""), "BlockBreakerHUD.uxml must contain launch-motion-cue container.");
+            Assert.IsTrue(hudUxml.Contains("class=\"launch-finger-icon\""), "BlockBreakerHUD.uxml must contain launch-finger-icon.");
+            Assert.IsTrue(hudUxml.Contains("class=\"launch-arrow-left\""), "BlockBreakerHUD.uxml must contain launch-arrow-left.");
+            Assert.IsTrue(hudUxml.Contains("class=\"launch-arrow-right\""), "BlockBreakerHUD.uxml must contain launch-arrow-right.");
+            Assert.IsTrue(hudUxml.Contains("class=\"launch-text\""), "BlockBreakerHUD.uxml must contain launch-text.");
+
+            // Verify text is placed below the icons row in UXML
+            int motionCueIndex = hudUxml.IndexOf("launch-motion-cue");
+            int launchTextIndex = hudUxml.IndexOf("launch-text");
+            Assert.IsTrue(launchTextIndex > motionCueIndex, "launch-text must be positioned after (below) launch-motion-cue.");
+
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains("flex-direction: column;"), "BlockBreakerHUD.uss .launch-banner must use flex-direction: column.");
+            Assert.IsTrue(hudUss.Contains("width: 96px;"), "BlockBreakerHUD.uss .launch-finger-icon must have enlarged width 96px.");
+            Assert.IsTrue(hudUss.Contains("height: 96px;"), "BlockBreakerHUD.uss .launch-finger-icon must have enlarged height 96px.");
+            Assert.IsTrue(hudUss.Contains("width: 80px;"), "BlockBreakerHUD.uss .launch-arrow-left/.launch-arrow-right must have enlarged width 80px.");
+            Assert.IsTrue(hudUss.Contains(".launch-finger-swipe-left"), "BlockBreakerHUD.uss must define .launch-finger-swipe-left.");
+            Assert.IsTrue(hudUss.Contains(".launch-finger-swipe-right"), "BlockBreakerHUD.uss must define .launch-finger-swipe-right.");
+
+            // Verify UIAnimationHelper constants and method safety
+            Assert.AreEqual("launch-finger-swipe-left", UIAnimationHelper.ClassLaunchFingerLeft);
+            Assert.AreEqual("launch-finger-swipe-right", UIAnimationHelper.ClassLaunchFingerRight);
+            var finger = new VisualElement();
+            var coroutine = UIAnimationHelper.StartHorizontalSwipe(null, finger);
+            Assert.IsNull(coroutine, "StartHorizontalSwipe must safely return null when called in EditMode without active host.");
+        }
+
+        [Test]
+        public void Test_PowerupBadges_CompactDimensions_PreventBlockOcclusionOnTablets()
+        {
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            
+            // Verify badge height is compacted (<= 64px, down from original 108px)
+            Assert.IsTrue(hudUss.Contains("height: 60px;"), "BlockBreakerHUD.uss .powerup-badge must use compact height (60px) to prevent block occlusion on iPad Mini.");
+            
+            // Verify icon dimensions are compacted (<= 40px, down from original 64px)
+            Assert.IsTrue(hudUss.Contains("width: 36px;"), "BlockBreakerHUD.uss .powerup-status-icon must use compact width (36px).");
+            Assert.IsTrue(hudUss.Contains("height: 36px;"), "BlockBreakerHUD.uss .powerup-status-icon must use compact height (36px).");
+
+            // Verify status container has wrapping and tightened vertical margins
+            Assert.IsTrue(hudUss.Contains("margin-top: 6px;"), ".powerup-status-container must use compact margin-top (6px).");
+            Assert.IsTrue(hudUss.Contains("margin-bottom: 6px;"), ".powerup-status-container must use compact margin-bottom (6px).");
+            Assert.IsTrue(hudUss.Contains("flex-wrap: wrap;"), ".powerup-status-container must support flex-wrap to prevent overflow.");
+
+            // Verify top bar margin is tightened
+            Assert.IsTrue(hudUss.Contains("margin-bottom: 8px;"), ".top-bar must use tightened margin-bottom (8px) to reduce vertical HUD footprint.");
+        }
+
+        [Test]
+        public void Test_BallSpeed_VisualAndDurationTiers_CalculatesCorrectColorsAndScales()
+        {
+            var ballObj = new GameObject("TestBallSpeedObj", typeof(Rigidbody), typeof(BallController));
+            var ball = ballObj.GetComponent<BallController>();
+
+            // 1. Color tiers
+            Color slowColor = ball.GetSpeedColor(9.5f);
+            Assert.AreEqual(BallController.ColorSpeedSlow, slowColor, "Speeds < 12 u/s must return Frosted Ice Blue.");
+
+            Color normalColor = ball.GetSpeedColor(12f);
+            Assert.AreEqual(BallController.ColorSpeedNormal, normalColor, "Speed 12 u/s must return exact Electric Cyan.");
+
+            Color midSpeedColor = ball.GetSpeedColor(14f);
+            Assert.IsTrue(midSpeedColor.g > 0.8f && midSpeedColor.b > 0.5f, "Base speed 14 u/s must return Electric Cyan to Solar Gold blend.");
+
+            Color boostColor = ball.GetSpeedColor(17f);
+            Assert.AreEqual(BallController.ColorSpeedBoost, boostColor, "Speed 17 u/s must return exact Solar Gold.");
+
+            Color turboColor = ball.GetSpeedColor(22f);
+            Assert.AreEqual(BallController.ColorSpeedTurbo, turboColor, "Speeds >= 20 u/s must return Blazing Plasma Flame.");
+
+            // 2. Trail duration scaling
+            float slowDuration = ball.CalculateOuterTrailDuration(9.5f);
+            float normalDuration = ball.CalculateOuterTrailDuration(14f);
+            float turboDuration = ball.CalculateOuterTrailDuration(22f);
+
+            Assert.Less(slowDuration, normalDuration, "Slow trail duration must be shorter than normal duration.");
+            Assert.Less(normalDuration, turboDuration, "Normal trail duration must be shorter than turbo duration.");
+
+            // 3. Event and dynamic visuals
+            float recordedSpeed = 0f;
+            float recordedMult = 0f;
+            ball.OnSpeedChanged += (spd, mult) =>
+            {
+                recordedSpeed = spd;
+                recordedMult = mult;
+            };
+
+            ball.SetCurrentSpeedForTesting(21f);
+            ball.UpdateDynamicSpeedVisuals();
+
+            Assert.AreEqual(21f, recordedSpeed, 0.01f);
+            Assert.AreEqual(21f / ball.BaseSpeed, recordedMult, 0.01f);
+
+            // 4. Custom multi-ball color preservation
+            ball.SetTrailColor(Color.magenta);
+            Assert.IsTrue(ball.HasCustomTrailColor, "Calling SetTrailColor must flag HasCustomTrailColor.");
+            Assert.AreEqual(Color.magenta, ball.TrailColor);
+
+            // Changing speed should NOT stomp custom color
+            ball.SetCurrentSpeedForTesting(10f);
+            ball.UpdateDynamicSpeedVisuals();
+            Assert.AreEqual(Color.magenta, ball.TrailColor, "Custom trail color must be preserved across speed changes.");
+
+            // Resetting custom trail color restores dynamic speed coloring
+            ball.ResetCustomTrailColor();
+            Assert.IsFalse(ball.HasCustomTrailColor, "ResetCustomTrailColor must clear custom flag.");
+            Assert.AreEqual(BallController.ColorSpeedSlow, ball.TrailColor, "Restored trail color must reflect current speed tier.");
+
+            Object.DestroyImmediate(ballObj);
+        }
+
+        [Test]
+        public void Test_BallSpeed_HUDPodAndUXML_ConfiguredCorrectly()
+        {
+            var hudUxml = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uxml");
+            Assert.IsTrue(hudUxml.Contains("name=\"speed-container\""), "BlockBreakerHUD.uxml must define speed-container.");
+            Assert.IsTrue(hudUxml.Contains("name=\"icon-speed\""), "BlockBreakerHUD.uxml must define icon-speed.");
+            Assert.IsTrue(hudUxml.Contains("name=\"speed-label\""), "BlockBreakerHUD.uxml must define speed-label.");
+
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains(".speed-pod {"), "BlockBreakerHUD.uss must define .speed-pod.");
+            Assert.IsTrue(hudUss.Contains(".speed-icon {"), "BlockBreakerHUD.uss must define .speed-icon.");
+            Assert.IsTrue(hudUss.Contains(".speed-main {"), "BlockBreakerHUD.uss must define .speed-main.");
+            Assert.IsTrue(hudUss.Contains(".speed-tier-slow {"), "BlockBreakerHUD.uss must define .speed-tier-slow.");
+            Assert.IsTrue(hudUss.Contains(".speed-tier-normal {"), "BlockBreakerHUD.uss must define .speed-tier-normal.");
+            Assert.IsTrue(hudUss.Contains(".speed-tier-boost {"), "BlockBreakerHUD.uss must define .speed-tier-boost.");
+            Assert.IsTrue(hudUss.Contains(".speed-tier-turbo {"), "BlockBreakerHUD.uss must define .speed-tier-turbo.");
+
+            // Verify all speed popup CSS classes exist
+            Assert.IsTrue(hudUss.Contains(".speed-popup {"), "BlockBreakerHUD.uss must define .speed-popup.");
+            Assert.IsTrue(hudUss.Contains(".speed-popup-turbo {"), "BlockBreakerHUD.uss must define .speed-popup-turbo.");
+            Assert.IsTrue(hudUss.Contains(".speed-popup-dampen {"), "BlockBreakerHUD.uss must define .speed-popup-dampen.");
+            Assert.IsTrue(hudUss.Contains(".speed-popup-strike {"), "BlockBreakerHUD.uss must define .speed-popup-strike.");
+            Assert.IsTrue(hudUss.Contains(".speed-popup-slowed {"), "BlockBreakerHUD.uss must define .speed-popup-slowed.");
+            Assert.IsTrue(hudUss.Contains(".speed-popup-ramp {"), "BlockBreakerHUD.uss must define .speed-popup-ramp.");
+        }
+
+        [Test]
+        public void Test_BallSpeed_ArcadeUIManager_UpdateSpeedDisplayAndPopups()
+        {
+            var uiObj = new GameObject("TestSpeedUI", typeof(PanelRenderer), typeof(ArcadeUIManager));
+            var uiMgr = uiObj.GetComponent<ArcadeUIManager>();
+
+            var container = new VisualElement();
+            var label = new Label("1.0x");
+            var icon = new VisualElement();
+
+            // Reflection to inject mock elements for isolated EditMode testing
+            var speedContainerField = typeof(ArcadeUIManager).GetField("speedContainer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var speedLabelField = typeof(ArcadeUIManager).GetField("speedLabel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var speedIconField = typeof(ArcadeUIManager).GetField("speedIcon", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            speedContainerField.SetValue(uiMgr, container);
+            speedLabelField.SetValue(uiMgr, label);
+            speedIconField.SetValue(uiMgr, icon);
+
+            // Tier 1: Slow (<12 u/s)
+            uiMgr.UpdateSpeedDisplay(9.5f, 0.68f);
+            Assert.AreEqual("0.7x", label.text);
+            Assert.IsTrue(container.ClassListContains("speed-tier-slow"));
+            Assert.IsFalse(container.ClassListContains("speed-tier-normal"));
+
+            // Tier 2: Normal (14 u/s)
+            uiMgr.UpdateSpeedDisplay(14.0f, 1.0f);
+            Assert.AreEqual("1.0x", label.text);
+            Assert.IsTrue(container.ClassListContains("speed-tier-normal"));
+            Assert.IsFalse(container.ClassListContains("speed-tier-slow"));
+
+            // Tier 3: Boost (18.5 u/s)
+            uiMgr.UpdateSpeedDisplay(18.5f, 1.32f);
+            Assert.AreEqual("1.3x", label.text);
+            Assert.IsTrue(container.ClassListContains("speed-tier-boost"));
+            Assert.IsFalse(container.ClassListContains("speed-tier-normal"));
+
+            // Tier 4: Turbo (22.0 u/s)
+            uiMgr.UpdateSpeedDisplay(22.0f, 1.57f);
+            Assert.AreEqual("1.6x", label.text);
+            Assert.IsTrue(container.ClassListContains("speed-tier-turbo"));
+            Assert.IsFalse(container.ClassListContains("speed-tier-boost"));
+
+            // Test AnimateSpeedPopup executes safely without exceptions
+            Assert.DoesNotThrow(() =>
+            {
+                uiMgr.AnimateSpeedPopup(Vector3.zero, "TURBO +10%", ArcadeUIManager.SpeedPopupType.Turbo);
+                uiMgr.AnimateSpeedPopup(Vector3.zero, "DAMPEN -1.2", ArcadeUIManager.SpeedPopupType.Dampen);
+                uiMgr.AnimateSpeedPopup(Vector3.zero, "STRIKE! +8%", ArcadeUIManager.SpeedPopupType.ActiveStrike);
+            });
+
+            Object.DestroyImmediate(uiObj);
+        }
     }
 }
+
 
 

@@ -76,7 +76,15 @@ Shader "Arcade/VFX_ParticleBurst"
                 UNITY_SETUP_INSTANCE_ID(input);
 
                 half4 texColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
+                
+                // Procedural smooth circular falloff safeguard:
+                // Eliminates sharp quad box edges even if texture is unassigned or plain white
+                float2 centered = input.uv - 0.5;
+                float rSq = dot(centered, centered) * 4.0;
+                float radialMask = smoothstep(1.0, 0.70, rSq);
+
                 half4 col = input.color * _BaseColor * texColor;
+                col.a *= radialMask;
                 half3 finalRgb = col.rgb + _EmissionColor.rgb * col.a;
                 return half4(finalRgb, col.a);
             }

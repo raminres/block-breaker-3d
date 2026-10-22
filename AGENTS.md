@@ -83,12 +83,12 @@ High-density technical context and architectural rules for BlockBreaker.
 ---
 
 ## 5. Level Campaign Arc & Pacing
-- **Progression Overview**: 15 ScriptableObject levels (`SO_Level_01` to `SO_Level_15` via [SetupBlockBreakerScenes.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Editor/SetupBlockBreakerScenes.cs)).
+- **Progression Overview**: 30 ScriptableObject levels (`SO_Level_01` to `SO_Level_30` via [SetupBlockBreakerScenes.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Editor/SetupBlockBreakerScenes.cs)).
   - Grids: High-density 11–14 columns ($13.75\text{u}–17.5\text{u}$ span, within $1.6\text{u}$ of walls). Outer side flank bumper blocks at $c = 0$ and $c = \text{cols} - 1$ prevent wall bypass lanes.
   - Archetypes: `Pyramid`, `Diamond`, `Pillars`, `Shield`, `HollowBox`, `Crown`, `Heart`, `Invader`, `Cross`, `Hourglass`, `Chevron`, `Castle`, `CheckerboardEmpty`, `Stripes`, `Custom`.
-  - Speed scaling: $0.92\times$ (Level 1) $\to 1.48\times$ (Level 15). Volley pacing adds $+8\%$ per 10s continuous rally.
-  - Paddle width: $5.0\text{u} \to 4.5\text{u}$ (Levels 1–5 standard $5.0\text{u}$, narrowing to $4.5\text{u}$ on Level 15). Hazard saturation: 0 (Level 1) $\to$ 13 (Level 15).
-  - **Onboarding Block Scale (+20% on Levels 1–3)**: Levels 1, 2, and 3 (`SO_Level_01`, `SO_Level_02`, `SO_Level_03`) feature enlarged blocks (`blockSize = 1.20f`) with adjusted horizontal spacing ($1.50\text{u}, 1.45\text{u}, 1.40\text{u}$) to maximize readability and touch targeting comfort while strictly preserving $> 1.0\text{u}$ clearance to arena walls ($X = \pm 10.25$). Levels 4–15 retain standard $1.00\text{u}$ scale. Runtime setters: `SetBlockSize`, `SetHorizontalSpacing`, `SetVerticalSpacing` in [LevelConfiguration.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/LevelConfiguration.cs).
+  - Speed scaling: $0.92\times$ (Level 1) $\to 1.80\times$ (Level 30). Volley pacing adds $+8\%$ per 10s continuous rally.
+  - Paddle width: $5.0\text{u} \to 4.2\text{u}$ (Levels 1–5 standard $5.0\text{u}$, narrowing to $4.2\text{u}$ on Level 30). Hazard saturation: 0 (Level 1) $\to$ 20 (Level 30).
+  - **Onboarding Block Scale (+20% on Levels 1–3)**: Levels 1, 2, and 3 (`SO_Level_01`, `SO_Level_02`, `SO_Level_03`) feature enlarged blocks (`blockSize = 1.20f`) with adjusted horizontal spacing ($1.50\text{u}, 1.45\text{u}, 1.40\text{u}$) to maximize readability and touch targeting comfort while strictly preserving $> 1.0\text{u}$ clearance to arena walls ($X = \pm 10.25$). Levels 4–30 retain standard $1.00\text{u}$ scale. Runtime setters: `SetBlockSize`, `SetHorizontalSpacing`, `SetVerticalSpacing` in [LevelConfiguration.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/LevelConfiguration.cs).
 
 ---
 
@@ -101,7 +101,7 @@ High-density technical context and architectural rules for BlockBreaker.
 - **UI Toolkit & Screen Harmonization**:
   - Unity 6 `PanelRenderer` on `UI_HUD` and `UI_MainMenu` scaled for iPhone portrait reference resolution (`1170x2532`).
   - **Mobile Safe Area & Dynamic Island Adaptation**: [SafeAreaController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/UI/SafeAreaController.cs) calculates Yoga width-relative insets (`CalculateYogaInsets`), preventing Dynamic Island and notch occlusion on iPhone 15/15 Pro in physical builds and Unity Device Simulator. `#safe-area-content` wraps top bar dashboard pods and powerup rows, while modals maintain full-bleed coverage.
-  - **Touch Ergonomics & System Gesture Deferral**: `PlayerSettings.iOS.deferSystemGesturesMode = UnityEngine.iOS.SystemGestureDeferMode.All` configures iOS to require a deliberate double-swipe for Home bar navigation, preventing edge gesture drops. Input position clamps to $Y \ge 4\text{px}$ and a minimal, transparent touch guideline (`#touch-guideline`, `opacity: 0.16`, `pickingMode: Ignore`) sits comfortably above the iOS Home bar indicator.
+  - **Touch Ergonomics & System Gesture Deferral**: `PlayerSettings.iOS.deferSystemGesturesMode = UnityEngine.iOS.SystemGestureDeferMode.All` configures iOS to require a deliberate double-swipe for Home bar navigation, preventing edge gesture drops. In `ArcadeUIManager`, `IsPointerOverUI` flips the $Y$ coordinate to match UI Toolkit top-left panel coordinates and only intercepts touches on interactive buttons, ensuring bottom 15% screen touches reliably drive paddle movement without UI interception. Touch sessions also seamlessly initialize on `pointerHeld` if iOS disambiguation delays frame 0 `pointerDown`.
   - **Tactile 3D Extruded Gradient Design System & Radiant Glow**:
     - Solid opaque obsidian navy backgrounds (`rgb(18, 24, 40)`) with 4 procedural vertical gradient sprites in `Assets/UI/Textures/Gradients/` (`TX_Grad_Card_Bg`, `TX_Grad_Ruby_Btn`, `TX_Grad_Emerald_Btn`, `TX_Grad_Titanium_Btn`).
     - Mechanical 3D extruded button geometry: resting 7px bottom shelf (`border-bottom-width: 7px;`), 2px top/side bevels, and active physical depression (`translate: 0 5px; border-bottom-width: 2px; border-top-width: 4px;`).
@@ -129,7 +129,7 @@ High-density technical context and architectural rules for BlockBreaker.
   - `Blocks/`: `PF_Block_Base`, `PF_Block_Red`, `PF_Block_Green`, `PF_Block_Blue`, `PF_Block_Bomb`, `PF_Block_Glass` (4 child sockets: `brick`, `brick frost`, `brick special`, `brick vfx`).
   - `Powerups/`: `PF_Drop_Powerup` (cyan capsule), `PF_Drop_Hazard` (crimson diamond).
 - **Zero Runtime Primitives**: All legacy procedural cube/quad fallbacks (`GameObject.CreatePrimitive`) removed from runtime and scene setups.
-- **Automated Tests**: 295 EditMode tests passing across core physics, normalized prefab parent scales, boundaries, powerups, hazards, UI harmonization, runtime localization tables, touch ergonomics, and level scaling:
+- **Automated Tests**: 312 EditMode tests passing across core physics, normalized prefab parent scales, boundaries, powerups, hazards, UI harmonization, runtime localization tables, touch ergonomics, and level scaling:
   ```bash
   unity cmd run_tests --mode editor
   ```
@@ -148,9 +148,21 @@ High-density technical context and architectural rules for BlockBreaker.
 
 ---
 
-## 9. Current Handoff State & Verification
-- **Active Branch**: `feature/misc-updates` (Up to date with origin, clean working tree)
-- **Automated Tests**: 296/296 EditMode tests passing (100% pass rate)
+## 9. Prefab-Driven Authoring & Zero Hardcoded Visual/Transform Invariants
+- **Prefabs and Scenes Are the Authoring Source of Truth**:
+  - Particle System settings (velocities, curve modes, lifetime, color gradients), materials, transforms, and collider dimensions MUST be authored directly on Prefab assets or Scene GameObjects—NEVER hardcoded in C# scripts.
+  - Do NOT write runtime overrides in `Awake()`, `Start()`, or `Update()` that modify particle velocity curves (e.g. `vel.x = new ParticleSystem.MinMaxCurve(...)`), materials, or child transforms if they are already baked into the prefab.
+  - Scripts must preserve user craftsmanship and existing authored components rather than stomping them with hardcoded numbers.
+- **Standalone/iOS Build Bundling Without Resources**:
+  - Unity's build linker bundles assets into player builds based on references reachable from Scenes in Build Settings.
+  - Every prefab required at runtime (`PF_Drop_Powerup`, `PF_Drop_Hazard`, `PF_LaserBolt`, `PF_ShieldWall`, `PF_VFX_BlockShatter`, `PF_VFX_PowerupCollect`, `PF_VFX_PaddleSpark`, `PF_VFX_BombExplosion`) MUST be serialized on a Scene GameObject (`ArcadeGameManager`, `LevelGenerator`, `BlockVFXManager`, or `PF_Paddle`) in `LV_BlockBreaker.unity`.
+  - `#if UNITY_EDITOR AssetDatabase.LoadAssetAtPath` is strictly an Editor-time fallback for isolated tests; all assets must be wired directly in the scene.
+
+---
+
+## 10. Current Handoff State & Verification
+- **Active Branch**: `feature/level-expansion-and-fixes` (Up to date with origin, clean working tree)
+- **Automated Tests**: 312/312 EditMode tests passing (100% pass rate)
 - **Verification Command**:
   ```bash
   unity cmd run_tests --mode editor --timeout 90
@@ -164,8 +176,42 @@ High-density technical context and architectural rules for BlockBreaker.
   2. **Laser Bolt Volumetric Sweep & Rigidbody Integration**: Upgraded `LaserBolt.cs` from thin raycast to continuous volumetric `Physics.SphereCastAll` (radius $0.11\text{u}$ matching `SM_Paddle` bullet mesh) with `QueryTriggerInteraction.Ignore` to bypass falling powerup triggers. Added kinematic `Rigidbody` to `PF_LaserBolt.prefab` and `Spawn()` for native PhysX `OnTriggerEnter` trigger events. Multi-hit damage verified (1 damage/hit; glass and frozen blocks absorb 1 hit before shattering).
   3. **Powerup & Hazard Icon Parenting & Zero Runtime Icon Instantiation**: Parented `Icon_Billboard` directly to `Visual_Capsule` in `PF_Drop_Powerup.prefab` and `PF_Drop_Hazard.prefab` so the billboard icon oscillates synchronously with the 3D model, permanently eliminating visual clipping. Fixed runtime duplicate icon creation; `PowerupCapsule.Initialize()` simply swaps `iconRenderer.sprite` without creating any new GameObjects.
   4. **Mesh Particle Shuriken VFX Consolidation**: Consolidated all particle VFX across the project into unified Shuriken `ParticleSystem` prefabs under `Assets/Prefabs/VFX/` (`PF_VFX_BlockShatter`, `PF_VFX_BombExplosion`, `PF_VFX_PaddleSpark`, `PF_VFX_FallingTrail`). Integrated `SM_Block_Large_Particles`, `SM_Block_Small_Particles`, and `SM_Block_Frost_Particles` meshes into block shatter bursts with block-matching materials and falling trajectories.
-  5. **Arena Boundary & UI Alignment**: Fixed shield wall baseline to $Y = -7.75\text{f}$ to prevent crossing bottom wall frames. Raised "Tap to Launch" banner on UI Toolkit HUD to prevent ball and shield occlusion across tall mobile aspect ratios.
-  6. **Bullet 3D Model Integration**: Integrated `Bullet` mesh from `SM_Paddle.fbx` with bottom pivot at $Y = 0$ into `PF_LaserBolt.prefab` and calibrated muzzle socket alignment.
-  7. **Parent Prefab Scale Normalization to 1.0**: Normalized parent root scale to `Vector3(1, 1, 1)` across `PF_Paddle.prefab`, `PF_Ball_Standard.prefab`, and `PF_LaserBolt.prefab`.
-  8. **Authoritative Runtime Localization Tables**: Bound `LocalizationManager` directly to `LocalizationSettings.StringDatabase` and runtime `StringTable` loading with English and Turkish support.
+  5. **iOS Build Bundling Without Resources**: Serialized powerup drops, hazard drops, and all Shuriken VFX prefabs directly in `LV_BlockBreaker.unity` across `ArcadeGameManager`, `LevelGenerator`, and `BlockVFXManager`, ensuring 100% asset inclusion in iOS builds without using a `Resources/` folder.
+  6. **Particle System Velocity Curve Mode Unification**: Unified MinMax curve modes to `TwoConstants` across all 3 axes in `PF_VFX_FallingTrail.prefab`, `PF_Drop_Powerup.prefab`, and `PF_Drop_Hazard.prefab`, removing runtime overrides and fixing the console error.
+  7. **Fullscreen Safe-Area How to Play Modal**: Expanded How to Play card to full width/height with safe area insets covering notches, dynamic island, and home indicator bars across mobile/tablet aspect ratios.
+  8. **VFX Prefab Editor-Time Preview & Shockwave Material/Shader Fix**:
+     - Configured `playOnAwake = true`, `loop = true`, `emission.enabled = true`, and authored bursts on all VFX prefabs (`PF_VFX_BombExplosion`, `PF_VFX_PowerupCollect`, `PF_VFX_PaddleSpark`, `PF_VFX_BlockShatter`). In Unity, selecting or opening any VFX prefab in Prefab Mode now automatically runs the Particle System preview loop in the Scene view for instant visual feedback.
+     - Resolved the mobile bomb VFX "large red quads" issue: created radiant feathered blast texture `TX_VFX_Shockwave_Ring.png` and `MI_VFX_Shockwave.mat` for the shockwave billboard (replacing untextured quad), and added a procedural smooth circle falloff in `VFX_ParticleBurst.shader`.
+     - Added `VFX_ParticleBurst.shader` and `VFX_BlockDebris.shader` to `AlwaysIncludedShaders` in `ProjectSettings/GraphicsSettings.asset` to permanently safeguard against shader stripping in iOS and mobile player builds.
+     - Updated `BlockVFXManager.cs` to trigger prefab-authored bursts via `ps.Clear(); ps.Play();` with fallback to `ps.Emit()`.
+  9. **Dynamic UI Motion, Snappy Scale Pops & Cascading Buttons**:
+     - Created `UIAnimationHelper.cs` and native USS transitions for snappy arcade UI movement across `MainMenuUIManager` and `ArcadeUIManager`.
+     - Modal appear/disappear: Punchy scale transitions (modal card springs $0.82 \to 1.0$ with `ease-out-back` over $0.18\text{s}$; scales down to $0.82$ with $0.10\text{s}$ exit fade before `.modal-hidden`).
+     - Staggered button cascades: Sequential top-to-bottom entrance (`CascadeIn`) with $0.035\text{s}$ stagger on Main Menu buttons, Pause Menu buttons, Scorecard buttons, and Level Grid selection cards.
+     - Tactile button clicks: `PunchButton` micro-depression ($0.93 \to 1.0$ over $0.08\text{s}$) upon tap/click.
+     - Punch pops & movement: Score pod punch pop on scoring, combo multiplier badge pop ($1.25\times$ scale) on combo steps, scorecard star bursts ($1.45\times$ scale) on level clear, powerup/hazard badge entrance pops, and continuous breathing scale loop on `TAP TO LAUNCH` banner.
+     - Full EditMode safety: Synchronous fallback for test environments (`!Application.isPlaying`).
+  10. **Day/Month Date Shortening & 30-Level Campaign Expansion**:
+     - Leaderboard Date Shortening: Formatted all high score dates to `dd/MM` via `HighScoreManager.FormatShortDate` with `CultureInfo.InvariantCulture`. Expanded `.score-row-date` USS width to `min-width: 220px` to prevent text intrusion with scores on iPhone screens.
+     - 30-Level Campaign: Created `SO_Level_16` to `SO_Level_30` with speed progression from $0.92\times$ to $1.80\times$, escalating hazards (up to 20), and varied layout archetypes. Connected serialized `levelPresets` across both `LV_BlockBreaker.unity` and `LV_BlockBreaker_MainMenu.unity`.
+     - Level Select UI Expansion: Expanded `.level-modal-card` to `height: 1850px; max-height: 94%;` and `.level-grid-scroll-view` to `height: 920px; flex-grow: 1;` so all 30 level cards fit comfortably with smooth mobile scrolling.
+     - Test Suite Invariants: Fixed `GetLevelConfig` preset-boundary check, safeguarded hyper-beam against destroyed block colliders, and added test cleanup in `BlockBreakerCoreTests`.
+  11. **Launch Prompt Stacked Redesign & Finger Swipe Animation**:
+     - Restructured launch banner in `BlockBreakerHUD.uxml` and `BlockBreakerHUD.uss` with a vertical stacked layout (motion cue icons row on top, "TAP TO LAUNCH" label below).
+     - Enlarged finger icon to $96\text{px} \times 96\text{px}$ (+44% scale) and directional arrows to $80\text{px} \times 80\text{px}$ for tactile readability.
+     - Added continuous left-to-right swipe motion animation via `UIAnimationHelper.StartHorizontalSwipe` with native USS ease-in-out translation.
+     - Calibrated world projection to $Y = -0.5\text{f}$ in `ArcadeUIManager`, ensuring $> 240\text{px}$ clearance above the ball/paddle and $> 340\text{px}$ below the bricks.
+  12. **Tablet Screen Real-Estate & 3-Layer Ball Speed Hybrid System**:
+     - Compact Badges on Tablet/iPad Mini: Reduced `.powerup-badge` height ($108\text{px} \to 60\text{px}$), icon size ($64\text{px} \to 36\text{px}$), and tightened margins, preventing block occlusion on 3:2 and squarer displays.
+     - Layer 1 (Diegetic Ball Visuals): Dynamic trail duration scaling ($0.55\times \to 1.75\times$) with 4-tier color shifts (Frosted Ice Blue `<12`, Electric Cyan `12-17`, Solar Gold `17-20`, Plasma Flame `>20`), preserving custom multi-ball identity colors.
+     - Layer 2 (Event-Driven Floating Text Popups): Interactive floating arcade popups at strike points (`TURBO +10%`, `DAMPEN -1.2`, `STRIKE! +8%`, `BALL SLOWED!`, `SPEED UP! +8%`).
+     - Layer 3 (Cockpit HUD Speed Pod): Integrated `#speed-container` pod with invariant culture formatting (`1.0x`, `1.2x`), tier glow styles, and micro punch-pops on speed changes.
+     - All 312 EditMode tests passing with 100% pass rate.
+  13. **VFX Graph Removal, Code Cleanup & Test Modernization**:
+     - Package Removal: Cleanly removed `com.unity.visualeffectgraph` (`17.6.0`) from `Packages/manifest.json` and resolved lockfile; removed `UnityEngine.VFXModule` from `Arcade.Gameplay.asmdef`.
+     - Shard Emitter Inlining & Dead File Deletion: Inlined mesh particle burst logic directly into `SetupVFXPrefabs.cs` (`SetupBlockShatterPrefab`), deleted redundant `SetupBlockShatterVFX.cs` and obsolete handoff document `CODEX.md`.
+     - Dead Functions & Fields Cleanup: Removed dead method `GetOrCreateParticleMaterial()` and unused static field `defaultParticleMaterial` in `PowerupCapsule.cs`; removed unused field `maxDeflectionAngleDegrees` in `BallController.cs`; removed duplicate constant in `BlockModifier.cs`; wired `laserDuration` in `ArcadeGameManager.cs`.
+     - Test Suite Modernization: Replaced deprecated `FindObjectsByType<T>(FindObjectsSortMode.None)` calls with `FindObjectsByType<T>()` in `BlockBreakerCoreTests.cs` and `ArcadeGameManager.cs`.
+     - All 312 EditMode tests passing with 100% pass rate.
+
 

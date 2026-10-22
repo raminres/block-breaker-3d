@@ -308,12 +308,17 @@ namespace Arcade.BlockBreaker
 
         private void EnsureHyperBeamObject()
         {
-            if (hyperBeamObject == null && laserGunRoot != null)
+            if (hyperBeamObject == null)
             {
-                var childBeam = laserGunRoot.transform.Find("VFX_Railgun_HyperBeam");
-                if (childBeam != null)
+                if (laserGunRoot != null)
                 {
-                    hyperBeamObject = childBeam.gameObject;
+                    var childBeam = laserGunRoot.transform.Find("VFX_Railgun_HyperBeam");
+                    if (childBeam != null) hyperBeamObject = childBeam.gameObject;
+                }
+                if (hyperBeamObject == null)
+                {
+                    var childBeam = transform.Find("laser_gun/VFX_Railgun_HyperBeam") ?? transform.Find("VFX_Railgun_HyperBeam");
+                    if (childBeam != null) hyperBeamObject = childBeam.gameObject;
                 }
             }
 
@@ -367,14 +372,16 @@ namespace Arcade.BlockBreaker
             Collider[] hits = Physics.OverlapBox(beamCenter, halfExtents, Quaternion.identity);
             for (int i = 0; i < hits.Length; i++)
             {
+                if (hits[i] == null) continue;
                 var block = hits[i].GetComponent<Block>() ?? hits[i].GetComponentInParent<Block>();
                 if (block != null && !block.IsDestroyed)
                 {
+                    Vector3 hitPos = hits[i] != null ? hits[i].transform.position : transform.position;
                     block.TakeHit(Vector3.down);
 
                     if (BlockVFXManager.Instance != null)
                     {
-                        BlockVFXManager.Instance.PlayPowerupCollect(hits[i].transform.position, new Color(1f, 0.2f, 0.35f, 1f));
+                        BlockVFXManager.Instance.PlayPowerupCollect(hitPos, new Color(1f, 0.2f, 0.35f, 1f));
                     }
                 }
             }

@@ -54,7 +54,6 @@ namespace Arcade.BlockBreaker
         public static GameObject HazardPrefab { get; set; }
 
         private static Material defaultCapsuleMaterial;
-        private static Material defaultParticleMaterial;
 
         public static void SetDefaultMaterial(Material mat)
         {
@@ -91,33 +90,6 @@ namespace Arcade.BlockBreaker
             }
 
             return defaultCapsuleMaterial;
-        }
-
-        public static Material GetOrCreateParticleMaterial()
-        {
-            if (defaultParticleMaterial != null) return defaultParticleMaterial;
-
-#if UNITY_EDITOR
-            var editorMat = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_VFX_Burst.mat");
-            if (editorMat != null)
-            {
-                defaultParticleMaterial = editorMat;
-                return defaultParticleMaterial;
-            }
-#endif
-
-            var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit")
-                      ?? Shader.Find("Arcade/VFX_ParticleBurst");
-
-            if (shader != null)
-            {
-                defaultParticleMaterial = new Material(shader)
-                {
-                    name = "M_Drop_Trail_Fallback"
-                };
-            }
-
-            return defaultParticleMaterial;
         }
 
         private void Awake()
@@ -323,10 +295,13 @@ namespace Arcade.BlockBreaker
                 capsuleRenderer = visualCapsuleTransform.gameObject.AddComponent<MeshRenderer>();
             }
 
-            Material resolvedMat = baseMat ?? GetOrCreateCapsuleMaterial();
-            if (resolvedMat != null && capsuleRenderer.sharedMaterial != resolvedMat)
+            if (baseMat != null)
             {
-                capsuleRenderer.sharedMaterial = resolvedMat;
+                capsuleRenderer.sharedMaterial = baseMat;
+            }
+            else if (capsuleRenderer.sharedMaterial == null)
+            {
+                capsuleRenderer.sharedMaterial = GetOrCreateCapsuleMaterial();
             }
 
             // 3. Resolve primary icon child (parented under Visual_Capsule or root)
@@ -800,17 +775,28 @@ namespace Arcade.BlockBreaker
             GameObject template = isHazard ? HazardPrefab : PowerupPrefab;
             if (template == null)
             {
+                if (ArcadeGameManager.Instance != null)
+                {
+                    template = isHazard ? ArcadeGameManager.Instance.HazardPrefab : ArcadeGameManager.Instance.PowerupPrefab;
+                }
+                if (template == null && LevelGenerator.Instance != null)
+                {
+                    template = isHazard ? LevelGenerator.Instance.HazardPrefab : LevelGenerator.Instance.PowerupPrefab;
+                }
 #if UNITY_EDITOR
-                string path = isHazard 
-                    ? "Assets/Prefabs/Powerups/PF_Drop_Hazard.prefab" 
-                    : "Assets/Prefabs/Powerups/PF_Drop_Powerup.prefab";
-                template = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (template == null)
+                {
+                    string path = isHazard 
+                        ? "Assets/Prefabs/Powerups/PF_Drop_Hazard.prefab" 
+                        : "Assets/Prefabs/Powerups/PF_Drop_Powerup.prefab";
+                    template = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                }
+#endif
                 if (template != null)
                 {
                     if (isHazard) HazardPrefab = template;
                     else PowerupPrefab = template;
                 }
-#endif
             }
 
             PowerupCapsule comp;
@@ -838,6 +824,24 @@ namespace Arcade.BlockBreaker
                 box.center = new Vector3(0f, 0f, 1.0f);
 
                 comp = rootGo.AddComponent<PowerupCapsule>();
+
+                // Fallback visual children so drop is NEVER invisible even without prefabs
+                var modelGo = GameObject.CreatePrimitive(isHazard ? PrimitiveType.Cube : PrimitiveType.Capsule);
+                modelGo.name = "Visual_Capsule";
+                modelGo.transform.SetParent(rootGo.transform, false);
+                modelGo.transform.localPosition = Vector3.zero;
+                modelGo.transform.localScale = isHazard ? new Vector3(0.72f, 0.72f, 0.72f) : new Vector3(0.85f, 0.85f, 0.85f);
+                if (isHazard) modelGo.transform.localRotation = Quaternion.Euler(45f, 45f, 0f);
+                var modelCol = modelGo.GetComponent<Collider>();
+                if (modelCol != null) Object.DestroyImmediate(modelCol);
+
+                var spriteGo = new GameObject("Icon_Billboard");
+                spriteGo.transform.SetParent(modelGo.transform, false);
+                spriteGo.transform.localPosition = new Vector3(0f, 0f, -0.24f);
+                spriteGo.transform.localRotation = Quaternion.identity;
+                spriteGo.transform.localScale = Vector3.one;
+                var sr = spriteGo.AddComponent<SpriteRenderer>();
+                sr.sortingOrder = 35;
             }
 
             baseMat = baseMat ?? GetOrCreateCapsuleMaterial();

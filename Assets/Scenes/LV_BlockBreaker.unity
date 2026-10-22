@@ -1915,6 +1915,21 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f7d398200b0ad1648ad39ac2921e3637, type: 2}
   - {fileID: 11400000, guid: 3dcd60ff99156594ca00e421fc58cbb3, type: 2}
   - {fileID: 11400000, guid: 9f193029f0926044caf5e4f530ecdb91, type: 2}
+  - {fileID: 11400000, guid: bba32e22917eed84fbf3fecb5b271d3c, type: 2}
+  - {fileID: 11400000, guid: f56271547925c784184d983a641cbbdf, type: 2}
+  - {fileID: 11400000, guid: 9489ae41f6cb15c4d96c8d2c0d883348, type: 2}
+  - {fileID: 11400000, guid: a1422b1d776b72747b8f79ea6f3c2742, type: 2}
+  - {fileID: 11400000, guid: 9cad68974120012468884e1eca9824f8, type: 2}
+  - {fileID: 11400000, guid: e318f65074acdb2428e7132b4f50254f, type: 2}
+  - {fileID: 11400000, guid: bc5b73e4f71e91f47b239bce2c4fe815, type: 2}
+  - {fileID: 11400000, guid: 27ff2dc8d3e41d14d985a31858c8ec7f, type: 2}
+  - {fileID: 11400000, guid: b35975b90a349ed45a319cf309f516ec, type: 2}
+  - {fileID: 11400000, guid: a8820999c5cd614439da37c36c9067d6, type: 2}
+  - {fileID: 11400000, guid: f0e9394b424777849bcea7750132cd8c, type: 2}
+  - {fileID: 11400000, guid: 3addb6a32f0dc744f9320a053294b82c, type: 2}
+  - {fileID: 11400000, guid: 2a38eb067a01ece4396b3b23af1cabf4, type: 2}
+  - {fileID: 11400000, guid: d54d90cc33ea3bd49a55b5c06730419e, type: 2}
+  - {fileID: 11400000, guid: b1f820ba760e64d45bf60c0af0f68738, type: 2}
   currentLevelConfig: {fileID: 0}
   fallbackColumns: 8
   fallbackRowsPerTier: 2
@@ -1927,6 +1942,8 @@ MonoBehaviour:
   prefabBlueBlock: {fileID: 6264034009996882197, guid: 1283cbd85b1a65346a86a020757b6d6a, type: 3}
   prefabBombBlock: {fileID: 1607807769817580636, guid: 610fdbdde6882db408c036b2aa592cc9, type: 3}
   prefabGlassBlock: {fileID: 2888217756340472138, guid: b5d42ce400159c546b624d73f4e20b72, type: 3}
+  powerupPrefab: {fileID: 6489925748099566146, guid: f75a633b4bf42bf498b2ac9d495e90f9, type: 3}
+  hazardPrefab: {fileID: 7615715025053180717, guid: 7958daaa9eb710849ab1d20680725d25, type: 3}
   matRedBlock: {fileID: 2100000, guid: fabb4170ab6eb3d4b9dbc0288c50f0a0, type: 2}
   matGreenBlock: {fileID: 2100000, guid: 02e0e52ddca62014cb30af9990efdbf3, type: 2}
   matBlueBlock: {fileID: 2100000, guid: a1c7a04e981c8004d9ace0f4051923b8, type: 2}
@@ -1951,12 +1968,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Arcade.Gameplay::Arcade.BlockBreaker.BlockVFXManager
   shatterPrefab: {fileID: 9205630907326690141, guid: 78965bd2456d0214db20f5ec1539e07d, type: 3}
+  powerupCollectPrefab: {fileID: 775472019495299698, guid: c438767ecd4458b4a98a9db8a6e8123b, type: 3}
+  paddleSparkPrefab: {fileID: 1328701661906975844, guid: 951b7a1c5e9ca8344b7668828021852c, type: 3}
+  bombExplosionPrefab: {fileID: 4290353796339332526, guid: a1030a6ac7d5d614e9937388a1e76a48, type: 3}
   particleMaterial: {fileID: 2100000, guid: f33d2b3b2fbea8245b1c597f63336517, type: 2}
   debrisMaterial: {fileID: 2100000, guid: e29da11f8c92b13489cde88e28e969d2, type: 2}
-  materialRed: {fileID: 0}
-  materialGreen: {fileID: 0}
-  materialBlue: {fileID: 0}
-  materialGlass: {fileID: 0}
+  materialRed: {fileID: 2100000, guid: fabb4170ab6eb3d4b9dbc0288c50f0a0, type: 2}
+  materialGreen: {fileID: 2100000, guid: 02e0e52ddca62014cb30af9990efdbf3, type: 2}
+  materialBlue: {fileID: 2100000, guid: a1c7a04e981c8004d9ace0f4051923b8, type: 2}
+  materialGlass: {fileID: 2100000, guid: b2d8e04e981c8004d9ace0f4051923c9, type: 2}
   largeParticleMeshes: []
   smallParticleMeshes: []
   frostParticleMeshes: []
@@ -2019,6 +2039,8 @@ MonoBehaviour:
   clutchMultiplier: 1
   powerupCapsuleMaterial: {fileID: 2100000, guid: be5e42fbaef425b4ca014c8ea4b242c4, type: 2}
   shieldWallPrefab: {fileID: 5640916559723417570, guid: 0611947c313bc3140b165b4cc2020137, type: 3}
+  powerupPrefab: {fileID: 6489925748099566146, guid: f75a633b4bf42bf498b2ac9d495e90f9, type: 3}
+  hazardPrefab: {fileID: 7615715025053180717, guid: 7958daaa9eb710849ab1d20680725d25, type: 3}
 --- !u!4 &1587829263
 Transform:
   m_ObjectHideFlags: 0

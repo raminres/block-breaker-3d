@@ -178,6 +178,26 @@ namespace Arcade.UI
                 fullBleedRoot.style.paddingTop = Length.Percent(0);
                 fullBleedRoot.style.paddingBottom = Length.Percent(0);
             }
+
+            // Fullscreen modals (e.g. How To Play) expand edge-to-edge but protect their content
+            // from phone/tablet notches, camera cutouts, rounded corners, and home indicator bars
+            var fullscreenSafeAreaElements = root.Query<VisualElement>(className: "safe-area-fullscreen").ToList();
+            foreach (var elem in fullscreenSafeAreaElements)
+            {
+                elem.style.paddingLeft = Length.Percent(leftPct);
+                elem.style.paddingRight = Length.Percent(rightPct);
+                elem.style.paddingTop = Length.Percent(topPct);
+                elem.style.paddingBottom = Length.Percent(bottomPct);
+            }
+
+            var howToPlayCard = root.Q<VisualElement>("how-to-play-card") ?? root.Q<VisualElement>(className: "how-to-play-card");
+            if (howToPlayCard != null && !fullscreenSafeAreaElements.Contains(howToPlayCard))
+            {
+                howToPlayCard.style.paddingLeft = Length.Percent(leftPct);
+                howToPlayCard.style.paddingRight = Length.Percent(rightPct);
+                howToPlayCard.style.paddingTop = Length.Percent(topPct);
+                howToPlayCard.style.paddingBottom = Length.Percent(bottomPct);
+            }
         }
 
         /// <summary>
