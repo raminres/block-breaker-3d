@@ -179,8 +179,202 @@ namespace Arcade.Editor
                 parTime: 70f, timeBonusMax: 7000, starThresholds: new[] { 12500, 25000, 36000 },
                 paddleShorteners: 2, paddleSlowers: 2, brickFreezers: 3, ballSizeDecreasers: 2, ballSlowers: 2, paddleFreezers: 2);
 
+            // Level 16: Twin Peaks (Pyramid)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_16.asset", 16, "Level 16: Twin Peaks",
+                "Steep dual-mountain formation with narrow ravines. Channel high-velocity balls between peaks while dodging dual shortener powerdowns.",
+                BlockColorPattern.Checkerboard, LevelLayoutType.Pyramid, 14, 2, 1.50f, 4.5f,
+                mult2x: 2, mult3x: 2, mult4x: 2, mult5x: 2, expanders: 2, bombs: 3, glass: 4, heart: 2, shield: 2, multiBall: 2,
+                laser: 1, customLayout: null, shieldDuration: 10f,
+                parTime: 65f, timeBonusMax: 7500, starThresholds: new[] { 13000, 26000, 38000 },
+                paddleShorteners: 2, paddleSlowers: 2, brickFreezers: 3, ballSizeDecreasers: 2, ballSlowers: 2, paddleFreezers: 2);
+
+            // Level 17: Inverted Citadel (InvertedPyramid)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_17.asset", 17, "Level 17: Inverted Citadel",
+                "Massive downward-pointing fortress funnel. Precision deflections are required to crack the fortified glass base without dropping below.",
+                BlockColorPattern.InvertedTiered, LevelLayoutType.InvertedPyramid, 14, 2, 1.52f, 4.5f,
+                mult2x: 2, mult3x: 2, mult4x: 2, mult5x: 2, expanders: 2, bombs: 4, glass: 4, heart: 2, shield: 2, multiBall: 2,
+                laser: 1, customLayout: null, shieldDuration: 10f,
+                parTime: 65f, timeBonusMax: 7500, starThresholds: new[] { 13500, 27000, 40000 },
+                paddleShorteners: 2, paddleSlowers: 2, brickFreezers: 3, ballSizeDecreasers: 2, ballSlowers: 2, paddleFreezers: 2);
+
+            // Level 18: Iron Bastion (Castle)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_18.asset", 18, "Level 18: Iron Bastion",
+                "Heavily fortified medieval ramparts. Watchtowers flanked by explosive bombs and reinforced glass shells tested under accelerated speeds.",
+                BlockColorPattern.Randomized, LevelLayoutType.Castle, 14, 2, 1.54f, 4.5f,
+                mult2x: 2, mult3x: 2, mult4x: 2, mult5x: 2, expanders: 2, bombs: 4, glass: 5, heart: 2, shield: 2, multiBall: 2,
+                laser: 1, customLayout: null, shieldDuration: 10f,
+                parTime: 70f, timeBonusMax: 8000, starThresholds: new[] { 14000, 28000, 42000 },
+                paddleShorteners: 2, paddleSlowers: 2, brickFreezers: 3, ballSizeDecreasers: 3, ballSlowers: 2, paddleFreezers: 2);
+
+            // Level 19: Quantum Pillars (Pillars)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_19.asset", 19, "Level 19: Quantum Pillars",
+                "High-density vertical colonnades. Ball ricochets bounce rapidly between close-quartered stone pillars at extreme velocities.",
+                BlockColorPattern.Checkerboard, LevelLayoutType.Pillars, 14, 2, 1.56f, 4.5f,
+                mult2x: 2, mult3x: 2, mult4x: 2, mult5x: 2, expanders: 2, bombs: 4, glass: 4, heart: 2, shield: 2, multiBall: 2,
+                laser: 2, customLayout: null, shieldDuration: 10f,
+                parTime: 60f, timeBonusMax: 8000, starThresholds: new[] { 14500, 29000, 44000 },
+                paddleShorteners: 2, paddleSlowers: 2, brickFreezers: 3, ballSizeDecreasers: 3, ballSlowers: 2, paddleFreezers: 2);
+
+            // Level 20: The Vortex (Hourglass)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_20.asset", 20, "Level 20: The Vortex",
+                "The mid-campaign bottleneck hourglass! Thread the ultra-narrow waist with a slimmed paddle while tracking blazing 1.58x velocities.",
+                BlockColorPattern.InvertedTiered, LevelLayoutType.Hourglass, 14, 2, 1.58f, 4.5f,
+                mult2x: 2, mult3x: 2, mult4x: 2, mult5x: 2, expanders: 2, bombs: 4, glass: 5, heart: 2, shield: 2, multiBall: 2,
+                laser: 2, customLayout: null, shieldDuration: 10f,
+                parTime: 65f, timeBonusMax: 8500, starThresholds: new[] { 15000, 30000, 46000 },
+                paddleShorteners: 3, paddleSlowers: 2, brickFreezers: 3, ballSizeDecreasers: 3, ballSlowers: 2, paddleFreezers: 2);
+
+            // Level 21: Double Cross (Cross)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_21.asset", 21, "Level 21: Double Cross",
+                "Dual interlocking crossfire sectors. Rapid directional deflections test your active kinetic strikes and cushion paddle control.",
+                BlockColorPattern.Checkerboard, LevelLayoutType.Cross, 14, 2, 1.60f, 4.4f,
+                mult2x: 2, mult3x: 2, mult4x: 2, mult5x: 2, expanders: 2, bombs: 4, glass: 5, heart: 2, shield: 2, multiBall: 2,
+                laser: 2, customLayout: null, shieldDuration: 10f,
+                parTime: 65f, timeBonusMax: 8500, starThresholds: new[] { 16000, 32000, 48000 },
+                paddleShorteners: 3, paddleSlowers: 2, brickFreezers: 3, ballSizeDecreasers: 3, ballSlowers: 2, paddleFreezers: 2);
+
+            // Level 22: Aegis Bastion (Shield)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_22.asset", 22, "Level 22: Aegis Bastion",
+                "Impenetrable heraldic armor crest. Arm yourself with laser blasters and kinetic shields to breach heavily shielded perimeter tiers.",
+                BlockColorPattern.InvertedTiered, LevelLayoutType.Shield, 14, 2, 1.62f, 4.4f,
+                mult2x: 2, mult3x: 2, mult4x: 2, mult5x: 2, expanders: 2, bombs: 4, glass: 5, heart: 2, shield: 3, multiBall: 2,
+                laser: 2, customLayout: null, shieldDuration: 10f,
+                parTime: 70f, timeBonusMax: 9000, starThresholds: new[] { 17000, 34000, 50000 },
+                paddleShorteners: 3, paddleSlowers: 2, brickFreezers: 3, ballSizeDecreasers: 3, ballSlowers: 2, paddleFreezers: 2);
+
+            // Level 23: Alien Swarm (Invader)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_23.asset", 23, "Level 23: Alien Swarm",
+                "Dense 8-bit mothership invader armada! Multiple multi-ball drops trigger frantic multi-angle battles against advancing freeze hazards.",
+                BlockColorPattern.Randomized, LevelLayoutType.Invader, 14, 2, 1.64f, 4.4f,
+                mult2x: 2, mult3x: 2, mult4x: 2, mult5x: 2, expanders: 2, bombs: 4, glass: 5, heart: 2, shield: 3, multiBall: 3,
+                laser: 2, customLayout: null, shieldDuration: 10f,
+                parTime: 65f, timeBonusMax: 9000, starThresholds: new[] { 18000, 36000, 53000 },
+                paddleShorteners: 3, paddleSlowers: 2, brickFreezers: 4, ballSizeDecreasers: 3, ballSlowers: 2, paddleFreezers: 2);
+
+            // Level 24: Imperial Crown (Crown)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_24.asset", 24, "Level 24: Imperial Crown",
+                "Ornate triple-jeweled royal diadem. Massive score rewards with five 5X combo multipliers balanced against intense debuff barrage.",
+                BlockColorPattern.InvertedTiered, LevelLayoutType.Crown, 14, 2, 1.66f, 4.4f,
+                mult2x: 2, mult3x: 2, mult4x: 2, mult5x: 3, expanders: 2, bombs: 4, glass: 5, heart: 2, shield: 3, multiBall: 3,
+                laser: 2, customLayout: null, shieldDuration: 10f,
+                parTime: 70f, timeBonusMax: 9500, starThresholds: new[] { 19000, 38000, 56000 },
+                paddleShorteners: 3, paddleSlowers: 3, brickFreezers: 4, ballSizeDecreasers: 3, ballSlowers: 2, paddleFreezers: 2);
+
+            // Level 25: Phoenix Wings (Chevron)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_25.asset", 25, "Level 25: Phoenix Wings",
+                "Swept-forward chevron wings cutting across the cosmos. Extreme lateral angle deflections demand swift paddle reflexes.",
+                BlockColorPattern.Checkerboard, LevelLayoutType.Chevron, 14, 2, 1.68f, 4.4f,
+                mult2x: 2, mult3x: 2, mult4x: 2, mult5x: 3, expanders: 2, bombs: 4, glass: 5, heart: 2, shield: 3, multiBall: 3,
+                laser: 2, customLayout: null, shieldDuration: 10f,
+                parTime: 65f, timeBonusMax: 9500, starThresholds: new[] { 20000, 40000, 60000 },
+                paddleShorteners: 3, paddleSlowers: 3, brickFreezers: 4, ballSizeDecreasers: 3, ballSlowers: 2, paddleFreezers: 2);
+
+            // Level 26: Void Lattice (CheckerboardEmpty)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_26.asset", 26, "Level 26: Void Lattice",
+                "Sub-atomic quantum particle mesh. High permeability lets the ball penetrate deep into back ranks for explosive top-tier ricochets.",
+                BlockColorPattern.Randomized, LevelLayoutType.CheckerboardEmpty, 14, 2, 1.70f, 4.2f,
+                mult2x: 2, mult3x: 2, mult4x: 3, mult5x: 3, expanders: 2, bombs: 4, glass: 5, heart: 2, shield: 3, multiBall: 3,
+                laser: 2, customLayout: null, shieldDuration: 10f,
+                parTime: 65f, timeBonusMax: 10000, starThresholds: new[] { 22000, 44000, 65000 },
+                paddleShorteners: 3, paddleSlowers: 3, brickFreezers: 4, ballSizeDecreasers: 3, ballSlowers: 3, paddleFreezers: 2);
+
+            // Level 27: Cosmic Matrix (FullGrid)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_27.asset", 27, "Level 27: Cosmic Matrix",
+                "Full 84-brick solid grid wall! Dense, relentless, and unforgiving. Clear corridors with precision active strikes to pierce the veil.",
+                BlockColorPattern.InvertedTiered, LevelLayoutType.FullGrid, 14, 2, 1.72f, 4.2f,
+                mult2x: 2, mult3x: 2, mult4x: 3, mult5x: 3, expanders: 2, bombs: 5, glass: 6, heart: 2, shield: 3, multiBall: 3,
+                laser: 2, customLayout: null, shieldDuration: 10f,
+                parTime: 80f, timeBonusMax: 10000, starThresholds: new[] { 24000, 48000, 70000 },
+                paddleShorteners: 3, paddleSlowers: 3, brickFreezers: 4, ballSizeDecreasers: 3, ballSlowers: 3, paddleFreezers: 2);
+
+            // Level 28: Hyperion Ring (HollowBox)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_28.asset", 28, "Level 28: Hyperion Ring",
+                "Double-walled containment arena surrounding a hollow kinetic chamber. Master high-speed rebounds inside the heart of the ring.",
+                BlockColorPattern.Checkerboard, LevelLayoutType.HollowBox, 14, 2, 1.74f, 4.2f,
+                mult2x: 2, mult3x: 3, mult4x: 3, mult5x: 3, expanders: 2, bombs: 5, glass: 6, heart: 2, shield: 3, multiBall: 3,
+                laser: 2, customLayout: null, shieldDuration: 10f,
+                parTime: 70f, timeBonusMax: 10000, starThresholds: new[] { 26000, 52000, 75000 },
+                paddleShorteners: 3, paddleSlowers: 3, brickFreezers: 4, ballSizeDecreasers: 3, ballSlowers: 3, paddleFreezers: 3);
+
+            // Level 29: Cyber Grid (Stripes)
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_29.asset", 29, "Level 29: Cyber Grid",
+                "Segmented frequency wave bands. Navigate balls through open clearance channels to detonate clustered explosive caches.",
+                BlockColorPattern.InvertedTiered, LevelLayoutType.Stripes, 14, 2, 1.76f, 4.2f,
+                mult2x: 2, mult3x: 3, mult4x: 3, mult5x: 3, expanders: 2, bombs: 5, glass: 6, heart: 2, shield: 3, multiBall: 3,
+                laser: 2, customLayout: null, shieldDuration: 10f,
+                parTime: 75f, timeBonusMax: 10000, starThresholds: new[] { 28000, 56000, 80000 },
+                paddleShorteners: 3, paddleSlowers: 3, brickFreezers: 4, ballSizeDecreasers: 3, ballSlowers: 3, paddleFreezers: 3);
+
+            // Level 30: Singularity Core (Custom)
+            string lvl30Custom =
+                ".XXXXXXXXXXXX.\n" +
+                "XX..XXXXXX..XX\n" +
+                "XXXX..XX..XXXX\n" +
+                "XXXX..XX..XXXX\n" +
+                "XX..XXXXXX..XX\n" +
+                ".XXXXXXXXXXXX.";
+            CreateOrConfigureLevel("Assets/Settings/Levels/SO_Level_30.asset", 30, "Level 30: Singularity Core",
+                "The 30-level Grand Master Climax! Custom hyper-density ASCII star core running at blistering 1.80x speed with maximal hazard barrage!",
+                BlockColorPattern.Randomized, LevelLayoutType.Custom, 14, 2, 1.80f, 4.2f,
+                mult2x: 3, mult3x: 3, mult4x: 3, mult5x: 4, expanders: 2, bombs: 6, glass: 6, heart: 2, shield: 3, multiBall: 3,
+                laser: 2, customLayout: lvl30Custom, shieldDuration: 10f,
+                parTime: 85f, timeBonusMax: 12000, starThresholds: new[] { 32000, 64000, 95000 },
+                paddleShorteners: 3, paddleSlowers: 3, brickFreezers: 4, ballSizeDecreasers: 4, ballSlowers: 3, paddleFreezers: 3);
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+
+        [MenuItem("Tools/Arcade/Update Scenes Level References")]
+        public static void UpdateScenesLevelReferences()
+        {
+            CreateOrUpdateLevelPresets();
+
+            // 1. Update Main Menu scene
+            string mainMenuPath = "Assets/Scenes/LV_BlockBreaker_MainMenu.unity";
+            if (File.Exists(mainMenuPath))
+            {
+                var scene = EditorSceneManager.OpenScene(mainMenuPath, OpenSceneMode.Single);
+                var menuMgr = Object.FindAnyObjectByType<MainMenuUIManager>();
+                if (menuMgr != null)
+                {
+                    var so = new SerializedObject(menuMgr);
+                    var presetsProp = so.FindProperty("levelPresets");
+                    presetsProp.arraySize = 30;
+                    for (int i = 0; i < 30; i++)
+                    {
+                        var lvl = AssetDatabase.LoadAssetAtPath<LevelConfiguration>($"Assets/Settings/Levels/SO_Level_{i + 1:D2}.asset");
+                        presetsProp.GetArrayElementAtIndex(i).objectReferenceValue = lvl;
+                    }
+                    so.ApplyModifiedProperties();
+                    EditorSceneManager.MarkSceneDirty(scene);
+                    EditorSceneManager.SaveScene(scene);
+                    Debug.Log("<color=green>Updated MainMenu levelPresets to 30 levels.</color>");
+                }
+            }
+
+            // 2. Update Gameplay scene
+            string gameplayPath = "Assets/Scenes/LV_BlockBreaker.unity";
+            if (File.Exists(gameplayPath))
+            {
+                var scene = EditorSceneManager.OpenScene(gameplayPath, OpenSceneMode.Single);
+                var levelGen = Object.FindAnyObjectByType<LevelGenerator>();
+                if (levelGen != null)
+                {
+                    var so = new SerializedObject(levelGen);
+                    var presetsProp = so.FindProperty("levelPresets");
+                    presetsProp.arraySize = 30;
+                    for (int i = 0; i < 30; i++)
+                    {
+                        var lvl = AssetDatabase.LoadAssetAtPath<LevelConfiguration>($"Assets/Settings/Levels/SO_Level_{i + 1:D2}.asset");
+                        presetsProp.GetArrayElementAtIndex(i).objectReferenceValue = lvl;
+                    }
+                    so.ApplyModifiedProperties();
+                    EditorSceneManager.MarkSceneDirty(scene);
+                    EditorSceneManager.SaveScene(scene);
+                    Debug.Log("<color=green>Updated LevelGenerator levelPresets to 30 levels.</color>");
+                }
+            }
         }
 
         private static void CreateOrConfigureLevel(string path, int levelNumber, string name, string desc,
@@ -328,8 +522,8 @@ namespace Arcade.Editor
             var menuMgr = uiGo.AddComponent<MainMenuUIManager>();
             var menuSo = new SerializedObject(menuMgr);
             var menuPresetsProp = menuSo.FindProperty("levelPresets");
-            menuPresetsProp.arraySize = 15;
-            for (int i = 0; i < 15; i++)
+            menuPresetsProp.arraySize = 30;
+            for (int i = 0; i < 30; i++)
             {
                 var lvl = AssetDatabase.LoadAssetAtPath<LevelConfiguration>($"Assets/Settings/Levels/SO_Level_{i + 1:D2}.asset");
                 menuPresetsProp.GetArrayElementAtIndex(i).objectReferenceValue = lvl;
@@ -527,8 +721,8 @@ namespace Arcade.Editor
             if (pHazard != null) levelSo.FindProperty("hazardPrefab").objectReferenceValue = pHazard;
 
             var presetsProp = levelSo.FindProperty("levelPresets");
-            presetsProp.arraySize = 15;
-            for (int i = 0; i < 15; i++)
+            presetsProp.arraySize = 30;
+            for (int i = 0; i < 30; i++)
             {
                 var lvl = AssetDatabase.LoadAssetAtPath<LevelConfiguration>($"Assets/Settings/Levels/SO_Level_{i + 1:D2}.asset");
                 presetsProp.GetArrayElementAtIndex(i).objectReferenceValue = lvl;

@@ -16,10 +16,10 @@ This file provides foundational mandates, architectural maps, key mathematical c
   - Editor Tools: `Assets/Editor/` (Assembly: `Arcade.Editor.asmdef`)
   - Prefabs: `Assets/Prefabs/` (100% prefab-driven suite: Arena, Paddle, Balls, Blocks, Powerups)
   - Materials: `Assets/Materials/BlockBreaker/` (`MT_Master_PBR_URP.mat` master, `MI_*` instances)
-  - Settings: `Assets/Settings/` (Levels `SO_Level_01` to `SO_Level_15`, `SO_PowerupIcons.asset`, URP Profiles)
+  - Settings: `Assets/Settings/` (Levels `SO_Level_01` to `SO_Level_30`, `SO_PowerupIcons.asset`, URP Profiles)
   - Localization: `Assets/Localization/` (`Locales/`, `Tables/`, `LocalizationSettings.asset`)
   - UI Assets: `Assets/UI/` (UXML, USS, Fonts, Icons, procedural gradients under `Textures/Gradients/`)
-  - Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 279 EditMode NUnit unit & integration tests)
+  - Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 308 EditMode NUnit unit & integration tests)
 
 ---
 
@@ -151,7 +151,7 @@ This file provides foundational mandates, architectural maps, key mathematical c
 - **Lone Block Countdown**: Triggered when exactly 1 brick remains. Starts a 12s countdown with score multiplier decaying from $10\times \to 1\times$.
 - **Railgun Hyper-Beam**: On countdown expiration, fires vertical railgun beam ($W \approx 3.2$, surge duration $0.65\text{s}$), destroying remaining bricks.
 - **Victory Freeze**: When level clears, freeze all ball velocities, lock paddle input, freeze falling capsules, wait $1.0\text{s}$ (or $1.5\text{s}$ for Hyper-Beam) before displaying scorecard.
-- **15-Level Campaign**: High-density grids (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with outer flank bumper blocks. Ball speed scales from $0.92\times$ to $1.48\times$, paddle narrows from $5.0\text{u}$ to $4.5\text{u}$, and hazards escalate from 0 to 13.
+- **30-Level Campaign**: High-density grids (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with outer flank bumper blocks. Ball speed scales from $0.92\times$ (Level 1) to $1.80\times$ (Level 30), paddle narrows from $5.0\text{u}$ to $4.2\text{u}$, and hazards escalate from 0 to 20.
 - **Onboarding Block Scale (+20% on Levels 1–3)**: Levels 1, 2, and 3 (`SO_Level_01`, `SO_Level_02`, `SO_Level_03`) feature enlarged blocks (`blockSize = 1.20f`) with adjusted horizontal spacing ($1.50\text{u}, 1.45\text{u}, 1.40\text{u}$) to maximize readability and touch targeting comfort while strictly preserving $> 1.0\text{u}$ clearance to arena walls ($X = \pm 10.25$). Levels 4–15 retain standard $1.00\text{u}$ scale. Runtime setters: `SetBlockSize`, `SetHorizontalSpacing`, `SetVerticalSpacing` in `LevelConfiguration.cs`.
 
 ---
@@ -180,7 +180,7 @@ Use this architectural lookup table to locate subsystems, classes, and responsib
 ---
 
 ## 10. Testing & Verification Command
-All logic, boundaries, prefabs, hazards, scene setups, localization tables, touch ergonomics, and level scaling are strictly verified by **302 automated EditMode NUnit tests**. To execute:
+All logic, boundaries, prefabs, hazards, scene setups, localization tables, touch ergonomics, and level scaling are strictly verified by **308 automated EditMode NUnit tests**. To execute:
 ```bash
 unity cmd run_tests --mode editor --timeout 90
 ```

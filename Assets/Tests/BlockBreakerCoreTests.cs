@@ -42,6 +42,9 @@ namespace Arcade.Tests
             Arcade.Input.ArcadeInputHandler.SetInstanceForTesting(null);
             BlockVFXManager.SetInstanceForTesting(null);
 
+            PowerupCapsule.ClearAllFallingCapsules();
+            LaserBolt.ClearAllActiveBolts();
+
             if (testRoot != null)
             {
                 Object.DestroyImmediate(testRoot);

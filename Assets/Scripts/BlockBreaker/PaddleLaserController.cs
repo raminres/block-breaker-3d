@@ -372,14 +372,16 @@ namespace Arcade.BlockBreaker
             Collider[] hits = Physics.OverlapBox(beamCenter, halfExtents, Quaternion.identity);
             for (int i = 0; i < hits.Length; i++)
             {
+                if (hits[i] == null) continue;
                 var block = hits[i].GetComponent<Block>() ?? hits[i].GetComponentInParent<Block>();
                 if (block != null && !block.IsDestroyed)
                 {
+                    Vector3 hitPos = hits[i] != null ? hits[i].transform.position : transform.position;
                     block.TakeHit(Vector3.down);
 
                     if (BlockVFXManager.Instance != null)
                     {
-                        BlockVFXManager.Instance.PlayPowerupCollect(hits[i].transform.position, new Color(1f, 0.2f, 0.35f, 1f));
+                        BlockVFXManager.Instance.PlayPowerupCollect(hitPos, new Color(1f, 0.2f, 0.35f, 1f));
                     }
                 }
             }

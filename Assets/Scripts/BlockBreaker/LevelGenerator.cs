@@ -63,7 +63,7 @@ namespace Arcade.BlockBreaker
         public void SetIconSet(PowerupIconSet set) => iconSet = set;
         public LevelConfiguration CurrentConfig => currentLevelConfig;
         public LevelConfiguration[] LevelPresets => levelPresets;
-        public int TotalLevels => levelPresets != null && levelPresets.Length > 0 ? levelPresets.Length : 1;
+        public int TotalLevels => levelPresets != null && levelPresets.Length > 0 ? levelPresets.Length : 30;
         public Transform BlocksContainer => blocksContainer;
 
         public GameObject PrefabRedBlock => prefabRedBlock;
@@ -158,14 +158,22 @@ namespace Arcade.BlockBreaker
 
         public LevelConfiguration GetLevelConfig(int levelNumber)
         {
-            if (levelPresets == null) return null;
-            for (int i = 0; i < levelPresets.Length; i++)
+            if (levelPresets != null && levelPresets.Length > 0)
             {
-                if (levelPresets[i] != null && levelPresets[i].LevelNumber == levelNumber)
+                for (int i = 0; i < levelPresets.Length; i++)
                 {
-                    return levelPresets[i];
+                    if (levelPresets[i] != null && levelPresets[i].LevelNumber == levelNumber)
+                    {
+                        return levelPresets[i];
+                    }
                 }
+                return null;
             }
+#if UNITY_EDITOR
+            string path = $"Assets/Settings/Levels/SO_Level_{levelNumber:D2}.asset";
+            var loaded = UnityEditor.AssetDatabase.LoadAssetAtPath<LevelConfiguration>(path);
+            if (loaded != null) return loaded;
+#endif
             return null;
         }
 

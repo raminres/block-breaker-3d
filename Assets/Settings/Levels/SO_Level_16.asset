@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9216ae91f49a9ac4f8812d36de2d4b76, type: 3}
+  m_Name: SO_Level_16
+  m_EditorClassIdentifier: Arcade.Gameplay::Arcade.BlockBreaker.LevelConfiguration
+  levelNumber: 16
+  levelName: 'Level 16: Twin Peaks'
+  levelDescription: Steep dual-mountain formation with narrow ravines. Channel high-velocity balls between peaks while dodging dual shortener powerdowns.
+  layoutType: 2
+  colorPattern: 2
+  columns: 14
+  rowsPerTier: 2
+  blockSize: 1
+  horizontalSpacing: 1.25
+  verticalSpacing: 1.3
+  startCenterY: 15.5
+  includeSideFlanks: 1
+  customLayout: 
+  customLayoutRows: []
+  ballSpeedMultiplier: 1.5
+  initialPaddleWidth: 4.5
+  multiplier2xCount: 2
+  multiplier3xCount: 2
+  multiplier4xCount: 2
+  multiplier5xCount: 2
+  paddleExpanderCount: 2
+  bombCount: 3
+  glassEnclosedCount: 4
+  extraHeartCount: 2
+  shieldCount: 2
+  multiBallCount: 2
+  shieldDuration: 10
+  laserCount: 1
+  laserDuration: 10
+  paddleShortenerCount: 2
+  paddleSlowerCount: 2
+  brickFreezerCount: 3
+  ballSizeDecreaserCount: 2
+  ballSlowerCount: 2
+  paddleFreezerCount: 2
+  parTime: 65
+  timeBonusMax: 7500
+  starThresholds: c83200009065000070940000i

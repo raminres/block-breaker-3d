@@ -129,7 +129,7 @@ High-density technical context and architectural rules for BlockBreaker.
   - `Blocks/`: `PF_Block_Base`, `PF_Block_Red`, `PF_Block_Green`, `PF_Block_Blue`, `PF_Block_Bomb`, `PF_Block_Glass` (4 child sockets: `brick`, `brick frost`, `brick special`, `brick vfx`).
   - `Powerups/`: `PF_Drop_Powerup` (cyan capsule), `PF_Drop_Hazard` (crimson diamond).
 - **Zero Runtime Primitives**: All legacy procedural cube/quad fallbacks (`GameObject.CreatePrimitive`) removed from runtime and scene setups.
-- **Automated Tests**: 295 EditMode tests passing across core physics, normalized prefab parent scales, boundaries, powerups, hazards, UI harmonization, runtime localization tables, touch ergonomics, and level scaling:
+- **Automated Tests**: 308 EditMode tests passing across core physics, normalized prefab parent scales, boundaries, powerups, hazards, UI harmonization, runtime localization tables, touch ergonomics, and level scaling:
   ```bash
   unity cmd run_tests --mode editor
   ```
@@ -162,7 +162,7 @@ High-density technical context and architectural rules for BlockBreaker.
 
 ## 10. Current Handoff State & Verification
 - **Active Branch**: `feature/level-expansion-and-fixes` (Up to date with origin, clean working tree)
-- **Automated Tests**: 302/302 EditMode tests passing (100% pass rate)
+- **Automated Tests**: 308/308 EditMode tests passing (100% pass rate)
 - **Verification Command**:
   ```bash
   unity cmd run_tests --mode editor --timeout 90
@@ -190,6 +190,11 @@ High-density technical context and architectural rules for BlockBreaker.
      - Staggered button cascades: Sequential top-to-bottom entrance (`CascadeIn`) with $0.035\text{s}$ stagger on Main Menu buttons, Pause Menu buttons, Scorecard buttons, and Level Grid selection cards.
      - Tactile button clicks: `PunchButton` micro-depression ($0.93 \to 1.0$ over $0.08\text{s}$) upon tap/click.
      - Punch pops & movement: Score pod punch pop on scoring, combo multiplier badge pop ($1.25\times$ scale) on combo steps, scorecard star bursts ($1.45\times$ scale) on level clear, powerup/hazard badge entrance pops, and continuous breathing scale loop on `TAP TO LAUNCH` banner.
-     - Full EditMode safety: Synchronous fallback for test environments (`!Application.isPlaying`). All 302 EditMode tests passing.
+     - Full EditMode safety: Synchronous fallback for test environments (`!Application.isPlaying`).
+  10. **Day/Month Date Shortening & 30-Level Campaign Expansion**:
+     - Leaderboard Date Shortening: Formatted all high score dates to `dd/MM` via `HighScoreManager.FormatShortDate` with `CultureInfo.InvariantCulture`. Expanded `.score-row-date` USS width to `min-width: 220px` to prevent text intrusion with scores on iPhone screens.
+     - 30-Level Campaign: Created `SO_Level_16` to `SO_Level_30` with speed progression from $0.92\times$ to $1.80\times$, escalating hazards (up to 20), and varied layout archetypes. Connected serialized `levelPresets` across both `LV_BlockBreaker.unity` and `LV_BlockBreaker_MainMenu.unity`.
+     - Level Select UI Expansion: Expanded `.level-modal-card` to `height: 1850px; max-height: 94%;` and `.level-grid-scroll-view` to `height: 920px; flex-grow: 1;` so all 30 level cards fit comfortably with smooth mobile scrolling.
+     - Test Suite Invariants: Fixed `GetLevelConfig` preset-boundary check, safeguarded hyper-beam against destroyed block colliders, and added test cleanup in `BlockBreakerCoreTests`. All 308 tests passing.
 
 

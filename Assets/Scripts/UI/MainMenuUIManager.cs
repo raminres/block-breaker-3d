@@ -276,7 +276,7 @@ namespace Arcade.UI
             if (tabsContainer != null)
             {
                 tabsContainer.Clear();
-                int totalLevels = levelPresets != null && levelPresets.Length > 0 ? levelPresets.Length : 15;
+                int totalLevels = levelPresets != null && levelPresets.Length > 0 ? levelPresets.Length : 30;
                 for (int i = 0; i < totalLevels; i++)
                 {
                     int lvlNum = i + 1;
@@ -780,7 +780,8 @@ namespace Arcade.UI
                     if (i < scores.Count && scores[i].score > 0)
                     {
                         string timeStr = scores[i].time > 0f ? $" • {HighScoreManager.FormatTime(scores[i].time)}" : "";
-                        dateLabel.text = $"L{scores[i].level}{timeStr} • {scores[i].date}";
+                        string shortDate = HighScoreManager.FormatShortDate(scores[i].date);
+                        dateLabel.text = $"L{scores[i].level}{timeStr} • {shortDate}";
                     }
                     else
                         dateLabel.text = "---";

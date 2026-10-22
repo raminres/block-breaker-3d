@@ -1615,10 +1615,11 @@
 }
 
 .score-row-date {
-    font-size: 26px;
+    font-size: 24px;
     color: rgb(100, 116, 139);
-    width: 92px;
+    min-width: 220px;
     -unity-text-align: middle-right;
+    flex-shrink: 0;
 }
 
 .warning-btn {
@@ -2181,7 +2182,8 @@
 }
 
 .level-modal-card {
-    width: 840px;
+    width: 880px;
+    height: 1850px;
     max-height: 94%;
     background-color: rgb(18, 24, 40);
     background-image: url("project://database/Assets/UI/Textures/Gradients/TX_Grad_Card_Bg.png");
@@ -2229,7 +2231,8 @@
 }
 
 .level-grid-scroll-view {
-    height: 540px;
+    height: 920px;
+    flex-grow: 1;
     margin-bottom: 12px;
 }
 

@@ -19,7 +19,7 @@ namespace Arcade.Core
         {
             this.score = score;
             this.level = level;
-            this.date = string.IsNullOrEmpty(date) ? DateTime.Now.ToString("yyyy-MM-dd") : date;
+            this.date = string.IsNullOrEmpty(date) ? DateTime.Now.ToString("dd/MM", System.Globalization.CultureInfo.InvariantCulture) : HighScoreManager.FormatShortDate(date);
             this.time = time;
             this.sessionId = sessionId ?? "";
         }
@@ -108,7 +108,7 @@ namespace Arcade.Core
                     existing.score = Mathf.Max(existing.score, score);
                     existing.level = Mathf.Max(existing.level, level);
                     existing.time = time;
-                    existing.date = DateTime.Now.ToString("yyyy-MM-dd");
+                    existing.date = DateTime.Now.ToString("dd/MM", System.Globalization.CultureInfo.InvariantCulture);
 
                     SortAndClampScores();
                     SaveScores();
@@ -226,6 +226,43 @@ namespace Arcade.Core
             int minutes = totalSeconds / 60;
             int seconds = totalSeconds % 60;
             return $"{minutes:D2}:{seconds:D2}";
+        }
+
+        /// <summary>
+        /// Converts dates (including legacy "yyyy-MM-dd" or full timestamps) into compact day and month format "dd/MM".
+        /// If already "dd/MM", returns it unchanged.
+        /// </summary>
+        public static string FormatShortDate(string dateStr)
+        {
+            if (string.IsNullOrEmpty(dateStr)) return "";
+
+            // If already in dd/MM format
+            if (dateStr.Length == 5 && dateStr[2] == '/')
+            {
+                return dateStr;
+            }
+
+            if (DateTime.TryParse(dateStr, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime dt) ||
+                DateTime.TryParse(dateStr, out dt))
+            {
+                return dt.ToString("dd/MM", System.Globalization.CultureInfo.InvariantCulture);
+            }
+
+            // Fallback parsing for yyyy-MM-dd or yyyy/MM/dd
+            string[] parts = dateStr.Split('-', '/');
+            if (parts.Length == 3)
+            {
+                if (parts[0].Length == 4) // yyyy-MM-dd
+                {
+                    return $"{parts[2]}/{parts[1]}";
+                }
+                if (parts[2].Length == 4) // dd-MM-yyyy or MM-dd-yyyy
+                {
+                    return $"{parts[0]}/{parts[1]}";
+                }
+            }
+
+            return dateStr;
         }
 
         #endregion

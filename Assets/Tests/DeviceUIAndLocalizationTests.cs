@@ -831,6 +831,92 @@ namespace Arcade.Tests
 
             Object.DestroyImmediate(uiObj);
         }
+
+        [Test]
+        public void Test_HighScoreManager_FormatShortDate_FormatsToDayAndMonth()
+        {
+            // Converts legacy yyyy-MM-dd to dd/MM
+            Assert.AreEqual("22/10", HighScoreManager.FormatShortDate("2026-10-22"));
+            Assert.AreEqual("05/03", HighScoreManager.FormatShortDate("2026-03-05"));
+
+            // Preserves dd/MM format
+            Assert.AreEqual("15/08", HighScoreManager.FormatShortDate("15/08"));
+
+            // Handles empty or null strings gracefully
+            Assert.AreEqual("", HighScoreManager.FormatShortDate(""));
+            Assert.AreEqual("", HighScoreManager.FormatShortDate(null));
+        }
+
+        [Test]
+        public void Test_HighScoreEntry_DefaultsToDayAndMonthShortDate()
+        {
+            var entry = new HighScoreEntry(1000, 1);
+            Assert.IsNotNull(entry.date);
+            Assert.AreEqual(5, entry.date.Length, "Date string should be in dd/MM format (length 5).");
+            Assert.AreEqual('/', entry.date[2], "Date string should contain slash separator at index 2.");
+        }
+
+        [Test]
+        public void Test_ScoreRowDate_USSStyling_HasExpandedMinWidthAndShortDateFormatting()
+        {
+            var mainMenuUss = System.IO.File.ReadAllText("Assets/UI/MainMenuUI.uss");
+            Assert.IsTrue(mainMenuUss.Contains(".score-row-date {"), "MainMenuUI.uss must define .score-row-date.");
+            Assert.IsTrue(mainMenuUss.Contains("min-width: 220px;"), "MainMenuUI.uss must define min-width: 220px for .score-row-date.");
+
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains(".score-row-date {"), "BlockBreakerHUD.uss must define .score-row-date.");
+            Assert.IsTrue(hudUss.Contains("min-width: 220px;"), "BlockBreakerHUD.uss must define min-width: 220px for .score-row-date.");
+        }
+
+        [Test]
+        public void Test_Campaign_AllThirtyLevels_ExistWithValidConfigurationAndProgressiveSpeed()
+        {
+            float lastSpeed = 0f;
+            for (int i = 1; i <= 30; i++)
+            {
+                string path = $"Assets/Settings/Levels/SO_Level_{i:D2}.asset";
+                var config = AssetDatabase.LoadAssetAtPath<LevelConfiguration>(path);
+                Assert.IsNotNull(config, $"SO_Level_{i:D2}.asset must exist at {path}.");
+                Assert.AreEqual(i, config.LevelNumber, $"Level {i} must have LevelNumber == {i}.");
+                Assert.IsFalse(string.IsNullOrEmpty(config.LevelName), $"Level {i} must have non-empty LevelName.");
+                Assert.IsFalse(string.IsNullOrEmpty(config.Description), $"Level {i} must have non-empty Description.");
+                Assert.Greater(config.TotalBlocks, 0, $"Level {i} must contain active blocks.");
+
+                Assert.Greater(config.BallSpeedMultiplier, lastSpeed, $"Level {i} speed ({config.BallSpeedMultiplier}) must be faster than previous ({lastSpeed}).");
+                lastSpeed = config.BallSpeedMultiplier;
+            }
+
+            var lvl30 = AssetDatabase.LoadAssetAtPath<LevelConfiguration>("Assets/Settings/Levels/SO_Level_30.asset");
+            Assert.AreEqual(1.80f, lvl30.BallSpeedMultiplier, 0.001f, "Level 30 speed must be 1.80f.");
+            Assert.AreEqual(LevelLayoutType.Custom, lvl30.LayoutType, "Level 30 must be Custom layout archetype.");
+            int lvl30Hazards = lvl30.PaddleShortenerCount + lvl30.PaddleSlowerCount + lvl30.BrickFreezerCount +
+                               lvl30.BallSizeDecreaserCount + lvl30.BallSlowerCount + lvl30.PaddleFreezerCount;
+            Assert.AreEqual(20, lvl30Hazards, "Level 30 must feature 20 hazard blocks for the grand master finale.");
+        }
+
+        [Test]
+        public void Test_Campaign_ThirtyLevels_LevelSelectModalHeightAndScrollViewExpanded()
+        {
+            var mainMenuUss = System.IO.File.ReadAllText("Assets/UI/MainMenuUI.uss");
+            Assert.IsTrue(mainMenuUss.Contains("height: 1850px;"), "MainMenuUI.uss .level-modal-card must have expanded height 1850px.");
+            Assert.IsTrue(mainMenuUss.Contains("height: 920px;"), "MainMenuUI.uss .level-grid-scroll-view must have expanded height 920px.");
+
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains("height: 1850px;"), "BlockBreakerHUD.uss .level-modal-card must have expanded height 1850px.");
+            Assert.IsTrue(hudUss.Contains("height: 920px;"), "BlockBreakerHUD.uss .level-grid-scroll-view must have expanded height 920px.");
+        }
+
+        [Test]
+        public void Test_LevelGenerator_And_MainMenu_SupportThirtyLevels()
+        {
+            var go = new GameObject("TestLevelGen", typeof(LevelGenerator));
+            var gen = go.GetComponent<LevelGenerator>();
+            Assert.AreEqual(30, gen.TotalLevels, "LevelGenerator TotalLevels must default to 30.");
+            var lvl30 = gen.GetLevelConfig(30);
+            Assert.IsNotNull(lvl30, "GetLevelConfig(30) must return Level 30 configuration.");
+            Assert.AreEqual(30, lvl30.LevelNumber);
+            Object.DestroyImmediate(go);
+        }
     }
 }
 
