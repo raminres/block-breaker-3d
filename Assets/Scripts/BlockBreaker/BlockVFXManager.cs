@@ -605,13 +605,23 @@ namespace Arcade.BlockBreaker
                         inst.frostPsr.SetPropertyBlock(debrisPropBlock);
                     }
                     int frostCount = 8;
-                    inst.frostPs.Emit(emitParams, frostCount);
+                    if (inst.frostPs.emission.enabled && inst.frostPs.emission.burstCount > 0)
+                    {
+                        inst.frostPs.Clear();
+                        inst.frostPs.Play();
+                    }
+                    else
+                    {
+                        inst.frostPs.Emit(emitParams, frostCount);
+                    }
                     meshCount += frostCount;
                 }
+                if (inst.largePs != null) { inst.largePs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear); inst.largePs.Clear(); }
+                if (inst.smallPs != null) { inst.smallPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear); inst.smallPs.Clear(); }
             }
             else
             {
-                // Regular or glass block: emit large and small shards matching block material
+                if (inst.frostPs != null) { inst.frostPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear); inst.frostPs.Clear(); }
                 Material targetMat = blockMaterial ?? ResolveMaterialForColor(blockColor);
 
                 // 1. Large shards: some large particles (3 particles)
@@ -623,7 +633,15 @@ namespace Arcade.BlockBreaker
                         inst.largePsr.SetPropertyBlock(debrisPropBlock);
                     }
                     int largeCount = 3;
-                    inst.largePs.Emit(emitParams, largeCount);
+                    if (inst.largePs.emission.enabled && inst.largePs.emission.burstCount > 0)
+                    {
+                        inst.largePs.Clear();
+                        inst.largePs.Play();
+                    }
+                    else
+                    {
+                        inst.largePs.Emit(emitParams, largeCount);
+                    }
                     meshCount += largeCount;
                 }
 
@@ -636,7 +654,15 @@ namespace Arcade.BlockBreaker
                         inst.smallPsr.SetPropertyBlock(debrisPropBlock);
                     }
                     int smallCount = 5;
-                    inst.smallPs.Emit(emitParams, smallCount);
+                    if (inst.smallPs.emission.enabled && inst.smallPs.emission.burstCount > 0)
+                    {
+                        inst.smallPs.Clear();
+                        inst.smallPs.Play();
+                    }
+                    else
+                    {
+                        inst.smallPs.Emit(emitParams, smallCount);
+                    }
                     meshCount += smallCount;
                 }
             }
@@ -652,12 +678,22 @@ namespace Arcade.BlockBreaker
                         inst.sparksPsr.sharedMaterial = pMat;
                     }
                 }
-                ParticleSystem.EmitParams sparkParams = new ParticleSystem.EmitParams
+                if (inst.sparksPs.emission.enabled && inst.sparksPs.emission.burstCount > 0)
                 {
-                    startColor = blockColor * 1.4f,
-                    applyShapeToPosition = true
-                };
-                inst.sparksPs.Emit(sparkParams, 16);
+                    var sm = inst.sparksPs.main;
+                    sm.startColor = blockColor * 1.4f;
+                    inst.sparksPs.Clear();
+                    inst.sparksPs.Play();
+                }
+                else
+                {
+                    ParticleSystem.EmitParams sparkParams = new ParticleSystem.EmitParams
+                    {
+                        startColor = blockColor * 1.4f,
+                        applyShapeToPosition = true
+                    };
+                    inst.sparksPs.Emit(sparkParams, 16);
+                }
             }
 
             inst.elapsed = 0f;
@@ -707,19 +743,30 @@ namespace Arcade.BlockBreaker
                     if (inst.allPsr != null && i < inst.allPsr.Length && inst.allPsr[i] != null)
                     {
                         Material mat = GetOrCreateParticleMaterial();
-                        if (mat != null && inst.allPsr[i].sharedMaterial != mat)
+                        if (!ps.gameObject.name.ToLower().Contains("ring") && mat != null && inst.allPsr[i].sharedMaterial != mat)
                         {
                             inst.allPsr[i].sharedMaterial = mat;
                         }
                     }
 
-                    ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
+                    var main = ps.main;
+                    main.startColor = powerupColor * 1.5f;
+
+                    if (ps.emission.enabled && ps.emission.burstCount > 0)
                     {
-                        startColor = powerupColor * 1.5f,
-                        applyShapeToPosition = true
-                    };
-                    int count = ps.gameObject.name.ToLower().Contains("ring") ? 1 : 28;
-                    ps.Emit(emitParams, count);
+                        ps.Clear();
+                        ps.Play();
+                    }
+                    else
+                    {
+                        ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
+                        {
+                            startColor = powerupColor * 1.5f,
+                            applyShapeToPosition = true
+                        };
+                        int count = ps.gameObject.name.ToLower().Contains("ring") ? 1 : 28;
+                        ps.Emit(emitParams, count);
+                    }
                 }
             }
             else if (inst.sparksPs != null)
@@ -733,13 +780,23 @@ namespace Arcade.BlockBreaker
                     }
                 }
 
-                ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
+                if (inst.sparksPs.emission.enabled && inst.sparksPs.emission.burstCount > 0)
                 {
-                    startColor = powerupColor * 1.5f,
-                    startLifetime = 0.55f,
-                    applyShapeToPosition = true
-                };
-                inst.sparksPs.Emit(emitParams, 32);
+                    var main = inst.sparksPs.main;
+                    main.startColor = powerupColor * 1.5f;
+                    inst.sparksPs.Clear();
+                    inst.sparksPs.Play();
+                }
+                else
+                {
+                    ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
+                    {
+                        startColor = powerupColor * 1.5f,
+                        startLifetime = 0.55f,
+                        applyShapeToPosition = true
+                    };
+                    inst.sparksPs.Emit(emitParams, 32);
+                }
             }
 
             inst.elapsed = 0f;
@@ -777,13 +834,25 @@ namespace Arcade.BlockBreaker
                         }
                     }
 
-                    ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
+                    var main = ps.main;
+                    main.startColor = sparkColor * 1.5f;
+                    main.startLifetime = lifetime;
+
+                    if (ps.emission.enabled && ps.emission.burstCount > 0)
                     {
-                        startColor = sparkColor * 1.5f,
-                        startLifetime = lifetime,
-                        applyShapeToPosition = true
-                    };
-                    ps.Emit(emitParams, count);
+                        ps.Clear();
+                        ps.Play();
+                    }
+                    else
+                    {
+                        ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
+                        {
+                            startColor = sparkColor * 1.5f,
+                            startLifetime = lifetime,
+                            applyShapeToPosition = true
+                        };
+                        ps.Emit(emitParams, count);
+                    }
                 }
             }
             else if (inst.sparksPs != null)
@@ -797,13 +866,24 @@ namespace Arcade.BlockBreaker
                     }
                 }
 
-                ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
+                if (inst.sparksPs.emission.enabled && inst.sparksPs.emission.burstCount > 0)
                 {
-                    startColor = sparkColor * 1.5f,
-                    startLifetime = lifetime,
-                    applyShapeToPosition = true
-                };
-                inst.sparksPs.Emit(emitParams, count);
+                    var main = inst.sparksPs.main;
+                    main.startColor = sparkColor * 1.5f;
+                    main.startLifetime = lifetime;
+                    inst.sparksPs.Clear();
+                    inst.sparksPs.Play();
+                }
+                else
+                {
+                    ParticleSystem.EmitParams emitParams = new ParticleSystem.EmitParams
+                    {
+                        startColor = sparkColor * 1.5f,
+                        startLifetime = lifetime,
+                        applyShapeToPosition = true
+                    };
+                    inst.sparksPs.Emit(emitParams, count);
+                }
             }
 
             inst.elapsed = 0f;
@@ -829,8 +909,16 @@ namespace Arcade.BlockBreaker
                 {
                     var ps = inst.allPs[i];
                     string n = ps.gameObject.name.ToLower();
-                    ParticleSystem.EmitParams ep = new ParticleSystem.EmitParams { applyShapeToPosition = true };
-                    ps.Emit(ep, n.Contains("shock") ? 1 : 36);
+                    if (ps.emission.enabled && ps.emission.burstCount > 0)
+                    {
+                        ps.Clear();
+                        ps.Play();
+                    }
+                    else
+                    {
+                        ParticleSystem.EmitParams ep = new ParticleSystem.EmitParams { applyShapeToPosition = true };
+                        ps.Emit(ep, n.Contains("shock") ? 1 : 36);
+                    }
                 }
             }
 

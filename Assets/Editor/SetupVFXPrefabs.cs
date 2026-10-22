@@ -22,6 +22,7 @@ namespace Arcade.Editor
         public const string SHIELD_BARRIER_PREFAB_PATH = VFX_DIR + "/PF_VFX_ShieldBarrier.prefab";
 
         public const string BURST_MAT_PATH = "Assets/Materials/BlockBreaker/MI_VFX_Burst.mat";
+        public const string SHOCKWAVE_MAT_PATH = "Assets/Materials/BlockBreaker/MI_VFX_Shockwave.mat";
         public const string DEBRIS_MAT_PATH = "Assets/Materials/BlockBreaker/MI_Block_Debris.mat";
         public const string GLASS_MAT_PATH = "Assets/Materials/BlockBreaker/MI_Block_Glass.mat";
 
@@ -58,6 +59,13 @@ namespace Arcade.Editor
             return new Material(shader) { name = "MI_VFX_Burst" };
         }
 
+        private static Material GetOrCreateShockwaveMaterial()
+        {
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(SHOCKWAVE_MAT_PATH);
+            if (mat != null) return mat;
+            return GetOrCreateBurstMaterial();
+        }
+
         [MenuItem("Tools/Arcade/Setup Block Shatter VFX Prefab")]
         public static GameObject SetupBlockShatterPrefab()
         {
@@ -70,6 +78,7 @@ namespace Arcade.Editor
         {
             EnsureDirectory();
             Material burstMat = GetOrCreateBurstMaterial();
+            Material shockwaveMat = GetOrCreateShockwaveMaterial();
 
             GameObject root = new GameObject("PF_VFX_PowerupCollect");
             root.transform.position = Vector3.zero;
@@ -85,8 +94,9 @@ namespace Arcade.Editor
             psrBurst.renderMode = ParticleSystemRenderMode.Billboard;
 
             var main = psBurst.main;
-            main.playOnAwake = false;
-            main.loop = false;
+            main.playOnAwake = true;
+            main.loop = true;
+            main.duration = 1.0f;
             main.startLifetime = new ParticleSystem.MinMaxCurve(0.40f, 0.65f);
             main.startSpeed = new ParticleSystem.MinMaxCurve(5f, 12f);
             main.startSize = new ParticleSystem.MinMaxCurve(0.18f, 0.32f);
@@ -94,7 +104,9 @@ namespace Arcade.Editor
             main.stopAction = ParticleSystemStopAction.None;
 
             var emission = psBurst.emission;
-            emission.enabled = false;
+            emission.enabled = true;
+            emission.rateOverTime = 0f;
+            emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0.0f, 28) });
 
             var shape = psBurst.shape;
             shape.enabled = true;
@@ -119,12 +131,13 @@ namespace Arcade.Editor
             ringGo.transform.SetParent(root.transform, false);
             var psRing = ringGo.AddComponent<ParticleSystem>();
             var psrRing = ringGo.GetComponent<ParticleSystemRenderer>();
-            psrRing.sharedMaterial = burstMat;
+            psrRing.sharedMaterial = shockwaveMat;
             psrRing.renderMode = ParticleSystemRenderMode.Billboard;
 
             var ringMain = psRing.main;
-            ringMain.playOnAwake = false;
-            ringMain.loop = false;
+            ringMain.playOnAwake = true;
+            ringMain.loop = true;
+            ringMain.duration = 1.0f;
             ringMain.startLifetime = 0.40f;
             ringMain.startSpeed = 0f;
             ringMain.startSize = 0.3f;
@@ -132,7 +145,9 @@ namespace Arcade.Editor
             ringMain.stopAction = ParticleSystemStopAction.None;
 
             var ringEmission = psRing.emission;
-            ringEmission.enabled = false;
+            ringEmission.enabled = true;
+            ringEmission.rateOverTime = 0f;
+            ringEmission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0.0f, 1) });
 
             var ringSize = psRing.sizeOverLifetime;
             ringSize.enabled = true;
@@ -175,8 +190,9 @@ namespace Arcade.Editor
             psr.renderMode = ParticleSystemRenderMode.Billboard;
 
             var main = ps.main;
-            main.playOnAwake = false;
-            main.loop = false;
+            main.playOnAwake = true;
+            main.loop = true;
+            main.duration = 0.8f;
             main.startLifetime = new ParticleSystem.MinMaxCurve(0.25f, 0.45f);
             main.startSpeed = new ParticleSystem.MinMaxCurve(7f, 15f);
             main.startSize = new ParticleSystem.MinMaxCurve(0.12f, 0.24f);
@@ -186,7 +202,9 @@ namespace Arcade.Editor
             main.stopAction = ParticleSystemStopAction.None;
 
             var emission = ps.emission;
-            emission.enabled = false;
+            emission.enabled = true;
+            emission.rateOverTime = 0f;
+            emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0.0f, 18) });
 
             var shape = ps.shape;
             shape.enabled = true;
@@ -218,6 +236,7 @@ namespace Arcade.Editor
         {
             EnsureDirectory();
             Material burstMat = GetOrCreateBurstMaterial();
+            Material shockMat = GetOrCreateShockwaveMaterial();
 
             GameObject root = new GameObject("PF_VFX_BombExplosion");
             root.transform.position = Vector3.zero;
@@ -229,21 +248,24 @@ namespace Arcade.Editor
             shockGo.transform.SetParent(root.transform, false);
             var psShock = shockGo.AddComponent<ParticleSystem>();
             var psrShock = shockGo.GetComponent<ParticleSystemRenderer>();
-            psrShock.sharedMaterial = burstMat;
+            psrShock.sharedMaterial = shockMat;
             psrShock.renderMode = ParticleSystemRenderMode.Billboard;
 
             var shockMain = psShock.main;
-            shockMain.playOnAwake = false;
-            shockMain.loop = false;
+            shockMain.playOnAwake = true;
+            shockMain.loop = true;
+            shockMain.duration = 1.0f;
             shockMain.startLifetime = 0.45f;
             shockMain.startSpeed = 0f;
-            shockMain.startSize = 0.4f;
-            shockMain.startColor = new Color(1f, 0.45f, 0.05f, 0.9f); // Flame orange
+            shockMain.startSize = 0.5f;
+            shockMain.startColor = new Color(1f, 0.65f, 0.15f, 0.95f); // Flame orange
             shockMain.simulationSpace = ParticleSystemSimulationSpace.World;
             shockMain.stopAction = ParticleSystemStopAction.None;
 
             var shockEmission = psShock.emission;
-            shockEmission.enabled = false;
+            shockEmission.enabled = true;
+            shockEmission.rateOverTime = 0f;
+            shockEmission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0.0f, 1) });
 
             var shockSize = psShock.sizeOverLifetime;
             shockSize.enabled = true;
@@ -256,8 +278,8 @@ namespace Arcade.Editor
             shockColor.enabled = true;
             Gradient shockGrad = new Gradient();
             shockGrad.SetKeys(
-                new GradientColorKey[] { new GradientColorKey(new Color(1f, 0.6f, 0.1f), 0f), new GradientColorKey(new Color(1f, 0.15f, 0f), 1f) },
-                new GradientAlphaKey[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.8f, 0.4f), new GradientAlphaKey(0f, 1f) }
+                new GradientColorKey[] { new GradientColorKey(new Color(1f, 0.8f, 0.2f), 0f), new GradientColorKey(new Color(1f, 0.2f, 0f), 1f) },
+                new GradientAlphaKey[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.85f, 0.4f), new GradientAlphaKey(0f, 1f) }
             );
             shockColor.color = new ParticleSystem.MinMaxGradient(shockGrad);
 
@@ -270,8 +292,9 @@ namespace Arcade.Editor
             psrSparks.renderMode = ParticleSystemRenderMode.Billboard;
 
             var sparksMain = psSparks.main;
-            sparksMain.playOnAwake = false;
-            sparksMain.loop = false;
+            sparksMain.playOnAwake = true;
+            sparksMain.loop = true;
+            sparksMain.duration = 1.0f;
             sparksMain.startLifetime = new ParticleSystem.MinMaxCurve(0.45f, 0.80f);
             sparksMain.startSpeed = new ParticleSystem.MinMaxCurve(8f, 18f);
             sparksMain.startSize = new ParticleSystem.MinMaxCurve(0.18f, 0.35f);
@@ -281,7 +304,9 @@ namespace Arcade.Editor
             sparksMain.stopAction = ParticleSystemStopAction.None;
 
             var sparksEmission = psSparks.emission;
-            sparksEmission.enabled = false;
+            sparksEmission.enabled = true;
+            sparksEmission.rateOverTime = 0f;
+            sparksEmission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0.0f, 36) });
 
             var sparksShape = psSparks.shape;
             sparksShape.enabled = true;

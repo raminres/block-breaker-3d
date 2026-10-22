@@ -162,7 +162,7 @@ High-density technical context and architectural rules for BlockBreaker.
 
 ## 10. Current Handoff State & Verification
 - **Active Branch**: `feature/level-expansion-and-fixes` (Up to date with origin, clean working tree)
-- **Automated Tests**: 299/299 EditMode tests passing (100% pass rate)
+- **Automated Tests**: 300/300 EditMode tests passing (100% pass rate)
 - **Verification Command**:
   ```bash
   unity cmd run_tests --mode editor --timeout 90
@@ -179,4 +179,9 @@ High-density technical context and architectural rules for BlockBreaker.
   5. **iOS Build Bundling Without Resources**: Serialized powerup drops, hazard drops, and all Shuriken VFX prefabs directly in `LV_BlockBreaker.unity` across `ArcadeGameManager`, `LevelGenerator`, and `BlockVFXManager`, ensuring 100% asset inclusion in iOS builds without using a `Resources/` folder.
   6. **Particle System Velocity Curve Mode Unification**: Unified MinMax curve modes to `TwoConstants` across all 3 axes in `PF_VFX_FallingTrail.prefab`, `PF_Drop_Powerup.prefab`, and `PF_Drop_Hazard.prefab`, removing runtime overrides and fixing the console error.
   7. **Fullscreen Safe-Area How to Play Modal**: Expanded How to Play card to full width/height with safe area insets covering notches, dynamic island, and home indicator bars across mobile/tablet aspect ratios.
+  8. **VFX Prefab Editor-Time Preview & Shockwave Material/Shader Fix**:
+     - Configured `playOnAwake = true`, `loop = true`, `emission.enabled = true`, and authored bursts on all VFX prefabs (`PF_VFX_BombExplosion`, `PF_VFX_PowerupCollect`, `PF_VFX_PaddleSpark`, `PF_VFX_BlockShatter`). In Unity, selecting or opening any VFX prefab in Prefab Mode now automatically runs the Particle System preview loop in the Scene view for instant visual feedback.
+     - Resolved the mobile bomb VFX "large red quads" issue: created radiant feathered blast texture `TX_VFX_Shockwave_Ring.png` and `MI_VFX_Shockwave.mat` for the shockwave billboard (replacing untextured quad), and added a procedural smooth circle falloff in `VFX_ParticleBurst.shader`.
+     - Added `VFX_ParticleBurst.shader` and `VFX_BlockDebris.shader` to `AlwaysIncludedShaders` in `ProjectSettings/GraphicsSettings.asset` to permanently safeguard against shader stripping in iOS and mobile player builds.
+     - Updated `BlockVFXManager.cs` to trigger prefab-authored bursts via `ps.Clear(); ps.Play();` with fallback to `ps.Emit()`.
 

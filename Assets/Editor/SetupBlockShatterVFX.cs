@@ -53,7 +53,8 @@ namespace Arcade.Editor
                 speedMin: 3.5f, speedMax: 7.0f,
                 sizeMin: 0.75f, sizeMax: 1.1f,
                 lifetimeMin: 0.75f, lifetimeMax: 1.0f,
-                gravity: 2.5f);
+                gravity: 2.5f,
+                burstCount: 3);
 
             // 3. Small Shards
             GameObject smallGo = new GameObject("Small_Shards");
@@ -64,7 +65,8 @@ namespace Arcade.Editor
                 speedMin: 4.5f, speedMax: 9.0f,
                 sizeMin: 0.45f, sizeMax: 0.7f,
                 lifetimeMin: 0.65f, lifetimeMax: 0.9f,
-                gravity: 2.8f);
+                gravity: 2.8f,
+                burstCount: 5);
 
             // 4. Frost Shards
             GameObject frostGo = new GameObject("Frost_Shards");
@@ -75,7 +77,8 @@ namespace Arcade.Editor
                 speedMin: 4.0f, speedMax: 8.0f,
                 sizeMin: 0.55f, sizeMax: 0.85f,
                 lifetimeMin: 0.7f, lifetimeMax: 0.95f,
-                gravity: 2.6f);
+                gravity: 2.6f,
+                burstCount: 8);
 
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, PREFAB_PATH);
             Object.DestroyImmediate(root);
@@ -103,8 +106,8 @@ namespace Arcade.Editor
         private static void ConfigureSparksEmitter(ParticleSystem ps, ParticleSystemRenderer psr, Material mat)
         {
             var main = ps.main;
-            main.playOnAwake = false;
-            main.loop = false;
+            main.playOnAwake = true;
+            main.loop = true;
             main.duration = 1.0f;
             main.startLifetime = new ParticleSystem.MinMaxCurve(0.35f, 0.55f);
             main.startSpeed = new ParticleSystem.MinMaxCurve(5f, 11f);
@@ -114,7 +117,9 @@ namespace Arcade.Editor
             main.gravityModifier = 0.5f;
 
             var emission = ps.emission;
-            emission.enabled = false;
+            emission.enabled = true;
+            emission.rateOverTime = 0f;
+            emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0.0f, 16) });
 
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Sphere;
@@ -141,11 +146,11 @@ namespace Arcade.Editor
         }
 
         private static void ConfigureMeshEmitter(ParticleSystem ps, ParticleSystemRenderer psr, List<Mesh> meshes, Material mat,
-            float speedMin, float speedMax, float sizeMin, float sizeMax, float lifetimeMin, float lifetimeMax, float gravity)
+            float speedMin, float speedMax, float sizeMin, float sizeMax, float lifetimeMin, float lifetimeMax, float gravity, int burstCount = 4)
         {
             var main = ps.main;
-            main.playOnAwake = false;
-            main.loop = false;
+            main.playOnAwake = true;
+            main.loop = true;
             main.duration = 1.2f;
             main.startLifetime = new ParticleSystem.MinMaxCurve(lifetimeMin, lifetimeMax);
             main.startSpeed = new ParticleSystem.MinMaxCurve(speedMin, speedMax);
@@ -155,7 +160,9 @@ namespace Arcade.Editor
             main.gravityModifier = gravity;
 
             var emission = ps.emission;
-            emission.enabled = false;
+            emission.enabled = true;
+            emission.rateOverTime = 0f;
+            emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0.0f, burstCount) });
 
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Sphere;

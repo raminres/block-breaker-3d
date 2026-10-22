@@ -1066,8 +1066,30 @@ namespace Arcade.Tests
                     Assert.IsNotNull(psr, $"ParticleSystem {ps.name} in {prefab.name} must have a ParticleSystemRenderer.");
                     Assert.IsNotNull(psr.sharedMaterial, $"ParticleSystemRenderer {ps.name} in {prefab.name} must have a valid sharedMaterial.");
                     Assert.AreNotEqual("Hidden/InternalErrorShader", psr.sharedMaterial.shader.name, $"Shader on {ps.name} in {prefab.name} must not be missing/pink error shader.");
+
+                    // Editor Preview & Inspector visibility assertions
+                    Assert.IsTrue(ps.main.playOnAwake, $"ParticleSystem {ps.name} in {prefab.name} must have playOnAwake=true so it previews automatically when opened.");
+                    Assert.IsTrue(ps.main.loop, $"ParticleSystem {ps.name} in {prefab.name} must have loop=true so it loops in the editor inspector.");
+                    Assert.IsTrue(ps.emission.enabled, $"ParticleSystem {ps.name} in {prefab.name} must have emission.enabled=true so it emits particles.");
+                    Assert.IsTrue(ps.emission.burstCount > 0 || ps.emission.rateOverTime.constant > 0, $"ParticleSystem {ps.name} in {prefab.name} must have bursts or rateOverTime > 0.");
                 }
             }
+        }
+
+        [Test]
+        public void BombExplosion_VFXPrefab_HasValidShockwaveMaterialAndTexture_NotFlatQuad()
+        {
+            var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VFX/PF_VFX_BombExplosion.prefab");
+            Assert.IsNotNull(prefab, "PF_VFX_BombExplosion must exist.");
+            var shockwave = prefab.transform.Find("Shockwave");
+            Assert.IsNotNull(shockwave, "Bomb explosion prefab must have 'Shockwave' child.");
+            var psr = shockwave.GetComponent<ParticleSystemRenderer>();
+            Assert.IsNotNull(psr, "Shockwave must have ParticleSystemRenderer.");
+            Assert.IsNotNull(psr.sharedMaterial, "Shockwave must have sharedMaterial assigned.");
+            Assert.AreEqual("MI_VFX_Shockwave", psr.sharedMaterial.name, "Shockwave must use MI_VFX_Shockwave material.");
+            Assert.IsTrue(psr.sharedMaterial.HasProperty("_MainTex"), "Shockwave material must support _MainTex.");
+            var mainTex = psr.sharedMaterial.GetTexture("_MainTex");
+            Assert.IsNotNull(mainTex, "Shockwave material must have a circular/ring texture assigned (not untextured quad).");
         }
 
         [Test]
