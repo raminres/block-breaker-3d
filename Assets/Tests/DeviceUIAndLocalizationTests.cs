@@ -751,7 +751,88 @@ namespace Arcade.Tests
 
             Object.DestroyImmediate(testObj);
         }
+
+        [Test]
+        public void Step6_UIAnimationHelper_ScalePopAndButtonCascade_AppliesTransitionsCorrectly()
+        {
+            // 1. Verify USS files define scale pop and motion classes
+            var menuUss = System.IO.File.ReadAllText("Assets/UI/MainMenuUI.uss");
+            Assert.IsTrue(menuUss.Contains(".modal-card-hidden"), "MainMenuUI.uss must define .modal-card-hidden.");
+            Assert.IsTrue(menuUss.Contains(".modal-card-visible"), "MainMenuUI.uss must define .modal-card-visible.");
+            Assert.IsTrue(menuUss.Contains(".modal-backdrop-hidden"), "MainMenuUI.uss must define .modal-backdrop-hidden.");
+            Assert.IsTrue(menuUss.Contains(".modal-backdrop-visible"), "MainMenuUI.uss must define .modal-backdrop-visible.");
+            Assert.IsTrue(menuUss.Contains(".ui-btn-pop-hidden"), "MainMenuUI.uss must define .ui-btn-pop-hidden.");
+            Assert.IsTrue(menuUss.Contains(".ui-btn-pop-visible"), "MainMenuUI.uss must define .ui-btn-pop-visible.");
+            Assert.IsTrue(menuUss.Contains(".ui-btn-punched"), "MainMenuUI.uss must define .ui-btn-punched.");
+
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains(".modal-card-hidden"), "BlockBreakerHUD.uss must define .modal-card-hidden.");
+            Assert.IsTrue(hudUss.Contains(".modal-card-visible"), "BlockBreakerHUD.uss must define .modal-card-visible.");
+            Assert.IsTrue(hudUss.Contains(".modal-backdrop-hidden"), "BlockBreakerHUD.uss must define .modal-backdrop-hidden.");
+            Assert.IsTrue(hudUss.Contains(".modal-backdrop-visible"), "BlockBreakerHUD.uss must define .modal-backdrop-visible.");
+            Assert.IsTrue(hudUss.Contains(".ui-btn-pop-hidden"), "BlockBreakerHUD.uss must define .ui-btn-pop-hidden.");
+            Assert.IsTrue(hudUss.Contains(".ui-btn-pop-visible"), "BlockBreakerHUD.uss must define .ui-btn-pop-visible.");
+            Assert.IsTrue(hudUss.Contains(".ui-btn-punched"), "BlockBreakerHUD.uss must define .ui-btn-punched.");
+            Assert.IsTrue(hudUss.Contains(".combo-pop"), "BlockBreakerHUD.uss must define .combo-pop.");
+            Assert.IsTrue(hudUss.Contains(".star-pop"), "BlockBreakerHUD.uss must define .star-pop.");
+            Assert.IsTrue(hudUss.Contains(".launch-banner-pulse"), "BlockBreakerHUD.uss must define .launch-banner-pulse.");
+            Assert.IsTrue(hudUss.Contains(".ui-punch-pop"), "BlockBreakerHUD.uss must define .ui-punch-pop.");
+
+            // 2. Verify UIAnimationHelper CascadeIn and CascadeOut synchronous state application
+            var button1 = new Button { name = "btn-1" };
+            var button2 = new Button { name = "btn-2" };
+            var button3 = new Button { name = "btn-3" };
+            var buttons = new System.Collections.Generic.List<VisualElement> { button1, button2, button3 };
+
+            UIAnimationHelper.CascadeIn(null, buttons);
+            for (int i = 0; i < buttons.Count; i++)
+            {
+                Assert.IsTrue(buttons[i].ClassListContains(UIAnimationHelper.ClassBtnPopVisible), $"Button {i} must have ClassBtnPopVisible after CascadeIn.");
+                Assert.IsFalse(buttons[i].ClassListContains(UIAnimationHelper.ClassBtnPopHidden), $"Button {i} must not have ClassBtnPopHidden after CascadeIn.");
+            }
+
+            UIAnimationHelper.CascadeOut(null, buttons);
+            for (int i = 0; i < buttons.Count; i++)
+            {
+                Assert.IsTrue(buttons[i].ClassListContains(UIAnimationHelper.ClassBtnPopHidden), $"Button {i} must have ClassBtnPopHidden after CascadeOut.");
+                Assert.IsFalse(buttons[i].ClassListContains(UIAnimationHelper.ClassBtnPopVisible), $"Button {i} must not have ClassBtnPopVisible after CascadeOut.");
+            }
+
+            // 3. Verify UIAnimationHelper ShowModal and HideModal synchronous state application
+            var backdrop = new VisualElement { name = "modal-backdrop" };
+            var card = new VisualElement { name = "modal-card" };
+            backdrop.AddToClassList("modal-hidden");
+
+            UIAnimationHelper.ShowModal(null, backdrop, card, buttons);
+            Assert.IsFalse(backdrop.ClassListContains("modal-hidden"), "Backdrop must not have modal-hidden after ShowModal.");
+            Assert.IsTrue(backdrop.ClassListContains(UIAnimationHelper.ClassModalBackdropVisible), "Backdrop must have ClassModalBackdropVisible after ShowModal.");
+            Assert.IsTrue(card.ClassListContains(UIAnimationHelper.ClassModalCardVisible), "Card must have ClassModalCardVisible after ShowModal.");
+
+            UIAnimationHelper.HideModal(null, backdrop, card);
+            Assert.IsTrue(backdrop.ClassListContains("modal-hidden"), "Backdrop must have modal-hidden after HideModal.");
+
+            // 4. Verify ArcadeUIManager button group helpers
+            var uiObj = new GameObject("TestArcadeUIMgr", typeof(PanelRenderer), typeof(ArcadeUIManager));
+            var uiMgr = uiObj.GetComponent<ArcadeUIManager>();
+
+            var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            typeof(ArcadeUIManager).GetField("btnResume", flags).SetValue(uiMgr, button1);
+            typeof(ArcadeUIManager).GetField("btnLevelSelectPause", flags).SetValue(uiMgr, button2);
+            typeof(ArcadeUIManager).GetField("btnNextLevel", flags).SetValue(uiMgr, button3);
+
+            var pauseBtns = uiMgr.GetPauseButtons();
+            Assert.IsNotNull(pauseBtns);
+            Assert.IsTrue(pauseBtns.Contains(button1));
+            Assert.IsTrue(pauseBtns.Contains(button2));
+
+            var clearBtns = uiMgr.GetLevelClearButtons();
+            Assert.IsNotNull(clearBtns);
+            Assert.IsTrue(clearBtns.Contains(button3));
+
+            Object.DestroyImmediate(uiObj);
+        }
     }
 }
+
 
 

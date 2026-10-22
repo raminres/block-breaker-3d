@@ -162,7 +162,7 @@ High-density technical context and architectural rules for BlockBreaker.
 
 ## 10. Current Handoff State & Verification
 - **Active Branch**: `feature/level-expansion-and-fixes` (Up to date with origin, clean working tree)
-- **Automated Tests**: 300/300 EditMode tests passing (100% pass rate)
+- **Automated Tests**: 302/302 EditMode tests passing (100% pass rate)
 - **Verification Command**:
   ```bash
   unity cmd run_tests --mode editor --timeout 90
@@ -184,4 +184,12 @@ High-density technical context and architectural rules for BlockBreaker.
      - Resolved the mobile bomb VFX "large red quads" issue: created radiant feathered blast texture `TX_VFX_Shockwave_Ring.png` and `MI_VFX_Shockwave.mat` for the shockwave billboard (replacing untextured quad), and added a procedural smooth circle falloff in `VFX_ParticleBurst.shader`.
      - Added `VFX_ParticleBurst.shader` and `VFX_BlockDebris.shader` to `AlwaysIncludedShaders` in `ProjectSettings/GraphicsSettings.asset` to permanently safeguard against shader stripping in iOS and mobile player builds.
      - Updated `BlockVFXManager.cs` to trigger prefab-authored bursts via `ps.Clear(); ps.Play();` with fallback to `ps.Emit()`.
+  9. **Dynamic UI Motion, Snappy Scale Pops & Cascading Buttons**:
+     - Created `UIAnimationHelper.cs` and native USS transitions for snappy arcade UI movement across `MainMenuUIManager` and `ArcadeUIManager`.
+     - Modal appear/disappear: Punchy scale transitions (modal card springs $0.82 \to 1.0$ with `ease-out-back` over $0.18\text{s}$; scales down to $0.82$ with $0.10\text{s}$ exit fade before `.modal-hidden`).
+     - Staggered button cascades: Sequential top-to-bottom entrance (`CascadeIn`) with $0.035\text{s}$ stagger on Main Menu buttons, Pause Menu buttons, Scorecard buttons, and Level Grid selection cards.
+     - Tactile button clicks: `PunchButton` micro-depression ($0.93 \to 1.0$ over $0.08\text{s}$) upon tap/click.
+     - Punch pops & movement: Score pod punch pop on scoring, combo multiplier badge pop ($1.25\times$ scale) on combo steps, scorecard star bursts ($1.45\times$ scale) on level clear, powerup/hazard badge entrance pops, and continuous breathing scale loop on `TAP TO LAUNCH` banner.
+     - Full EditMode safety: Synchronous fallback for test environments (`!Application.isPlaying`). All 302 EditMode tests passing.
+
 

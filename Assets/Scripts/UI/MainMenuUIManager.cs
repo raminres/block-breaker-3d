@@ -136,6 +136,10 @@ namespace Arcade.UI
                 UnbindElements();
                 BindElements();
                 InitializeValues();
+                if (Application.isPlaying)
+                {
+                    UIAnimationHelper.CascadeIn(this, GetMainMenuButtons(), 0.035f, 0.05f);
+                }
             }
         }
 
@@ -198,6 +202,10 @@ namespace Arcade.UI
             UnbindElements();
             BindElements();
             InitializeValues();
+            if (Application.isPlaying)
+            {
+                UIAnimationHelper.CascadeIn(this, GetMainMenuButtons(), 0.035f, 0.05f);
+            }
         }
 
         private void UnbindElements()
@@ -305,7 +313,11 @@ namespace Arcade.UI
                     tabsContainer.Add(cardBtn);
                     menuLevelTabButtons.Add(cardBtn);
                     int captureLvl = lvlNum;
-                    cardBtn.clicked += () => SelectLevel(captureLvl);
+                    cardBtn.clicked += () =>
+                    {
+                        UIAnimationHelper.PunchElement(this, cardBtn, "ui-punch-pop", 0.10f);
+                        SelectLevel(captureLvl);
+                    };
                 }
             }
 
@@ -609,8 +621,22 @@ namespace Arcade.UI
             return null;
         }
 
+        public System.Collections.Generic.List<VisualElement> GetMainMenuButtons()
+        {
+            var list = new System.Collections.Generic.List<VisualElement>();
+            if (btnNewGame != null) list.Add(btnNewGame);
+            if (btnLevelSelect != null) list.Add(btnLevelSelect);
+            if (btnContinue != null && btnContinue.style.display != DisplayStyle.None) list.Add(btnContinue);
+            if (btnHighscores != null) list.Add(btnHighscores);
+            if (btnHowToPlay != null) list.Add(btnHowToPlay);
+            if (btnOptions != null) list.Add(btnOptions);
+            if (btnCredits != null) list.Add(btnCredits);
+            return list;
+        }
+
         private void HandleNewGameClicked()
         {
+            UIAnimationHelper.PunchButton(this, btnNewGame);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             PlayerPrefs.SetInt("Arcade_LoadSavedGameOnStart", 0);
             PlayerPrefs.SetInt("Arcade_SelectedLevel", 1);
@@ -621,6 +647,7 @@ namespace Arcade.UI
 
         private void HandleStartSelectedLevel()
         {
+            UIAnimationHelper.PunchButton(this, btnStartSelectedLevel);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             PlayerPrefs.SetInt("Arcade_LoadSavedGameOnStart", 0);
             PlayerPrefs.SetInt("Arcade_SelectedLevel", selectedLevelNumber);
@@ -631,6 +658,7 @@ namespace Arcade.UI
 
         private void HandleContinueClicked()
         {
+            UIAnimationHelper.PunchButton(this, btnContinue);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             PlayerPrefs.SetInt("Arcade_LoadSavedGameOnStart", 1);
             int savedLevel = PlayerPrefs.GetInt("Arcade_SavedLevel", 1);
@@ -641,55 +669,89 @@ namespace Arcade.UI
 
         private void ShowLevelModal()
         {
+            UIAnimationHelper.PunchButton(this, btnLevelSelect);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (levelModal != null) levelModal.RemoveFromClassList("modal-hidden");
+            var card = levelModal != null ? (levelModal.Q(className: "level-modal-card") ?? levelModal.Q(className: "modal-card")) : null;
+            var buttons = new System.Collections.Generic.List<VisualElement>();
+            if (btnStartSelectedLevel != null) buttons.Add(btnStartSelectedLevel);
+            if (btnCloseLevelModal != null) buttons.Add(btnCloseLevelModal);
+            UIAnimationHelper.ShowModal(this, levelModal, card, buttons);
         }
 
         private void HideLevelModal()
         {
+            UIAnimationHelper.PunchButton(this, btnCloseLevelModal);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (levelModal != null) levelModal.AddToClassList("modal-hidden");
+            var card = levelModal != null ? (levelModal.Q(className: "level-modal-card") ?? levelModal.Q(className: "modal-card")) : null;
+            UIAnimationHelper.HideModal(this, levelModal, card, () => UIAnimationHelper.CascadeIn(this, GetMainMenuButtons(), 0.035f, 0.02f));
         }
 
         private void ShowOptions()
         {
+            UIAnimationHelper.PunchButton(this, btnOptions);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (optionsModal != null) optionsModal.RemoveFromClassList("modal-hidden");
+            var card = optionsModal != null ? optionsModal.Q(className: "modal-card") : null;
+            var buttons = new System.Collections.Generic.List<VisualElement>();
+            if (btnLangEn != null) buttons.Add(btnLangEn);
+            if (btnLangTr != null) buttons.Add(btnLangTr);
+            if (btnToggleFps != null) buttons.Add(btnToggleFps);
+            if (btnCloseOptions != null) buttons.Add(btnCloseOptions);
+            UIAnimationHelper.ShowModal(this, optionsModal, card, buttons);
         }
 
         private void HideOptions()
         {
+            UIAnimationHelper.PunchButton(this, btnCloseOptions);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (optionsModal != null) optionsModal.AddToClassList("modal-hidden");
+            var card = optionsModal != null ? optionsModal.Q(className: "modal-card") : null;
+            UIAnimationHelper.HideModal(this, optionsModal, card, () => UIAnimationHelper.CascadeIn(this, GetMainMenuButtons(), 0.035f, 0.02f));
         }
 
         private void ShowCredits()
         {
+            UIAnimationHelper.PunchButton(this, btnCredits);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (creditsModal != null) creditsModal.RemoveFromClassList("modal-hidden");
+            var card = creditsModal != null ? creditsModal.Q(className: "modal-card") : null;
+            var buttons = new System.Collections.Generic.List<VisualElement>();
+            if (btnCreditWebsite != null) buttons.Add(btnCreditWebsite);
+            if (btnCreditEmail != null) buttons.Add(btnCreditEmail);
+            if (btnCreditLinkedin != null) buttons.Add(btnCreditLinkedin);
+            if (btnCreditGithub != null) buttons.Add(btnCreditGithub);
+            if (btnCloseCredits != null) buttons.Add(btnCloseCredits);
+            UIAnimationHelper.ShowModal(this, creditsModal, card, buttons);
         }
 
         private void HideCredits()
         {
+            UIAnimationHelper.PunchButton(this, btnCloseCredits);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (creditsModal != null) creditsModal.AddToClassList("modal-hidden");
+            var card = creditsModal != null ? creditsModal.Q(className: "modal-card") : null;
+            UIAnimationHelper.HideModal(this, creditsModal, card, () => UIAnimationHelper.CascadeIn(this, GetMainMenuButtons(), 0.035f, 0.02f));
         }
 
         private void ShowHighScoresModal()
         {
+            UIAnimationHelper.PunchButton(this, btnHighscores);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             PopulateHighScoresTable();
-            if (highscoresModal != null) highscoresModal.RemoveFromClassList("modal-hidden");
+            var card = highscoresModal != null ? highscoresModal.Q(className: "modal-card") : null;
+            var buttons = new System.Collections.Generic.List<VisualElement>();
+            if (btnResetHighscores != null) buttons.Add(btnResetHighscores);
+            if (btnCloseHighscores != null) buttons.Add(btnCloseHighscores);
+            UIAnimationHelper.ShowModal(this, highscoresModal, card, buttons);
         }
 
         private void HideHighScoresModal()
         {
+            UIAnimationHelper.PunchButton(this, btnCloseHighscores);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (highscoresModal != null) highscoresModal.AddToClassList("modal-hidden");
+            var card = highscoresModal != null ? highscoresModal.Q(className: "modal-card") : null;
+            UIAnimationHelper.HideModal(this, highscoresModal, card, () => UIAnimationHelper.CascadeIn(this, GetMainMenuButtons(), 0.035f, 0.02f));
         }
 
         private void HandleResetHighScores()
         {
+            UIAnimationHelper.PunchButton(this, btnResetHighscores);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             HighScoreManager.ResetScores();
             PopulateHighScoresTable();
@@ -728,14 +790,20 @@ namespace Arcade.UI
 
         private void ShowHowToPlayModal()
         {
+            UIAnimationHelper.PunchButton(this, btnHowToPlay);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (howToPlayModal != null) howToPlayModal.RemoveFromClassList("modal-hidden");
+            var card = howToPlayModal != null ? howToPlayModal.Q(className: "modal-card") : null;
+            var buttons = new System.Collections.Generic.List<VisualElement>();
+            if (btnCloseHowToPlay != null) buttons.Add(btnCloseHowToPlay);
+            UIAnimationHelper.ShowModal(this, howToPlayModal, card, buttons);
         }
 
         private void HideHowToPlayModal()
         {
+            UIAnimationHelper.PunchButton(this, btnCloseHowToPlay);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
-            if (howToPlayModal != null) howToPlayModal.AddToClassList("modal-hidden");
+            var card = howToPlayModal != null ? howToPlayModal.Q(className: "modal-card") : null;
+            UIAnimationHelper.HideModal(this, howToPlayModal, card, () => UIAnimationHelper.CascadeIn(this, GetMainMenuButtons(), 0.035f, 0.02f));
         }
 
         private void OpenEmail()

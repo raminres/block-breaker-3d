@@ -132,7 +132,13 @@ This file provides foundational mandates, architectural maps, key mathematical c
     - Radiant neon HUD pod glows (`box-shadow`), neon cyan/magenta dashboard contrast, and radiant `TAP TO LAUNCH` pill banner.
     - Propagated across all modal cards (`.modal-card`, `.level-modal-card`, `.scorecard-card`) and button styles (`.arcade-btn`, `.arcade-button`, `.btn-primary`, `.btn-secondary`, `.btn-default`, `.warning-btn`) across both Main Menu and Gameplay HUD.
   - **Menu Parity**: Pause Menu sub-screens (How to Play, Credits, Level Select, and Options) match Main Menu in layout structure, fonts, button styling, and responsive proportions.
-  - **Custom Animated Mute Toggles**: Both Main Menu and In-Game Pause Options panels feature custom checkmark toggles for SFX and Music sliders (`68px × 68px`). Toggles dynamically switch between speaker/mute icons with glowing cyan (`#21d4fd`) and crimson (`#ff3b56`) tints.
+  - **Dynamic UI Motion, Snappy Scale Pops & Cascading Buttons**:
+    - `UIAnimationHelper.cs` drives snappy arcade UI motion across `MainMenuUIManager` and `ArcadeUIManager`.
+    - Modal appear/disappear: Punchy scale transitions (modal card springs `0.82 \to 1.0` with `ease-out-back` over $0.18\text{s}$; scales down to $0.82$ with $0.10\text{s}$ exit fade before `.modal-hidden`).
+    - Staggered button cascades: Sequential top-to-bottom entrance (`CascadeIn`) with $0.035\text{s}$ stagger on Main Menu buttons, Pause Menu buttons, Scorecard buttons, and Level Grid selection cards.
+    - Tactile button clicks: `PunchButton` micro-depression ($0.93 \to 1.0$ over $0.08\text{s}$) upon tap/click.
+    - Punch pops & movement: Score pod punch pop on scoring, combo multiplier badge pop (`1.25\times` scale) on combo steps, scorecard star bursts ($1.45\times$ scale) on level clear, powerup/hazard badge entrance pops, and continuous breathing scale loop on `TAP TO LAUNCH` banner.
+    - Full EditMode safety: Synchronous fallback for test environments (`!Application.isPlaying`).
   - Safe area insets handled by `SafeAreaController.cs`. Sprites managed via `SO_PowerupIcons.asset`.
 - **Unity Localization Tables (`com.unity.localization` 1.5.13)**:
   - Multi-language StringTableCollection `ArcadeTable.asset` under `Assets/Localization/Tables/` containing English (`en`) and Turkish (`tr`) locales.
@@ -174,7 +180,7 @@ Use this architectural lookup table to locate subsystems, classes, and responsib
 ---
 
 ## 10. Testing & Verification Command
-All logic, boundaries, prefabs, hazards, scene setups, localization tables, touch ergonomics, and level scaling are strictly verified by **300 automated EditMode NUnit tests**. To execute:
+All logic, boundaries, prefabs, hazards, scene setups, localization tables, touch ergonomics, and level scaling are strictly verified by **302 automated EditMode NUnit tests**. To execute:
 ```bash
 unity cmd run_tests --mode editor --timeout 90
 ```
