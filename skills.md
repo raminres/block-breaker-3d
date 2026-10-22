@@ -142,7 +142,7 @@ In Unity 6 / Cinemachine 3.x:
 5. **Gameplay Physics & Collision Rules**:
    - Platform: 5:1 ratio ($5.0 \times 1.0 \times 1.0$).
    - Blocks: 1:1 ratio ($1.0 \times 1.0 \times 1.0$ cubes).
-   - Deflection formula: $\theta = 90^\circ - (\text{hitOffset} \times 60^\circ)$.
+   - Deflection formula: `Exit Angle = Ray Angle + Hit Offset Steer (-32° to +32°) + Paddle Velocity Steer (-45° to +45°)`, clamped to $[25^\circ, 155^\circ]$.
    - Kill Zone: Uses dedicated `KillZone.cs` component on trigger volume to eliminate `CompareTag` errors.
 6. **Automated Testing Suite**:
    - Tests reside in `Assets/Tests/` under `Arcade.Tests.asmdef`.

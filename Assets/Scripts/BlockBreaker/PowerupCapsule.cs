@@ -54,7 +54,6 @@ namespace Arcade.BlockBreaker
         public static GameObject HazardPrefab { get; set; }
 
         private static Material defaultCapsuleMaterial;
-        private static Material defaultParticleMaterial;
 
         public static void SetDefaultMaterial(Material mat)
         {
@@ -91,33 +90,6 @@ namespace Arcade.BlockBreaker
             }
 
             return defaultCapsuleMaterial;
-        }
-
-        public static Material GetOrCreateParticleMaterial()
-        {
-            if (defaultParticleMaterial != null) return defaultParticleMaterial;
-
-#if UNITY_EDITOR
-            var editorMat = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_VFX_Burst.mat");
-            if (editorMat != null)
-            {
-                defaultParticleMaterial = editorMat;
-                return defaultParticleMaterial;
-            }
-#endif
-
-            var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit")
-                      ?? Shader.Find("Arcade/VFX_ParticleBurst");
-
-            if (shader != null)
-            {
-                defaultParticleMaterial = new Material(shader)
-                {
-                    name = "M_Drop_Trail_Fallback"
-                };
-            }
-
-            return defaultParticleMaterial;
         }
 
         private void Awake()

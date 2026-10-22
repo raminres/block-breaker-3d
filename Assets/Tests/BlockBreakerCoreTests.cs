@@ -3482,12 +3482,12 @@ namespace Arcade.Tests
             var cap1 = PowerupCapsule.Spawn(new Vector3(-2f, 5f, 0f), BlockSpecialType.MultiBall);
             var cap2 = PowerupCapsule.Spawn(new Vector3(2f, 5f, 0f), BlockSpecialType.PaddleExpander);
 
-            var existing = Object.FindObjectsByType<PowerupCapsule>(FindObjectsSortMode.None);
+            var existing = Object.FindObjectsByType<PowerupCapsule>();
             Assert.AreEqual(2, existing.Length, "Must have 2 active capsules in scene.");
 
             PowerupCapsule.ClearAllFallingCapsules();
 
-            var remaining = Object.FindObjectsByType<PowerupCapsule>(FindObjectsSortMode.None);
+            var remaining = Object.FindObjectsByType<PowerupCapsule>();
             Assert.AreEqual(0, remaining.Length, "ClearAllFallingCapsules must destroy all falling capsules.");
         }
 
@@ -3501,7 +3501,7 @@ namespace Arcade.Tests
 
             // Because game is in ReadyToLaunch and not Playing, capsule must NOT be intercepted
             Assert.IsFalse(interceptedWhileDocked, "TryIntercept must return false when docked in ReadyToLaunch.");
-            var remaining = Object.FindObjectsByType<PowerupCapsule>(FindObjectsSortMode.None);
+            var remaining = Object.FindObjectsByType<PowerupCapsule>();
             Assert.AreEqual(1, remaining.Length, "Capsule must not be collected while docked in ReadyToLaunch.");
             Assert.AreEqual(0, gameManager.ActiveBallCount, "MultiBall must not spawn extra balls while docked.");
 
@@ -3517,11 +3517,11 @@ namespace Arcade.Tests
             gameManager.SetState(GameState.Playing);
 
             var cap = PowerupCapsule.Spawn(new Vector3(0f, 5f, 0f), BlockSpecialType.Shield);
-            Assert.AreEqual(1, Object.FindObjectsByType<PowerupCapsule>(FindObjectsSortMode.None).Length);
+            Assert.AreEqual(1, Object.FindObjectsByType<PowerupCapsule>().Length);
 
             gameManager.RecordBallLost();
 
-            Assert.AreEqual(0, Object.FindObjectsByType<PowerupCapsule>(FindObjectsSortMode.None).Length, "Losing life must clear all falling capsules.");
+            Assert.AreEqual(0, Object.FindObjectsByType<PowerupCapsule>().Length, "Losing life must clear all falling capsules.");
         }
 
         [Test]
@@ -3912,7 +3912,7 @@ namespace Arcade.Tests
 
             laserCtrl.SimulateStepForTesting(0.35f);
 
-            var bolts = Object.FindObjectsByType<LaserBolt>(FindObjectsSortMode.None);
+            var bolts = Object.FindObjectsByType<LaserBolt>();
             Assert.GreaterOrEqual(bolts.Length, 2, "Twin blaster cannons must spawn at least 2 bolts on firing interval.");
 
             foreach (var b in bolts) Object.DestroyImmediate(b.gameObject);
@@ -5334,7 +5334,7 @@ namespace Arcade.Tests
             block.DestroyBlock(Vector3.up);
             Assert.IsTrue(block.IsDestroyed);
 
-            var capsules = Object.FindObjectsByType<PowerupCapsule>(FindObjectsSortMode.None);
+            var capsules = Object.FindObjectsByType<PowerupCapsule>();
             Assert.AreEqual(1, capsules.Length, "Destroying collectible powerdown block must spawn falling capsule.");
 
             var cap = capsules[0];

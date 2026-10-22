@@ -83,12 +83,12 @@ High-density technical context and architectural rules for BlockBreaker.
 ---
 
 ## 5. Level Campaign Arc & Pacing
-- **Progression Overview**: 15 ScriptableObject levels (`SO_Level_01` to `SO_Level_15` via [SetupBlockBreakerScenes.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Editor/SetupBlockBreakerScenes.cs)).
+- **Progression Overview**: 30 ScriptableObject levels (`SO_Level_01` to `SO_Level_30` via [SetupBlockBreakerScenes.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Editor/SetupBlockBreakerScenes.cs)).
   - Grids: High-density 11–14 columns ($13.75\text{u}–17.5\text{u}$ span, within $1.6\text{u}$ of walls). Outer side flank bumper blocks at $c = 0$ and $c = \text{cols} - 1$ prevent wall bypass lanes.
   - Archetypes: `Pyramid`, `Diamond`, `Pillars`, `Shield`, `HollowBox`, `Crown`, `Heart`, `Invader`, `Cross`, `Hourglass`, `Chevron`, `Castle`, `CheckerboardEmpty`, `Stripes`, `Custom`.
-  - Speed scaling: $0.92\times$ (Level 1) $\to 1.48\times$ (Level 15). Volley pacing adds $+8\%$ per 10s continuous rally.
-  - Paddle width: $5.0\text{u} \to 4.5\text{u}$ (Levels 1–5 standard $5.0\text{u}$, narrowing to $4.5\text{u}$ on Level 15). Hazard saturation: 0 (Level 1) $\to$ 13 (Level 15).
-  - **Onboarding Block Scale (+20% on Levels 1–3)**: Levels 1, 2, and 3 (`SO_Level_01`, `SO_Level_02`, `SO_Level_03`) feature enlarged blocks (`blockSize = 1.20f`) with adjusted horizontal spacing ($1.50\text{u}, 1.45\text{u}, 1.40\text{u}$) to maximize readability and touch targeting comfort while strictly preserving $> 1.0\text{u}$ clearance to arena walls ($X = \pm 10.25$). Levels 4–15 retain standard $1.00\text{u}$ scale. Runtime setters: `SetBlockSize`, `SetHorizontalSpacing`, `SetVerticalSpacing` in [LevelConfiguration.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/LevelConfiguration.cs).
+  - Speed scaling: $0.92\times$ (Level 1) $\to 1.80\times$ (Level 30). Volley pacing adds $+8\%$ per 10s continuous rally.
+  - Paddle width: $5.0\text{u} \to 4.2\text{u}$ (Levels 1–5 standard $5.0\text{u}$, narrowing to $4.2\text{u}$ on Level 30). Hazard saturation: 0 (Level 1) $\to$ 20 (Level 30).
+  - **Onboarding Block Scale (+20% on Levels 1–3)**: Levels 1, 2, and 3 (`SO_Level_01`, `SO_Level_02`, `SO_Level_03`) feature enlarged blocks (`blockSize = 1.20f`) with adjusted horizontal spacing ($1.50\text{u}, 1.45\text{u}, 1.40\text{u}$) to maximize readability and touch targeting comfort while strictly preserving $> 1.0\text{u}$ clearance to arena walls ($X = \pm 10.25$). Levels 4–30 retain standard $1.00\text{u}$ scale. Runtime setters: `SetBlockSize`, `SetHorizontalSpacing`, `SetVerticalSpacing` in [LevelConfiguration.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/LevelConfiguration.cs).
 
 ---
 
@@ -129,7 +129,7 @@ High-density technical context and architectural rules for BlockBreaker.
   - `Blocks/`: `PF_Block_Base`, `PF_Block_Red`, `PF_Block_Green`, `PF_Block_Blue`, `PF_Block_Bomb`, `PF_Block_Glass` (4 child sockets: `brick`, `brick frost`, `brick special`, `brick vfx`).
   - `Powerups/`: `PF_Drop_Powerup` (cyan capsule), `PF_Drop_Hazard` (crimson diamond).
 - **Zero Runtime Primitives**: All legacy procedural cube/quad fallbacks (`GameObject.CreatePrimitive`) removed from runtime and scene setups.
-- **Automated Tests**: 309 EditMode tests passing across core physics, normalized prefab parent scales, boundaries, powerups, hazards, UI harmonization, runtime localization tables, touch ergonomics, and level scaling:
+- **Automated Tests**: 312 EditMode tests passing across core physics, normalized prefab parent scales, boundaries, powerups, hazards, UI harmonization, runtime localization tables, touch ergonomics, and level scaling:
   ```bash
   unity cmd run_tests --mode editor
   ```
@@ -206,6 +206,12 @@ High-density technical context and architectural rules for BlockBreaker.
      - Layer 1 (Diegetic Ball Visuals): Dynamic trail duration scaling ($0.55\times \to 1.75\times$) with 4-tier color shifts (Frosted Ice Blue `<12`, Electric Cyan `12-17`, Solar Gold `17-20`, Plasma Flame `>20`), preserving custom multi-ball identity colors.
      - Layer 2 (Event-Driven Floating Text Popups): Interactive floating arcade popups at strike points (`TURBO +10%`, `DAMPEN -1.2`, `STRIKE! +8%`, `BALL SLOWED!`, `SPEED UP! +8%`).
      - Layer 3 (Cockpit HUD Speed Pod): Integrated `#speed-container` pod with invariant culture formatting (`1.0x`, `1.2x`), tier glow styles, and micro punch-pops on speed changes.
+     - All 312 EditMode tests passing with 100% pass rate.
+  13. **VFX Graph Removal, Code Cleanup & Test Modernization**:
+     - Package Removal: Cleanly removed `com.unity.visualeffectgraph` (`17.6.0`) from `Packages/manifest.json` and resolved lockfile; removed `UnityEngine.VFXModule` from `Arcade.Gameplay.asmdef`.
+     - Shard Emitter Inlining & Dead File Deletion: Inlined mesh particle burst logic directly into `SetupVFXPrefabs.cs` (`SetupBlockShatterPrefab`), deleted redundant `SetupBlockShatterVFX.cs` and obsolete handoff document `CODEX.md`.
+     - Dead Functions & Fields Cleanup: Removed dead method `GetOrCreateParticleMaterial()` and unused static field `defaultParticleMaterial` in `PowerupCapsule.cs`; removed unused field `maxDeflectionAngleDegrees` in `BallController.cs`; removed duplicate constant in `BlockModifier.cs`; wired `laserDuration` in `ArcadeGameManager.cs`.
+     - Test Suite Modernization: Replaced deprecated `FindObjectsByType<T>(FindObjectsSortMode.None)` calls with `FindObjectsByType<T>()` in `BlockBreakerCoreTests.cs` and `ArcadeGameManager.cs`.
      - All 312 EditMode tests passing with 100% pass rate.
 
 

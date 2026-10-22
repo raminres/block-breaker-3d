@@ -15,7 +15,6 @@ namespace Arcade.BlockBreaker
         [SerializeField] private float maxSpeed = 22f;
         [SerializeField] private float speedIncrementPerHit = 0.15f;
         [SerializeField] private float launchYOffset = 0.85f;
-        [SerializeField] private float maxDeflectionAngleDegrees = 60f;
 
         [Header("References")]
         [SerializeField] private PaddleController paddle;

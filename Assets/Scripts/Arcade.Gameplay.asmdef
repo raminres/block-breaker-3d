@@ -7,8 +7,7 @@
         "Unity.ResourceManager",
         "Unity.Addressables",
         "UnityEngine.UI",
-        "UnityEngine.UIElementsModule",
-        "UnityEngine.VFXModule"
+        "UnityEngine.UIElementsModule"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

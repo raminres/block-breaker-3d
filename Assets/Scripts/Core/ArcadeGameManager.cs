@@ -505,13 +505,14 @@ namespace Arcade.Core
 
         public void ActivateLaserPowerup(float duration = 10f)
         {
+            float dur = duration > 0f ? duration : laserDuration;
             isLaserActive = true;
-            laserTimeRemaining = Mathf.Max(laserTimeRemaining, duration);
+            laserTimeRemaining = Mathf.Max(laserTimeRemaining, dur);
 
             var paddle = FindAnyObjectByType<PaddleController>();
             if (paddle != null && paddle.LaserController != null)
             {
-                paddle.LaserController.ActivateLaserBlaster(duration);
+                paddle.LaserController.ActivateLaserBlaster(dur);
             }
 
             OnLaserPowerupStateChanged?.Invoke(true, laserTimeRemaining);
@@ -765,7 +766,7 @@ namespace Arcade.Core
 
         public void ActivateBrickFreezer(int count = 5)
         {
-            var blocks = FindObjectsByType<Block>(FindObjectsSortMode.None);
+            var blocks = FindObjectsByType<Block>();
             int frozenCount = 0;
             for (int i = 0; i < blocks.Length; i++)
             {
@@ -1033,7 +1034,7 @@ namespace Arcade.Core
             {
                 if (activeBalls[i] != null) activeBalls[i].FreezeBall();
             }
-            var allBalls = FindObjectsByType<BallController>(FindObjectsSortMode.None);
+            var allBalls = FindObjectsByType<BallController>();
             for (int i = 0; i < allBalls.Length; i++)
             {
                 if (allBalls[i] != null) allBalls[i].FreezeBall();
@@ -1106,7 +1107,7 @@ namespace Arcade.Core
             if (currentState != GameState.ReadyToLaunch && currentState != GameState.BallLost) return;
 
             // Guarantee all weapons and in-flight projectiles are cleared before launch to prevent premature block destruction
-            var paddles = FindObjectsByType<PaddleController>(FindObjectsSortMode.None);
+            var paddles = FindObjectsByType<PaddleController>();
             for (int i = 0; i < paddles.Length; i++)
             {
                 if (paddles[i] != null && paddles[i].LaserController != null)

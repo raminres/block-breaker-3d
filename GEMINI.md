@@ -7,7 +7,7 @@ This file provides foundational mandates, architectural maps, key mathematical c
 ## 1. Project Specs & Key Paths
 - **Product Name / Bundle ID**: `BlockBreaker` / `com.RaminRasulzade.BlockBreaker`
 - **Unity Version**: Unity 6 (`6000.6.0f1`), Universal Render Pipeline (`URP 17.6.0`)
-- **Active Branch**: `feature/misc-updates` (Git LFS enabled)
+- **Active Branch**: `feature/level-expansion-and-fixes` (Git LFS enabled)
 - **Main Scenes**:
   1. `Assets/Scenes/LV_BlockBreaker_MainMenu.unity` (Build Index 0, Main Menu & Start Scene configured via `PlayModeSceneSetup.cs`)
   2. `Assets/Scenes/LV_BlockBreaker.unity` (Build Index 1, Primary Gameplay Arena)
@@ -19,7 +19,7 @@ This file provides foundational mandates, architectural maps, key mathematical c
   - Settings: `Assets/Settings/` (Levels `SO_Level_01` to `SO_Level_30`, `SO_PowerupIcons.asset`, URP Profiles)
   - Localization: `Assets/Localization/` (`Locales/`, `Tables/`, `LocalizationSettings.asset`)
   - UI Assets: `Assets/UI/` (UXML, USS, Fonts, Icons, procedural gradients under `Textures/Gradients/`)
-  - Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 309 EditMode NUnit unit & integration tests)
+  - Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 312 EditMode NUnit unit & integration tests)
 
 ---
 
@@ -137,7 +137,9 @@ This file provides foundational mandates, architectural maps, key mathematical c
     - Modal appear/disappear: Punchy scale transitions (modal card springs `0.82 \to 1.0` with `ease-out-back` over $0.18\text{s}$; scales down to $0.82$ with $0.10\text{s}$ exit fade before `.modal-hidden`).
     - Staggered button cascades: Sequential top-to-bottom entrance (`CascadeIn`) with $0.035\text{s}$ stagger on Main Menu buttons, Pause Menu buttons, Scorecard buttons, and Level Grid selection cards.
     - Tactile button clicks: `PunchButton` micro-depression ($0.93 \to 1.0$ over $0.08\text{s}$) upon tap/click.
-    - Punch pops & movement: Score pod punch pop on scoring, combo multiplier badge pop (`1.25\times` scale) on combo steps, scorecard star bursts ($1.45\times$ scale) on level clear, powerup/hazard badge entrance pops, and continuous breathing scale loop on `TAP TO LAUNCH` banner.
+    - Punch pops & movement: Score pod punch pop on scoring, combo multiplier badge pop (`1.25\times` scale) on combo steps, scorecard star bursts ($1.45\times$ scale) on level clear, powerup/hazard badge entrance pops, and continuous animated horizontal swipe on redesigned stacked `TAP TO LAUNCH` banner (`StartHorizontalSwipe`).
+    - Tablet Safe Real-Estate: Active powerup and hazard badges feature compact dimensions ($60\text{px}$ height, $36\text{px}$ icons) on squarer tablet aspect ratios (iPad Mini 6th gen, 3:2), strictly eliminating block occlusion.
+    - Synchronized 3-Layer Ball Speed Hybrid System: (1) In-world diegetic trail length scaling ($0.55\times \to 1.75\times$) with 4-tier color shifts (Ice Blue, Electric Cyan, Solar Gold, Plasma Flame); (2) Event-driven floating text popups (`TURBO +10%`, `DAMPEN -1.2`, `STRIKE! +8%`, `BALL SLOWED!`, `SPEED UP! +8%`); and (3) Cockpit HUD Speed Pod (`#speed-container`) displaying live multiplier with tier glows and micro punch-pops.
     - Full EditMode safety: Synchronous fallback for test environments (`!Application.isPlaying`).
   - Safe area insets handled by `SafeAreaController.cs`. Sprites managed via `SO_PowerupIcons.asset`.
 - **Unity Localization Tables (`com.unity.localization` 1.5.13)**:
@@ -152,7 +154,7 @@ This file provides foundational mandates, architectural maps, key mathematical c
 - **Railgun Hyper-Beam**: On countdown expiration, fires vertical railgun beam ($W \approx 3.2$, surge duration $0.65\text{s}$), destroying remaining bricks.
 - **Victory Freeze**: When level clears, freeze all ball velocities, lock paddle input, freeze falling capsules, wait $1.0\text{s}$ (or $1.5\text{s}$ for Hyper-Beam) before displaying scorecard.
 - **30-Level Campaign**: High-density grids (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with outer flank bumper blocks. Ball speed scales from $0.92\times$ (Level 1) to $1.80\times$ (Level 30), paddle narrows from $5.0\text{u}$ to $4.2\text{u}$, and hazards escalate from 0 to 20.
-- **Onboarding Block Scale (+20% on Levels 1–3)**: Levels 1, 2, and 3 (`SO_Level_01`, `SO_Level_02`, `SO_Level_03`) feature enlarged blocks (`blockSize = 1.20f`) with adjusted horizontal spacing ($1.50\text{u}, 1.45\text{u}, 1.40\text{u}$) to maximize readability and touch targeting comfort while strictly preserving $> 1.0\text{u}$ clearance to arena walls ($X = \pm 10.25$). Levels 4–15 retain standard $1.00\text{u}$ scale. Runtime setters: `SetBlockSize`, `SetHorizontalSpacing`, `SetVerticalSpacing` in `LevelConfiguration.cs`.
+- **Onboarding Block Scale (+20% on Levels 1–3)**: Levels 1, 2, and 3 (`SO_Level_01`, `SO_Level_02`, `SO_Level_03`) feature enlarged blocks (`blockSize = 1.20f`) with adjusted horizontal spacing ($1.50\text{u}, 1.45\text{u}, 1.40\text{u}$) to maximize readability and touch targeting comfort while strictly preserving $> 1.0\text{u}$ clearance to arena walls ($X = \pm 10.25$). Levels 4–30 retain standard $1.00\text{u}$ scale. Runtime setters: `SetBlockSize`, `SetHorizontalSpacing`, `SetVerticalSpacing` in `LevelConfiguration.cs`.
 
 ---
 

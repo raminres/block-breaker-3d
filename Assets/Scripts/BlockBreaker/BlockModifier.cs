@@ -41,7 +41,6 @@ namespace Arcade.BlockBreaker
         public const float DEFAULT_LASER_DURATION = 10f;
         public const float DEFAULT_PADDLE_SHORTEN_DURATION = 10f;
         public const float DEFAULT_PADDLE_SLOW_DURATION = 8f;
-        public const float DEFAULT_BALL_SIZE_DURATION = 10f;
         public const float DEFAULT_BALL_SIZE_DECREASE_DURATION = 10f;
         public const float DEFAULT_BALL_SLOW_DURATION = 8f;
         public const float DEFAULT_PADDLE_FREEZE_DURATION = 1.2f;
