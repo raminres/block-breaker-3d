@@ -323,10 +323,13 @@ namespace Arcade.BlockBreaker
                 capsuleRenderer = visualCapsuleTransform.gameObject.AddComponent<MeshRenderer>();
             }
 
-            Material resolvedMat = baseMat ?? GetOrCreateCapsuleMaterial();
-            if (resolvedMat != null && capsuleRenderer.sharedMaterial != resolvedMat)
+            if (baseMat != null)
             {
-                capsuleRenderer.sharedMaterial = resolvedMat;
+                capsuleRenderer.sharedMaterial = baseMat;
+            }
+            else if (capsuleRenderer.sharedMaterial == null)
+            {
+                capsuleRenderer.sharedMaterial = GetOrCreateCapsuleMaterial();
             }
 
             // 3. Resolve primary icon child (parented under Visual_Capsule or root)

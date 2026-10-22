@@ -308,12 +308,17 @@ namespace Arcade.BlockBreaker
 
         private void EnsureHyperBeamObject()
         {
-            if (hyperBeamObject == null && laserGunRoot != null)
+            if (hyperBeamObject == null)
             {
-                var childBeam = laserGunRoot.transform.Find("VFX_Railgun_HyperBeam");
-                if (childBeam != null)
+                if (laserGunRoot != null)
                 {
-                    hyperBeamObject = childBeam.gameObject;
+                    var childBeam = laserGunRoot.transform.Find("VFX_Railgun_HyperBeam");
+                    if (childBeam != null) hyperBeamObject = childBeam.gameObject;
+                }
+                if (hyperBeamObject == null)
+                {
+                    var childBeam = transform.Find("laser_gun/VFX_Railgun_HyperBeam") ?? transform.Find("VFX_Railgun_HyperBeam");
+                    if (childBeam != null) hyperBeamObject = childBeam.gameObject;
                 }
             }
 

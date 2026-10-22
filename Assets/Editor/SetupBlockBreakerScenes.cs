@@ -490,8 +490,19 @@ namespace Arcade.Editor
             var vfxMgr = gmGo.AddComponent<BlockVFXManager>();
             var vfxSo = new SerializedObject(vfxMgr);
             if (shatterPrefab != null) vfxSo.FindProperty("shatterPrefab").objectReferenceValue = shatterPrefab;
+            var pCollect = AssetDatabase.LoadAssetAtPath<GameObject>(BlockVFXManager.POWERUP_COLLECT_PREFAB_PATH);
+            if (pCollect != null) vfxSo.FindProperty("powerupCollectPrefab").objectReferenceValue = pCollect;
+            var pPaddleSpark = AssetDatabase.LoadAssetAtPath<GameObject>(BlockVFXManager.PADDLE_SPARK_PREFAB_PATH);
+            if (pPaddleSpark != null) vfxSo.FindProperty("paddleSparkPrefab").objectReferenceValue = pPaddleSpark;
+            var pBombExplosion = AssetDatabase.LoadAssetAtPath<GameObject>(BlockVFXManager.BOMB_EXPLOSION_PREFAB_PATH);
+            if (pBombExplosion != null) vfxSo.FindProperty("bombExplosionPrefab").objectReferenceValue = pBombExplosion;
             if (debrisMat != null) vfxSo.FindProperty("debrisMaterial").objectReferenceValue = debrisMat;
             if (burstMat != null) vfxSo.FindProperty("particleMaterial").objectReferenceValue = burstMat;
+            if (redMat != null) vfxSo.FindProperty("materialRed").objectReferenceValue = redMat;
+            if (greenMat != null) vfxSo.FindProperty("materialGreen").objectReferenceValue = greenMat;
+            if (blueMat != null) vfxSo.FindProperty("materialBlue").objectReferenceValue = blueMat;
+            var glassMatRef = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Glass.mat");
+            if (glassMatRef != null) vfxSo.FindProperty("materialGlass").objectReferenceValue = glassMatRef;
             vfxSo.ApplyModifiedProperties();
 
             var levelGen = gmGo.AddComponent<LevelGenerator>();

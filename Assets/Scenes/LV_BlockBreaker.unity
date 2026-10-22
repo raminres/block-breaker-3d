@@ -1953,12 +1953,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Arcade.Gameplay::Arcade.BlockBreaker.BlockVFXManager
   shatterPrefab: {fileID: 9205630907326690141, guid: 78965bd2456d0214db20f5ec1539e07d, type: 3}
+  powerupCollectPrefab: {fileID: 775472019495299698, guid: c438767ecd4458b4a98a9db8a6e8123b, type: 3}
+  paddleSparkPrefab: {fileID: 1328701661906975844, guid: 951b7a1c5e9ca8344b7668828021852c, type: 3}
+  bombExplosionPrefab: {fileID: 4290353796339332526, guid: a1030a6ac7d5d614e9937388a1e76a48, type: 3}
   particleMaterial: {fileID: 2100000, guid: f33d2b3b2fbea8245b1c597f63336517, type: 2}
   debrisMaterial: {fileID: 2100000, guid: e29da11f8c92b13489cde88e28e969d2, type: 2}
-  materialRed: {fileID: 0}
-  materialGreen: {fileID: 0}
-  materialBlue: {fileID: 0}
-  materialGlass: {fileID: 0}
+  materialRed: {fileID: 2100000, guid: fabb4170ab6eb3d4b9dbc0288c50f0a0, type: 2}
+  materialGreen: {fileID: 2100000, guid: 02e0e52ddca62014cb30af9990efdbf3, type: 2}
+  materialBlue: {fileID: 2100000, guid: a1c7a04e981c8004d9ace0f4051923b8, type: 2}
+  materialGlass: {fileID: 2100000, guid: b2d8e04e981c8004d9ace0f4051923c9, type: 2}
   largeParticleMeshes: []
   smallParticleMeshes: []
   frostParticleMeshes: []

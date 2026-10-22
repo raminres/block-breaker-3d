@@ -148,9 +148,21 @@ High-density technical context and architectural rules for BlockBreaker.
 
 ---
 
-## 9. Current Handoff State & Verification
-- **Active Branch**: `feature/misc-updates` (Up to date with origin, clean working tree)
-- **Automated Tests**: 296/296 EditMode tests passing (100% pass rate)
+## 9. Prefab-Driven Authoring & Zero Hardcoded Visual/Transform Invariants
+- **Prefabs and Scenes Are the Authoring Source of Truth**:
+  - Particle System settings (velocities, curve modes, lifetime, color gradients), materials, transforms, and collider dimensions MUST be authored directly on Prefab assets or Scene GameObjects—NEVER hardcoded in C# scripts.
+  - Do NOT write runtime overrides in `Awake()`, `Start()`, or `Update()` that modify particle velocity curves (e.g. `vel.x = new ParticleSystem.MinMaxCurve(...)`), materials, or child transforms if they are already baked into the prefab.
+  - Scripts must preserve user craftsmanship and existing authored components rather than stomping them with hardcoded numbers.
+- **Standalone/iOS Build Bundling Without Resources**:
+  - Unity's build linker bundles assets into player builds based on references reachable from Scenes in Build Settings.
+  - Every prefab required at runtime (`PF_Drop_Powerup`, `PF_Drop_Hazard`, `PF_LaserBolt`, `PF_ShieldWall`, `PF_VFX_BlockShatter`, `PF_VFX_PowerupCollect`, `PF_VFX_PaddleSpark`, `PF_VFX_BombExplosion`) MUST be serialized on a Scene GameObject (`ArcadeGameManager`, `LevelGenerator`, `BlockVFXManager`, or `PF_Paddle`) in `LV_BlockBreaker.unity`.
+  - `#if UNITY_EDITOR AssetDatabase.LoadAssetAtPath` is strictly an Editor-time fallback for isolated tests; all assets must be wired directly in the scene.
+
+---
+
+## 10. Current Handoff State & Verification
+- **Active Branch**: `feature/level-expansion-and-fixes` (Up to date with origin, clean working tree)
+- **Automated Tests**: 299/299 EditMode tests passing (100% pass rate)
 - **Verification Command**:
   ```bash
   unity cmd run_tests --mode editor --timeout 90
@@ -164,8 +176,7 @@ High-density technical context and architectural rules for BlockBreaker.
   2. **Laser Bolt Volumetric Sweep & Rigidbody Integration**: Upgraded `LaserBolt.cs` from thin raycast to continuous volumetric `Physics.SphereCastAll` (radius $0.11\text{u}$ matching `SM_Paddle` bullet mesh) with `QueryTriggerInteraction.Ignore` to bypass falling powerup triggers. Added kinematic `Rigidbody` to `PF_LaserBolt.prefab` and `Spawn()` for native PhysX `OnTriggerEnter` trigger events. Multi-hit damage verified (1 damage/hit; glass and frozen blocks absorb 1 hit before shattering).
   3. **Powerup & Hazard Icon Parenting & Zero Runtime Icon Instantiation**: Parented `Icon_Billboard` directly to `Visual_Capsule` in `PF_Drop_Powerup.prefab` and `PF_Drop_Hazard.prefab` so the billboard icon oscillates synchronously with the 3D model, permanently eliminating visual clipping. Fixed runtime duplicate icon creation; `PowerupCapsule.Initialize()` simply swaps `iconRenderer.sprite` without creating any new GameObjects.
   4. **Mesh Particle Shuriken VFX Consolidation**: Consolidated all particle VFX across the project into unified Shuriken `ParticleSystem` prefabs under `Assets/Prefabs/VFX/` (`PF_VFX_BlockShatter`, `PF_VFX_BombExplosion`, `PF_VFX_PaddleSpark`, `PF_VFX_FallingTrail`). Integrated `SM_Block_Large_Particles`, `SM_Block_Small_Particles`, and `SM_Block_Frost_Particles` meshes into block shatter bursts with block-matching materials and falling trajectories.
-  5. **Arena Boundary & UI Alignment**: Fixed shield wall baseline to $Y = -7.75\text{f}$ to prevent crossing bottom wall frames. Raised "Tap to Launch" banner on UI Toolkit HUD to prevent ball and shield occlusion across tall mobile aspect ratios.
-  6. **Bullet 3D Model Integration**: Integrated `Bullet` mesh from `SM_Paddle.fbx` with bottom pivot at $Y = 0$ into `PF_LaserBolt.prefab` and calibrated muzzle socket alignment.
-  7. **Parent Prefab Scale Normalization to 1.0**: Normalized parent root scale to `Vector3(1, 1, 1)` across `PF_Paddle.prefab`, `PF_Ball_Standard.prefab`, and `PF_LaserBolt.prefab`.
-  8. **Authoritative Runtime Localization Tables**: Bound `LocalizationManager` directly to `LocalizationSettings.StringDatabase` and runtime `StringTable` loading with English and Turkish support.
+  5. **iOS Build Bundling Without Resources**: Serialized powerup drops, hazard drops, and all Shuriken VFX prefabs directly in `LV_BlockBreaker.unity` across `ArcadeGameManager`, `LevelGenerator`, and `BlockVFXManager`, ensuring 100% asset inclusion in iOS builds without using a `Resources/` folder.
+  6. **Particle System Velocity Curve Mode Unification**: Unified MinMax curve modes to `TwoConstants` across all 3 axes in `PF_VFX_FallingTrail.prefab`, `PF_Drop_Powerup.prefab`, and `PF_Drop_Hazard.prefab`, removing runtime overrides and fixing the console error.
+  7. **Fullscreen Safe-Area How to Play Modal**: Expanded How to Play card to full width/height with safe area insets covering notches, dynamic island, and home indicator bars across mobile/tablet aspect ratios.
 

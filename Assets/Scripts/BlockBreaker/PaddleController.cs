@@ -162,8 +162,8 @@ namespace Arcade.BlockBreaker
                 rootCollider.size = new Vector3(paddleWidth, 0.24f, 2.8f);
             }
 
-            // Calibrate child visual socket scales based on paddleWidth (base model is 5.0u)
-            float visualScaleX = paddleWidth / 5.0f;
+            // Calibrate child visual socket scales based on paddleWidth and basePaddleWidth
+            float visualScaleX = paddleWidth / (basePaddleWidth > 0.01f ? basePaddleWidth : 5.0f);
             if (visualsRoot != null)
             {
                 Vector3 vs = visualsRoot.transform.localScale;
@@ -372,7 +372,7 @@ namespace Arcade.BlockBreaker
                 float visualY = Mathf.Clamp(yFactor, 0.88f, 1.06f);
                 if (visualsRoot != null)
                 {
-                    visualsRoot.transform.localScale = new Vector3(currentW / 5.0f, visualY, 1.0f);
+                    visualsRoot.transform.localScale = new Vector3(currentW / (basePaddleWidth > 0.01f ? basePaddleWidth : 5.0f), visualY, 1.0f);
                 }
 
                 yield return null;
@@ -399,7 +399,7 @@ namespace Arcade.BlockBreaker
         private IEnumerator AnimateImpactRecoil(float duration, float squashAmount)
         {
             float elapsed = 0f;
-            float visualScaleX = paddleWidth / 5.0f;
+            float visualScaleX = paddleWidth / (basePaddleWidth > 0.01f ? basePaddleWidth : 5.0f);
 
             while (elapsed < duration)
             {

@@ -36,6 +36,14 @@ This file provides foundational mandates, architectural maps, key mathematical c
   - Localization: `Assets/Localization/Tables/ArcadeTable.asset` (`ArcadeTable_en.asset`, `ArcadeTable_tr.asset`)
   - Prefabs: `PF_*` under `Assets/Prefabs/`
   - Presets: `PR_*` under `Assets/Presets/`
+- **Prefab-Driven Authoring & Zero Hardcoded Visual/Transform Invariants**:
+  - Particle System settings (velocities, curve modes, lifetime, color gradients), materials, transforms, and collider dimensions MUST be authored directly on Prefab assets or Scene GameObjects—NEVER hardcoded in C# scripts.
+  - Do NOT write runtime overrides in `Awake()`, `Start()`, or `Update()` that modify particle velocity curves (e.g. `vel.x = new ParticleSystem.MinMaxCurve(...)`), materials, or child transforms if they are already baked into the prefab.
+  - Scripts must preserve user craftsmanship and existing authored components rather than stomping them with hardcoded numbers.
+- **Standalone/iOS Build Bundling Without Resources**:
+  - Unity's build linker bundles assets into player builds based on references reachable from Scenes in Build Settings.
+  - Every prefab required at runtime (`PF_Drop_Powerup`, `PF_Drop_Hazard`, `PF_LaserBolt`, `PF_ShieldWall`, `PF_VFX_BlockShatter`, `PF_VFX_PowerupCollect`, `PF_VFX_PaddleSpark`, `PF_VFX_BombExplosion`) MUST be serialized on a Scene GameObject (`ArcadeGameManager`, `LevelGenerator`, `BlockVFXManager`, or `PF_Paddle`) in `LV_BlockBreaker.unity`.
+  - `#if UNITY_EDITOR AssetDatabase.LoadAssetAtPath` is strictly an Editor-time fallback for testing; all assets must be wired directly in the scene.
 - **Warning Suppression**: NEVER suppress/disable compiler warnings, use hacks, or bypass type systems.
 
 ---
