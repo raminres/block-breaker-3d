@@ -948,6 +948,27 @@ namespace Arcade.Tests
             var coroutine = UIAnimationHelper.StartHorizontalSwipe(null, finger);
             Assert.IsNull(coroutine, "StartHorizontalSwipe must safely return null when called in EditMode without active host.");
         }
+
+        [Test]
+        public void Test_PowerupBadges_CompactDimensions_PreventBlockOcclusionOnTablets()
+        {
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            
+            // Verify badge height is compacted (<= 64px, down from original 108px)
+            Assert.IsTrue(hudUss.Contains("height: 60px;"), "BlockBreakerHUD.uss .powerup-badge must use compact height (60px) to prevent block occlusion on iPad Mini.");
+            
+            // Verify icon dimensions are compacted (<= 40px, down from original 64px)
+            Assert.IsTrue(hudUss.Contains("width: 36px;"), "BlockBreakerHUD.uss .powerup-status-icon must use compact width (36px).");
+            Assert.IsTrue(hudUss.Contains("height: 36px;"), "BlockBreakerHUD.uss .powerup-status-icon must use compact height (36px).");
+
+            // Verify status container has wrapping and tightened vertical margins
+            Assert.IsTrue(hudUss.Contains("margin-top: 6px;"), ".powerup-status-container must use compact margin-top (6px).");
+            Assert.IsTrue(hudUss.Contains("margin-bottom: 6px;"), ".powerup-status-container must use compact margin-bottom (6px).");
+            Assert.IsTrue(hudUss.Contains("flex-wrap: wrap;"), ".powerup-status-container must support flex-wrap to prevent overflow.");
+
+            // Verify top bar margin is tightened
+            Assert.IsTrue(hudUss.Contains("margin-bottom: 8px;"), ".top-bar must use tightened margin-bottom (8px) to reduce vertical HUD footprint.");
+        }
     }
 }
 

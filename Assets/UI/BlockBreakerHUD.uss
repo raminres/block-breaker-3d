@@ -30,7 +30,7 @@
     border-width: 0;
     padding: 0;
     pointer-events: none;
-    margin-bottom: 24px;
+    margin-bottom: 8px;
 }
 
 .hud-pod {
@@ -297,92 +297,98 @@
 }
 
 .powerup-status-container {
-    margin-top: 16px;
-    margin-left: 16px;
-    margin-right: 16px;
+    margin-top: 6px;
+    margin-left: 12px;
+    margin-right: 12px;
     flex-direction: row;
     justify-content: center;
     align-items: center;
     pointer-events: none;
-    margin-bottom: 16px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
 }
 
 .powerup-badge {
-    height: 108px;
+    height: 60px;
     flex-direction: row;
     align-items: center;
-    padding: 0 18px;
-    margin: 0 9px;
-    border-radius: 24px;
-    border-width: 1.5px;
-    background-color: rgba(14, 18, 30, 0.9);
+    padding: 0 12px;
+    margin: 3px 5px;
+    border-radius: 14px;
+    border-width: 2px;
+    background-color: rgba(14, 18, 30, 0.92);
     transition-property: scale, opacity, translate;
     transition-duration: 0.25s, 0.25s, 0.25s;
     transition-timing-function: ease-out-back;
-    border-top-width: 4px;
-    border-right-width: 4px;
-    border-bottom-width: 4px;
-    border-left-width: 4px;
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
-    border-bottom-right-radius: 16px;
-    border-bottom-left-radius: 16px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
+    border-bottom-left-radius: 14px;
 }
 
 .shield-badge {
     border-color: rgb(0, 242, 254);
-    box-shadow: 0 0 12px rgba(0, 242, 254, 0.65);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.65);
 }
 
 .multiball-badge {
     border-color: rgb(224, 86, 253);
-    box-shadow: 0 0 12px rgba(224, 86, 253, 0.65);
+    box-shadow: 0 0 10px rgba(224, 86, 253, 0.65);
 }
 
 .paddle-badge {
     border-color: rgb(0, 229, 255);
-    box-shadow: 0 0 12px rgba(0, 229, 255, 0.65);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.65);
 }
 
 .multiplier-badge {
     border-color: rgb(255, 215, 0);
-    box-shadow: 0 0 12px rgba(255, 215, 0, 0.65);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.65);
 }
 
 .mult-tier-2x {
     border-color: rgb(255, 215, 0);
-    box-shadow: 0 0 12px rgba(255, 215, 0, 0.75);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.75);
 }
 
 .mult-tier-3x {
     border-color: rgb(255, 140, 0);
-    box-shadow: 0 0 12px rgba(255, 140, 0, 0.75);
+    box-shadow: 0 0 10px rgba(255, 140, 0, 0.75);
 }
 
 .mult-tier-4x {
     border-color: rgb(255, 23, 68);
-    box-shadow: 0 0 14px rgba(255, 23, 68, 0.85);
+    box-shadow: 0 0 12px rgba(255, 23, 68, 0.85);
 }
 
 .mult-tier-5x {
     border-color: rgb(213, 0, 249);
-    box-shadow: 0 0 14px rgba(213, 0, 249, 0.9);
+    box-shadow: 0 0 12px rgba(213, 0, 249, 0.9);
 }
 
 .laser-badge {
     border-color: rgb(255, 42, 71);
-    box-shadow: 0 0 14px rgba(255, 42, 71, 0.85);
+    box-shadow: 0 0 12px rgba(255, 42, 71, 0.85);
 }
 
 .clutch-badge {
     border-color: rgb(255, 0, 127);
-    box-shadow: 0 0 16px rgba(255, 0, 127, 0.9);
+    box-shadow: 0 0 14px rgba(255, 0, 127, 0.9);
+}
+
+.combo-badge {
+    border-color: rgb(0, 242, 254);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.65);
 }
 
 .powerup-status-icon {
-    width: 64px;
-    height: 64px;
-    margin-right: 9px;
+    width: 36px;
+    height: 36px;
+    margin-right: 7px;
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -423,24 +429,31 @@
 }
 
 .powerup-timer-label {
-    font-size: 32px;
+    font-size: 22px;
     -unity-font-style: bold;
     color: rgb(255, 255, 255);
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
 .multiplier-val-text {
-    font-size: 32px;
+    font-size: 22px;
     -unity-font-style: bold;
-    margin-right: 5px;
+    margin-right: 4px;
 }
 
 .clutch-val-text {
-    font-size: 36px;
+    font-size: 24px;
     -unity-font-style: bold;
-    margin-right: 5px;
+    margin-right: 4px;
     color: rgb(255, 0, 127);
     text-shadow: 0 0 10px rgba(255, 0, 127, 0.9);
+}
+
+.combo-val-text {
+    font-size: 22px;
+    -unity-font-style: bold;
+    color: rgb(0, 242, 254);
+    text-shadow: 0 0 8px rgba(0, 242, 254, 0.8);
 }
 
 .shield-badge .powerup-timer-label {
