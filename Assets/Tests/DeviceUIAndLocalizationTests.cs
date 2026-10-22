@@ -685,6 +685,54 @@ namespace Arcade.Tests
             Assert.IsTrue(hudUss.Contains(".warning-btn {"), "BlockBreakerHUD.uss must define .warning-btn.");
             Assert.IsTrue(hudUss.Contains("border-bottom-width: 6px;"), "Modals must have 6px bottom beveled border.");
         }
+
+        [Test]
+        public void Step5_HowToPlayModal_IsFullscreen_AndProtectedBySafeArea()
+        {
+            // 1. Verify UXML has safe-area-fullscreen class on how-to-play-card
+            var menuTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MainMenuUI.uxml");
+            var menuRoot = menuTree.CloneTree();
+            var menuCard = menuRoot.Q<VisualElement>("how-to-play-card");
+            Assert.IsNotNull(menuCard, "how-to-play-card must exist in MainMenuUI.");
+            Assert.IsTrue(menuCard.ClassListContains("safe-area-fullscreen"), "how-to-play-card must have safe-area-fullscreen class in MainMenuUI.");
+
+            var hudTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/BlockBreakerHUD.uxml");
+            var hudRoot = hudTree.CloneTree();
+            var hudCard = hudRoot.Q<VisualElement>("how-to-play-card");
+            Assert.IsNotNull(hudCard, "how-to-play-card must exist in BlockBreakerHUD.");
+            Assert.IsTrue(hudCard.ClassListContains("safe-area-fullscreen"), "how-to-play-card must have safe-area-fullscreen class in BlockBreakerHUD.");
+
+            // 2. Verify USS defines fullscreen dimensions (100% width and height) and flexible scroll container
+            var menuUss = System.IO.File.ReadAllText("Assets/UI/MainMenuUI.uss");
+            Assert.IsTrue(menuUss.Contains("width: 100%;"), "how-to-play-card must be 100% width.");
+            Assert.IsTrue(menuUss.Contains("height: 100%;"), "how-to-play-card must be 100% height.");
+            Assert.IsTrue(menuUss.Contains("flex-grow: 1;"), "guide-scroll must have flex-grow: 1.");
+
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains("width: 100%;"), "how-to-play-card must be 100% width in HUD.");
+            Assert.IsTrue(hudUss.Contains("height: 100%;"), "how-to-play-card must be 100% height in HUD.");
+
+            // 3. Verify SafeAreaController applies insets to safe-area-fullscreen elements
+            var testObj = new GameObject("SafeAreaTestObj", typeof(PanelRenderer), typeof(SafeAreaController));
+            var controller = testObj.GetComponent<SafeAreaController>();
+            controller.ForceEditorSimulation = true;
+
+            var testRoot = new VisualElement { name = "root" };
+            var htpElem = new VisualElement { name = "how-to-play-card" };
+            htpElem.AddToClassList("safe-area-fullscreen");
+            testRoot.Add(htpElem);
+
+            var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            typeof(SafeAreaController).GetField("root", flags).SetValue(controller, testRoot);
+
+            controller.ApplySafeArea();
+
+            Assert.Greater(htpElem.style.paddingTop.value.value, 0f, "SafeAreaController must apply top padding to protect from notch.");
+            Assert.Greater(htpElem.style.paddingBottom.value.value, 0f, "SafeAreaController must apply bottom padding to protect from home bar.");
+            Assert.Greater(htpElem.style.paddingLeft.value.value, 0f, "SafeAreaController must apply side padding to protect from screen corners.");
+
+            Object.DestroyImmediate(testObj);
+        }
     }
 }
 

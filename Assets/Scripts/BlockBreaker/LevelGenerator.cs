@@ -32,6 +32,10 @@ namespace Arcade.BlockBreaker
         [SerializeField] private GameObject prefabBombBlock;
         [SerializeField] private GameObject prefabGlassBlock;
 
+        [Header("Drop Prefabs")]
+        [SerializeField] private GameObject powerupPrefab;
+        [SerializeField] private GameObject hazardPrefab;
+
         [Header("Materials (Fallback)")]
         [SerializeField] private Material matRedBlock;
         [SerializeField] private Material matGreenBlock;
@@ -67,6 +71,8 @@ namespace Arcade.BlockBreaker
         public GameObject PrefabBlueBlock => prefabBlueBlock;
         public GameObject PrefabBombBlock => prefabBombBlock;
         public GameObject PrefabGlassBlock => prefabGlassBlock;
+        public GameObject PowerupPrefab => powerupPrefab;
+        public GameObject HazardPrefab => hazardPrefab;
 
         public void SetBlockPrefabs(GameObject red, GameObject green, GameObject blue, GameObject bomb, GameObject glass)
         {
@@ -77,6 +83,14 @@ namespace Arcade.BlockBreaker
             prefabGlassBlock = glass;
         }
 
+        public void SetDropPrefabs(GameObject powerup, GameObject hazard)
+        {
+            powerupPrefab = powerup;
+            hazardPrefab = hazard;
+            if (powerup != null) PowerupCapsule.PowerupPrefab = powerup;
+            if (hazard != null) PowerupCapsule.HazardPrefab = hazard;
+        }
+
         public void EnsurePrefabReferences()
         {
 #if UNITY_EDITOR
@@ -85,7 +99,11 @@ namespace Arcade.BlockBreaker
             if (prefabBlueBlock == null) prefabBlueBlock = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Blocks/PF_Block_Blue.prefab");
             if (prefabBombBlock == null) prefabBombBlock = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Blocks/PF_Block_Bomb.prefab");
             if (prefabGlassBlock == null) prefabGlassBlock = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Blocks/PF_Block_Glass.prefab");
+            if (powerupPrefab == null) powerupPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Powerups/PF_Drop_Powerup.prefab");
+            if (hazardPrefab == null) hazardPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Powerups/PF_Drop_Hazard.prefab");
 #endif
+            if (powerupPrefab != null && PowerupCapsule.PowerupPrefab == null) PowerupCapsule.PowerupPrefab = powerupPrefab;
+            if (hazardPrefab != null && PowerupCapsule.HazardPrefab == null) PowerupCapsule.HazardPrefab = hazardPrefab;
         }
 
         public GameObject GetPrefabForBlock(BlockColorTier tier, BlockSpecialType special)
@@ -105,6 +123,7 @@ namespace Arcade.BlockBreaker
         private void Awake()
         {
             Instance = this;
+            EnsurePrefabReferences();
             InitializeLevelConfig();
         }
 

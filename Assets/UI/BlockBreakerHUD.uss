@@ -1647,16 +1647,67 @@
 }
 
 .how-to-play-card {
-    width: 840px;
-    max-height: 660px;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-width: 0;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+    background-color: rgb(18, 24, 40);
+    background-image: url("project://database/Assets/UI/Textures/Gradients/TX_Grad_Card_Bg.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding-top: 4%;
+    padding-bottom: 4%;
+    padding-left: 4%;
+    padding-right: 4%;
+}
+
+.how-to-play-card .modal-title {
+    align-self: center;
+    margin-top: 4px;
+    margin-bottom: 16px;
+}
+
+.how-to-play-card .guide-scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+    max-height: none;
+    width: 100%;
+    max-width: 960px;
+    align-self: center;
+    margin-bottom: 16px;
+    margin-top: 8px;
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.how-to-play-card .modal-close-btn {
+    width: 100%;
+    max-width: 480px;
+    align-self: center;
+    margin-top: 10px;
+    margin-bottom: 8px;
 }
 
 .guide-scroll {
-    max-height: 490px;
-    margin-bottom: 6px;
-    margin-top: 6px;
-    margin-right: 6px;
-    margin-left: 6px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    max-height: none;
+    margin-bottom: 16px;
+    margin-top: 8px;
+    margin-right: 0;
+    margin-left: 0;
 }
 
 .guide-card {

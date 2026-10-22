@@ -175,6 +175,17 @@ namespace Arcade.BlockBreaker
             {
                 fallingVfx = fallingVfxTransform.GetComponent<ParticleSystem>();
             }
+
+            if (fallingVfx != null)
+            {
+                var vel = fallingVfx.velocityOverLifetime;
+                if (vel.enabled && (vel.x.mode != vel.y.mode || vel.y.mode != vel.z.mode))
+                {
+                    vel.x = new ParticleSystem.MinMaxCurve(-0.1f, 0.1f);
+                    vel.y = new ParticleSystem.MinMaxCurve(1.5f, 2.5f);
+                    vel.z = new ParticleSystem.MinMaxCurve(0f, 0f);
+                }
+            }
         }
 
         private void Start()
@@ -800,17 +811,28 @@ namespace Arcade.BlockBreaker
             GameObject template = isHazard ? HazardPrefab : PowerupPrefab;
             if (template == null)
             {
+                if (ArcadeGameManager.Instance != null)
+                {
+                    template = isHazard ? ArcadeGameManager.Instance.HazardPrefab : ArcadeGameManager.Instance.PowerupPrefab;
+                }
+                if (template == null && LevelGenerator.Instance != null)
+                {
+                    template = isHazard ? LevelGenerator.Instance.HazardPrefab : LevelGenerator.Instance.PowerupPrefab;
+                }
 #if UNITY_EDITOR
-                string path = isHazard 
-                    ? "Assets/Prefabs/Powerups/PF_Drop_Hazard.prefab" 
-                    : "Assets/Prefabs/Powerups/PF_Drop_Powerup.prefab";
-                template = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (template == null)
+                {
+                    string path = isHazard 
+                        ? "Assets/Prefabs/Powerups/PF_Drop_Hazard.prefab" 
+                        : "Assets/Prefabs/Powerups/PF_Drop_Powerup.prefab";
+                    template = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                }
+#endif
                 if (template != null)
                 {
                     if (isHazard) HazardPrefab = template;
                     else PowerupPrefab = template;
                 }
-#endif
             }
 
             PowerupCapsule comp;
@@ -838,6 +860,24 @@ namespace Arcade.BlockBreaker
                 box.center = new Vector3(0f, 0f, 1.0f);
 
                 comp = rootGo.AddComponent<PowerupCapsule>();
+
+                // Fallback visual children so drop is NEVER invisible even without prefabs
+                var modelGo = GameObject.CreatePrimitive(isHazard ? PrimitiveType.Cube : PrimitiveType.Capsule);
+                modelGo.name = "Visual_Capsule";
+                modelGo.transform.SetParent(rootGo.transform, false);
+                modelGo.transform.localPosition = Vector3.zero;
+                modelGo.transform.localScale = isHazard ? new Vector3(0.72f, 0.72f, 0.72f) : new Vector3(0.85f, 0.85f, 0.85f);
+                if (isHazard) modelGo.transform.localRotation = Quaternion.Euler(45f, 45f, 0f);
+                var modelCol = modelGo.GetComponent<Collider>();
+                if (modelCol != null) Object.DestroyImmediate(modelCol);
+
+                var spriteGo = new GameObject("Icon_Billboard");
+                spriteGo.transform.SetParent(modelGo.transform, false);
+                spriteGo.transform.localPosition = new Vector3(0f, 0f, -0.24f);
+                spriteGo.transform.localRotation = Quaternion.identity;
+                spriteGo.transform.localScale = Vector3.one;
+                var sr = spriteGo.AddComponent<SpriteRenderer>();
+                sr.sortingOrder = 35;
             }
 
             baseMat = baseMat ?? GetOrCreateCapsuleMaterial();

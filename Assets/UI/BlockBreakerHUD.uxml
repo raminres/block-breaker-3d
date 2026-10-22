@@ -167,7 +167,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="how-to-play-modal" class="modal-backdrop modal-hidden">
-            <ui:VisualElement class="modal-card modal-card-wide how-to-play-card">
+            <ui:VisualElement name="how-to-play-card" class="modal-card modal-card-wide how-to-play-card safe-area-fullscreen">
                 <ui:Label name="modal-title-how-to-play" text="HOW TO PLAY" class="modal-title"/>
                 <ui:ScrollView class="guide-scroll">
                     <ui:VisualElement class="guide-card">

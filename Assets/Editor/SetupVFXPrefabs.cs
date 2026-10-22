@@ -344,7 +344,9 @@ namespace Arcade.Editor
 
             var vel = ps.velocityOverLifetime;
             vel.enabled = true;
+            vel.x = new ParticleSystem.MinMaxCurve(-0.1f, 0.1f);
             vel.y = new ParticleSystem.MinMaxCurve(1.5f, 2.5f);
+            vel.z = new ParticleSystem.MinMaxCurve(0f, 0f);
 
             var sizeOverLifetime = ps.sizeOverLifetime;
             sizeOverLifetime.enabled = true;

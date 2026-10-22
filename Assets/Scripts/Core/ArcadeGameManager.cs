@@ -109,11 +109,25 @@ namespace Arcade.Core
         [Header("Asset References")]
         [SerializeField] private Material powerupCapsuleMaterial;
         [SerializeField] private GameObject shieldWallPrefab;
+        [SerializeField] private GameObject powerupPrefab;
+        [SerializeField] private GameObject hazardPrefab;
 
         public GameObject ShieldWallPrefab
         {
             get => shieldWallPrefab;
             set => shieldWallPrefab = value;
+        }
+
+        public GameObject PowerupPrefab
+        {
+            get => powerupPrefab;
+            set => powerupPrefab = value;
+        }
+
+        public GameObject HazardPrefab
+        {
+            get => hazardPrefab;
+            set => hazardPrefab = value;
         }
 
         // Powerdown states and timers
@@ -254,6 +268,8 @@ namespace Arcade.Core
             {
                 PowerupCapsule.SetDefaultMaterial(powerupCapsuleMaterial);
             }
+            if (powerupPrefab != null) PowerupCapsule.PowerupPrefab = powerupPrefab;
+            if (hazardPrefab != null) PowerupCapsule.HazardPrefab = hazardPrefab;
             highScore = HighScoreManager.HighestScore;
             HighScoreManager.OnHighScoresChanged += HandleHighScoresChanged;
         }

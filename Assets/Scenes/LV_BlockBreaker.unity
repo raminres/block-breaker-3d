@@ -1927,6 +1927,8 @@ MonoBehaviour:
   prefabBlueBlock: {fileID: 6264034009996882197, guid: 1283cbd85b1a65346a86a020757b6d6a, type: 3}
   prefabBombBlock: {fileID: 1607807769817580636, guid: 610fdbdde6882db408c036b2aa592cc9, type: 3}
   prefabGlassBlock: {fileID: 2888217756340472138, guid: b5d42ce400159c546b624d73f4e20b72, type: 3}
+  powerupPrefab: {fileID: 6489925748099566146, guid: f75a633b4bf42bf498b2ac9d495e90f9, type: 3}
+  hazardPrefab: {fileID: 7615715025053180717, guid: 7958daaa9eb710849ab1d20680725d25, type: 3}
   matRedBlock: {fileID: 2100000, guid: fabb4170ab6eb3d4b9dbc0288c50f0a0, type: 2}
   matGreenBlock: {fileID: 2100000, guid: 02e0e52ddca62014cb30af9990efdbf3, type: 2}
   matBlueBlock: {fileID: 2100000, guid: a1c7a04e981c8004d9ace0f4051923b8, type: 2}
@@ -2019,6 +2021,8 @@ MonoBehaviour:
   clutchMultiplier: 1
   powerupCapsuleMaterial: {fileID: 2100000, guid: be5e42fbaef425b4ca014c8ea4b242c4, type: 2}
   shieldWallPrefab: {fileID: 5640916559723417570, guid: 0611947c313bc3140b165b4cc2020137, type: 3}
+  powerupPrefab: {fileID: 6489925748099566146, guid: f75a633b4bf42bf498b2ac9d495e90f9, type: 3}
+  hazardPrefab: {fileID: 7615715025053180717, guid: 7958daaa9eb710849ab1d20680725d25, type: 3}
 --- !u!4 &1587829263
 Transform:
   m_ObjectHideFlags: 0

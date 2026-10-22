@@ -123,5 +123,38 @@ namespace Arcade.Tests
                 Object.DestroyImmediate(drop.gameObject);
             }
         }
+
+        [Test]
+        public void DropPrefabs_ParticleVelocityCurves_AllInSameMode()
+        {
+            string[] paths = { PowerupPrefabPath, HazardPrefabPath, "Assets/Prefabs/VFX/PF_VFX_FallingTrail.prefab" };
+            foreach (var path in paths)
+            {
+                var go = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                Assert.IsNotNull(go, $"Prefab at {path} must exist.");
+                var ps = go.GetComponentInChildren<ParticleSystem>(true);
+                Assert.IsNotNull(ps, $"ParticleSystem must exist in {path}.");
+                var vel = ps.velocityOverLifetime;
+                if (vel.enabled)
+                {
+                    Assert.AreEqual(vel.x.mode, vel.y.mode, $"X and Y velocity curve modes must match in {path} to avoid Unity error.");
+                    Assert.AreEqual(vel.y.mode, vel.z.mode, $"Y and Z velocity curve modes must match in {path} to avoid Unity error.");
+                    Assert.AreEqual(ParticleSystemCurveMode.TwoConstants, vel.y.mode, $"Velocity curves in {path} must use TwoConstants mode.");
+                }
+            }
+        }
+
+        [Test]
+        public void DropPrefabs_AreReferencedInGameplayScene_BundlingWithoutResources()
+        {
+            // Verify serialized references in scene YAML directly without requiring Resources
+            string scenePath = "Assets/Scenes/LV_BlockBreaker.unity";
+            string content = System.IO.File.ReadAllText(scenePath);
+            var powerupGuid = AssetDatabase.AssetPathToGUID(PowerupPrefabPath);
+            var hazardGuid = AssetDatabase.AssetPathToGUID(HazardPrefabPath);
+
+            Assert.IsTrue(content.Contains(powerupGuid), "PF_Drop_Powerup GUID must be serialized in LV_BlockBreaker.unity scene.");
+            Assert.IsTrue(content.Contains(hazardGuid), "PF_Drop_Hazard GUID must be serialized in LV_BlockBreaker.unity scene.");
+        }
     }
 }

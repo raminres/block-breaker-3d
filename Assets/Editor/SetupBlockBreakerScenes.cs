@@ -477,12 +477,14 @@ namespace Arcade.Editor
             var gm = gmGo.AddComponent<ArcadeGameManager>();
             gm.RegisterShieldWall(shieldWall);
             var capsuleMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Powerup_Capsule.mat");
-            if (capsuleMat != null)
-            {
-                var gmSo = new SerializedObject(gm);
-                gmSo.FindProperty("powerupCapsuleMaterial").objectReferenceValue = capsuleMat;
-                gmSo.ApplyModifiedProperties();
-            }
+            var pPowerup = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Powerups/PF_Drop_Powerup.prefab");
+            var pHazard = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Powerups/PF_Drop_Hazard.prefab");
+
+            var gmSo = new SerializedObject(gm);
+            if (capsuleMat != null) gmSo.FindProperty("powerupCapsuleMaterial").objectReferenceValue = capsuleMat;
+            if (pPowerup != null) gmSo.FindProperty("powerupPrefab").objectReferenceValue = pPowerup;
+            if (pHazard != null) gmSo.FindProperty("hazardPrefab").objectReferenceValue = pHazard;
+            gmSo.ApplyModifiedProperties();
             gmGo.AddComponent<ArcadeInputHandler>();
 
             var vfxMgr = gmGo.AddComponent<BlockVFXManager>();
@@ -510,6 +512,8 @@ namespace Arcade.Editor
             if (pBlue != null) levelSo.FindProperty("prefabBlueBlock").objectReferenceValue = pBlue;
             if (pBomb != null) levelSo.FindProperty("prefabBombBlock").objectReferenceValue = pBomb;
             if (pGlass != null) levelSo.FindProperty("prefabGlassBlock").objectReferenceValue = pGlass;
+            if (pPowerup != null) levelSo.FindProperty("powerupPrefab").objectReferenceValue = pPowerup;
+            if (pHazard != null) levelSo.FindProperty("hazardPrefab").objectReferenceValue = pHazard;
 
             var presetsProp = levelSo.FindProperty("levelPresets");
             presetsProp.arraySize = 15;
