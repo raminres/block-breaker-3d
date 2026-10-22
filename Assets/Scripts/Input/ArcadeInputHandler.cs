@@ -31,6 +31,7 @@ namespace Arcade.Input
         private bool hasDirectTargetX = false;
         private float directTargetWorldX = 0f;
         private bool touchStartedOverUI = false;
+        private bool isTouchSessionActive = false;
         private float launchSuppressedUntil = 0f;
         private Camera mainCam;
 
@@ -211,9 +212,9 @@ namespace Arcade.Input
             }
 #endif
 
-            if (pointerDown)
+            if (pointerDown || (pointerHeld && !isTouchSessionActive))
             {
-                screenPos.y = Mathf.Max(screenPos.y, 4f);
+                isTouchSessionActive = true;
                 touchStartScreenPos = screenPos;
                 touchStartTime = Time.unscaledTime;
                 isDragging = false;
@@ -245,7 +246,6 @@ namespace Arcade.Input
             }
             else if (pointerHeld && !touchStartedOverUI)
             {
-                screenPos.y = Mathf.Max(screenPos.y, 4f);
                 float screenDist = Vector2.Distance(screenPos, touchStartScreenPos);
                 if (!isDragging && screenDist > dragDeadzonePixels)
                 {
@@ -290,6 +290,13 @@ namespace Arcade.Input
                 touchStartedOverUI = false;
                 ResetTouchState();
             }
+            else if (!pointerHeld)
+            {
+                if (isTouchSessionActive)
+                {
+                    ResetTouchState();
+                }
+            }
         }
 
         public void ResetTouchState()
@@ -299,8 +306,10 @@ namespace Arcade.Input
             directTargetWorldX = 0f;
             horizontalInput = 0f;
             touchStartedOverUI = false;
+            isTouchSessionActive = false;
             touchStartPaddleX = 0f;
             touchStartWorldX = 0f;
+            touchStartTime = 0f;
         }
 
         public void TriggerLaunch()

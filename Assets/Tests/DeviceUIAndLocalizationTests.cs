@@ -249,9 +249,9 @@ namespace Arcade.Tests
             Assert.IsTrue(LocalizationManager.Get("guide_p4").Contains("Clutch Countdown"));
 
             LocalizationManager.SetLanguage(GameLanguage.Turkish);
-            Assert.AreEqual("NASIL OYNANIR", LocalizationManager.Get("guide_title"));
+            Assert.AreEqual("NASIL OYNARIM?", LocalizationManager.Get("guide_title"));
             Assert.AreEqual("1. KONTROLLER VE FIRLATMA", LocalizationManager.Get("guide_h1"));
-            Assert.IsTrue(LocalizationManager.Get("guide_p1").Contains("parmağınızı veya fareyi"));
+            Assert.IsTrue(LocalizationManager.Get("guide_p1").Contains("parmağınız") && LocalizationManager.Get("guide_p1").Contains("fareyi"));
             Assert.AreEqual("4. GÜÇLENDİRMELER VE TEHLİKELER", LocalizationManager.Get("guide_h4"));
             Assert.IsTrue(LocalizationManager.Get("guide_p4").Contains("Kritik Geri Sayım"));
 
@@ -381,15 +381,33 @@ namespace Arcade.Tests
         }
 
         [Test]
-        public void BlockBreakerHUD_UXML_ContainsMinimalTouchGuidelineWithIgnorePicking()
+        public void BlockBreakerHUD_UXML_DoesNotContainTouchGuideline()
         {
             var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/BlockBreakerHUD.uxml");
             Assert.IsNotNull(uxml, "BlockBreakerHUD.uxml must exist.");
 
             var root = uxml.Instantiate();
             var guideline = root.Q("touch-guideline");
-            Assert.IsNotNull(guideline, "BlockBreakerHUD.uxml must contain 'touch-guideline' visual element.");
-            Assert.AreEqual(PickingMode.Ignore, guideline.pickingMode, "touch-guideline must have pickingMode=Ignore so it never blocks gameplay input.");
+            Assert.IsNull(guideline, "touch-guideline must not exist in BlockBreakerHUD.uxml.");
+        }
+
+        [Test]
+        public void ArcadeUIManager_IsPointerOverUI_BottomScreenTouchesDoNotHitUI()
+        {
+            var uiObj = new GameObject("UI_HUD_Test");
+            uiObj.AddComponent<PanelRenderer>();
+            var uiMgr = uiObj.AddComponent<ArcadeUIManager>();
+
+            var root = new VisualElement { name = "hud-root" };
+            var rootField = typeof(ArcadeUIManager).GetField("root", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            rootField.SetValue(uiMgr, root);
+
+            // A touch at the bottom 15% of the screen (e.g. y = 50 in 1080x1920 or 2532x1170)
+            // must NOT be intercepted as UI when no modals are active.
+            Assert.IsFalse(uiMgr.IsPointerOverUI(new Vector2(Screen.width * 0.5f, 50f)));
+            Assert.IsFalse(uiMgr.IsPointerOverUI(new Vector2(100f, 20f)));
+
+            Object.DestroyImmediate(uiObj);
         }
 
         [Test]

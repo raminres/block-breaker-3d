@@ -18,19 +18,6 @@
     padding-bottom: 0;
 }
 
-.touch-guideline {
-    position: absolute;
-    bottom: 95px;
-    align-self: center;
-    width: 280px;
-    height: 4px;
-    border-radius: 2px;
-    background-color: rgba(33, 212, 253, 0.15);
-    border-width: 0;
-    pointer-events: none;
-    opacity: 0.16;
-}
-
 .top-bar {
     margin-top: 12px;
     margin-left: 0;

@@ -2808,17 +2808,21 @@ namespace Arcade.UI
 
             if (root != null && root.panel != null)
             {
-                Vector2 panelPos = RuntimePanelUtils.ScreenToPanel(root.panel, screenPos);
+                // In Unity, screenPos has origin at bottom-left (Y increasing up).
+                // UI Toolkit ScreenToPanel expects GUI screen coordinates with origin at top-left (Y increasing down).
+                float screenH = Screen.height > 0 ? Screen.height : 1080f;
+                Vector2 guiPos = new Vector2(screenPos.x, screenH - screenPos.y);
+                Vector2 panelPos = RuntimePanelUtils.ScreenToPanel(root.panel, guiPos);
                 VisualElement picked = root.panel.Pick(panelPos);
-                if (picked != null && picked != root && 
-                    picked.name != "hud-root" && 
-                    picked.name != "safe-area-content" && 
-                    picked.name != "root-container" && 
-                    picked.name != "main-menu-content" &&
-                    picked.name != "touch-guideline" &&
-                    picked.pickingMode != PickingMode.Ignore)
+                if (picked != null)
                 {
-                    return true;
+                    // Only interactive buttons (or elements inside a button, e.g. Pause button) block gameplay input.
+                    // Passive HUD indicators (score, lives, timer, powerup badges, etc.) should never block paddle movement.
+                    Button btn = (picked as Button) ?? picked.GetFirstAncestorOfType<Button>();
+                    if (btn != null && btn.pickingMode != PickingMode.Ignore && btn.enabledInHierarchy)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
