@@ -72,6 +72,28 @@ Awarded Score = Base Brick Score × Capsule Multiplier × Volley Multiplier × M
 - **Scorecard Modal**: Tallies blocks destroyed, peak combo, elapsed time vs par, under-par bonus (+500 pts), and flawless life bonus (+1,000 pts). Awards 1 to 3 stars with animated starburst effects.
 - **Persistence & Mobile Formatting**: Tracks high scores and best clear times in `PlayerPrefs` via `HighScoreManager`. Date timestamps use compact `dd/MM` formatting (e.g. `22/10`) with invariant culture, guaranteeing pristine display without truncation or wrapping on mobile screens.
 
+### 3.4 Ball Speed Dynamics & 3-Layer Hybrid Visualization System
+To ensure ball speed changes from brick interactions (Red Dampen $-1.2$, Green Turbo $+10\%$), active strikes ($+8\%$), and hazards (Ball Slower $9.5\text{ u/s}$) are instantly transparent to players, the game implements a synchronized 3-layer visualization architecture:
+1. **Layer 1: Diegetic Visuals (In-World Ball Trail & Emission Shifts)**:
+   - Dynamic trail duration scaling: Ball `TrailRenderer` lengths expand with velocity (from $0.55\times$ at $9.5\text{ u/s}$ up to $1.75\times$ at $22.0\text{ u/s}$), providing immediate tactile speed cues.
+   - Dynamic 4-tier color shifts:
+     - ❄️ **Slow Tier (< 12 u/s)**: Frosted Ice Blue (`#59d9f2`).
+     - ⚡ **Normal Tier (12–17 u/s)**: Electric Cyan (`#00f2fe`) blending into Solar Gold.
+     - ☀️ **Boost Tier (17–20 u/s)**: Solar Gold (`#ffb300`).
+     - 🔥 **Turbo Tier (>= 20 u/s)**: Blazing Plasma Flame (`#ff3d00`).
+   - Multi-ball color preservation: Extra balls preserve their distinct multi-ball identity colors (Neon Magenta, Solar Gold, Emerald) while dynamically scaling trail duration.
+2. **Layer 2: Event-Driven Floating Text Popups**:
+   - Floating arcade popups spawn at impact coordinates and rise vertically with scale punch pops and alpha fades:
+     - `TURBO +10%` (Neon Emerald) on Green Turbo brick hits.
+     - `DAMPEN -1.2` (Crimson) on Red Kinetic Dampener brick hits.
+     - `STRIKE! +8%` (Electric Cyan) on active moving paddle strikes ($|V_x| \ge 3.5\text{ u/s}$).
+     - `BALL SLOWED!` (Frosted Blue) on Ball Slower hazard triggers.
+     - `SPEED UP! +8%` (Solar Gold) on 10s sustained volley ramps.
+3. **Layer 3: Cockpit HUD Speed Pod (`#speed-container`)**:
+   - Integrated into `#top-bar` alongside lives, score, and timer.
+   - Displays real-time multiplier (`1.0x`, `1.2x`, `1.6x`) formatted with invariant culture.
+   - Glows dynamically matching active speed tiers (`.speed-tier-slow`, `.speed-tier-normal`, `.speed-tier-boost`, `.speed-tier-turbo`) and triggers micro punch-pops on speed changes.
+
 ---
 
 ## 4. Powerups, Hazards & Defense
@@ -180,6 +202,7 @@ Dense layouts (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with side b
     - Propagated across all modal cards (`.modal-card`, `.level-modal-card`, `.scorecard-card`) and button styles (`.arcade-btn`, `.arcade-button`, `.btn-primary`, `.btn-secondary`, `.btn-default`, `.warning-btn`) across both Main Menu and Gameplay HUD.
   - **Menu Parity**: In-Game Pause Menu sub-screens (How to Play, Credits, Level Select, Options) match Main Menu in layout structure, fonts, button styling, and responsive proportions.
   - **Level Select Screen**: Expanded scroll view and card grid accommodating all 30 campaign stages with responsive touch scrolling and clear progression indicators.
+  - **Tablet Screen Real-Estate & Compact Badges**: On squarer tablet displays (iPad Mini 6th gen, 3:2 ratio), active powerup and hazard badges feature compact dimensions (height $60\text{px}$, icons $36\text{px}$, vertical margin $6\text{px}$ with flex-wrapping), eliminating HUD overhang and strictly preventing block occlusion.
   - **Custom Animated Mute Toggles**: Both Main Menu and In-Game Pause Options panels feature custom checkmark toggles for SFX and Music sliders (`68px × 68px`). Toggles dynamically switch between speaker/mute icons with glowing cyan (`#21d4fd`) and crimson (`#ff3b56`) tints.
   - Main Menu features transparent root container with unified camera framing ($Z = -32\text{f}$) and Bloom. Sprites bound via `SO_PowerupIcons.asset`. Inset management via `SafeAreaController.cs`.
 - **Unity Localization Tables (`com.unity.localization` 1.5.13)**:
@@ -188,4 +211,4 @@ Dense layouts (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with side b
   - Dynamic runtime lookup through `LocalizationManager.cs` with synchronous fallback dictionary for offline/unit test resilience.
 - **Audio Engine**: `ArcadeAudioManager.cs` with custom clips (`AU_`) and procedural synthesizer fallback.
 - **Controls**: Desktop (mouse 1:1 or A/D / Arrow keys, Space launch), Mobile (touch drag paddle, tap launch).
-- **Tests**: 310 EditMode unit and integration tests via `unity cmd run_tests --mode editor`.
+- **Tests**: 312 EditMode unit and integration tests via `unity cmd run_tests --mode editor`.

@@ -969,6 +969,149 @@ namespace Arcade.Tests
             // Verify top bar margin is tightened
             Assert.IsTrue(hudUss.Contains("margin-bottom: 8px;"), ".top-bar must use tightened margin-bottom (8px) to reduce vertical HUD footprint.");
         }
+
+        [Test]
+        public void Test_BallSpeed_VisualAndDurationTiers_CalculatesCorrectColorsAndScales()
+        {
+            var ballObj = new GameObject("TestBallSpeedObj", typeof(Rigidbody), typeof(BallController));
+            var ball = ballObj.GetComponent<BallController>();
+
+            // 1. Color tiers
+            Color slowColor = ball.GetSpeedColor(9.5f);
+            Assert.AreEqual(BallController.ColorSpeedSlow, slowColor, "Speeds < 12 u/s must return Frosted Ice Blue.");
+
+            Color normalColor = ball.GetSpeedColor(12f);
+            Assert.AreEqual(BallController.ColorSpeedNormal, normalColor, "Speed 12 u/s must return exact Electric Cyan.");
+
+            Color midSpeedColor = ball.GetSpeedColor(14f);
+            Assert.IsTrue(midSpeedColor.g > 0.8f && midSpeedColor.b > 0.5f, "Base speed 14 u/s must return Electric Cyan to Solar Gold blend.");
+
+            Color boostColor = ball.GetSpeedColor(17f);
+            Assert.AreEqual(BallController.ColorSpeedBoost, boostColor, "Speed 17 u/s must return exact Solar Gold.");
+
+            Color turboColor = ball.GetSpeedColor(22f);
+            Assert.AreEqual(BallController.ColorSpeedTurbo, turboColor, "Speeds >= 20 u/s must return Blazing Plasma Flame.");
+
+            // 2. Trail duration scaling
+            float slowDuration = ball.CalculateOuterTrailDuration(9.5f);
+            float normalDuration = ball.CalculateOuterTrailDuration(14f);
+            float turboDuration = ball.CalculateOuterTrailDuration(22f);
+
+            Assert.Less(slowDuration, normalDuration, "Slow trail duration must be shorter than normal duration.");
+            Assert.Less(normalDuration, turboDuration, "Normal trail duration must be shorter than turbo duration.");
+
+            // 3. Event and dynamic visuals
+            float recordedSpeed = 0f;
+            float recordedMult = 0f;
+            ball.OnSpeedChanged += (spd, mult) =>
+            {
+                recordedSpeed = spd;
+                recordedMult = mult;
+            };
+
+            ball.SetCurrentSpeedForTesting(21f);
+            ball.UpdateDynamicSpeedVisuals();
+
+            Assert.AreEqual(21f, recordedSpeed, 0.01f);
+            Assert.AreEqual(21f / ball.BaseSpeed, recordedMult, 0.01f);
+
+            // 4. Custom multi-ball color preservation
+            ball.SetTrailColor(Color.magenta);
+            Assert.IsTrue(ball.HasCustomTrailColor, "Calling SetTrailColor must flag HasCustomTrailColor.");
+            Assert.AreEqual(Color.magenta, ball.TrailColor);
+
+            // Changing speed should NOT stomp custom color
+            ball.SetCurrentSpeedForTesting(10f);
+            ball.UpdateDynamicSpeedVisuals();
+            Assert.AreEqual(Color.magenta, ball.TrailColor, "Custom trail color must be preserved across speed changes.");
+
+            // Resetting custom trail color restores dynamic speed coloring
+            ball.ResetCustomTrailColor();
+            Assert.IsFalse(ball.HasCustomTrailColor, "ResetCustomTrailColor must clear custom flag.");
+            Assert.AreEqual(BallController.ColorSpeedSlow, ball.TrailColor, "Restored trail color must reflect current speed tier.");
+
+            Object.DestroyImmediate(ballObj);
+        }
+
+        [Test]
+        public void Test_BallSpeed_HUDPodAndUXML_ConfiguredCorrectly()
+        {
+            var hudUxml = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uxml");
+            Assert.IsTrue(hudUxml.Contains("name=\"speed-container\""), "BlockBreakerHUD.uxml must define speed-container.");
+            Assert.IsTrue(hudUxml.Contains("name=\"icon-speed\""), "BlockBreakerHUD.uxml must define icon-speed.");
+            Assert.IsTrue(hudUxml.Contains("name=\"speed-label\""), "BlockBreakerHUD.uxml must define speed-label.");
+
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains(".speed-pod {"), "BlockBreakerHUD.uss must define .speed-pod.");
+            Assert.IsTrue(hudUss.Contains(".speed-icon {"), "BlockBreakerHUD.uss must define .speed-icon.");
+            Assert.IsTrue(hudUss.Contains(".speed-main {"), "BlockBreakerHUD.uss must define .speed-main.");
+            Assert.IsTrue(hudUss.Contains(".speed-tier-slow {"), "BlockBreakerHUD.uss must define .speed-tier-slow.");
+            Assert.IsTrue(hudUss.Contains(".speed-tier-normal {"), "BlockBreakerHUD.uss must define .speed-tier-normal.");
+            Assert.IsTrue(hudUss.Contains(".speed-tier-boost {"), "BlockBreakerHUD.uss must define .speed-tier-boost.");
+            Assert.IsTrue(hudUss.Contains(".speed-tier-turbo {"), "BlockBreakerHUD.uss must define .speed-tier-turbo.");
+
+            // Verify all speed popup CSS classes exist
+            Assert.IsTrue(hudUss.Contains(".speed-popup {"), "BlockBreakerHUD.uss must define .speed-popup.");
+            Assert.IsTrue(hudUss.Contains(".speed-popup-turbo {"), "BlockBreakerHUD.uss must define .speed-popup-turbo.");
+            Assert.IsTrue(hudUss.Contains(".speed-popup-dampen {"), "BlockBreakerHUD.uss must define .speed-popup-dampen.");
+            Assert.IsTrue(hudUss.Contains(".speed-popup-strike {"), "BlockBreakerHUD.uss must define .speed-popup-strike.");
+            Assert.IsTrue(hudUss.Contains(".speed-popup-slowed {"), "BlockBreakerHUD.uss must define .speed-popup-slowed.");
+            Assert.IsTrue(hudUss.Contains(".speed-popup-ramp {"), "BlockBreakerHUD.uss must define .speed-popup-ramp.");
+        }
+
+        [Test]
+        public void Test_BallSpeed_ArcadeUIManager_UpdateSpeedDisplayAndPopups()
+        {
+            var uiObj = new GameObject("TestSpeedUI", typeof(PanelRenderer), typeof(ArcadeUIManager));
+            var uiMgr = uiObj.GetComponent<ArcadeUIManager>();
+
+            var container = new VisualElement();
+            var label = new Label("1.0x");
+            var icon = new VisualElement();
+
+            // Reflection to inject mock elements for isolated EditMode testing
+            var speedContainerField = typeof(ArcadeUIManager).GetField("speedContainer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var speedLabelField = typeof(ArcadeUIManager).GetField("speedLabel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var speedIconField = typeof(ArcadeUIManager).GetField("speedIcon", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            speedContainerField.SetValue(uiMgr, container);
+            speedLabelField.SetValue(uiMgr, label);
+            speedIconField.SetValue(uiMgr, icon);
+
+            // Tier 1: Slow (<12 u/s)
+            uiMgr.UpdateSpeedDisplay(9.5f, 0.68f);
+            Assert.AreEqual("0.7x", label.text);
+            Assert.IsTrue(container.ClassListContains("speed-tier-slow"));
+            Assert.IsFalse(container.ClassListContains("speed-tier-normal"));
+
+            // Tier 2: Normal (14 u/s)
+            uiMgr.UpdateSpeedDisplay(14.0f, 1.0f);
+            Assert.AreEqual("1.0x", label.text);
+            Assert.IsTrue(container.ClassListContains("speed-tier-normal"));
+            Assert.IsFalse(container.ClassListContains("speed-tier-slow"));
+
+            // Tier 3: Boost (18.5 u/s)
+            uiMgr.UpdateSpeedDisplay(18.5f, 1.32f);
+            Assert.AreEqual("1.3x", label.text);
+            Assert.IsTrue(container.ClassListContains("speed-tier-boost"));
+            Assert.IsFalse(container.ClassListContains("speed-tier-normal"));
+
+            // Tier 4: Turbo (22.0 u/s)
+            uiMgr.UpdateSpeedDisplay(22.0f, 1.57f);
+            Assert.AreEqual("1.6x", label.text);
+            Assert.IsTrue(container.ClassListContains("speed-tier-turbo"));
+            Assert.IsFalse(container.ClassListContains("speed-tier-boost"));
+
+            // Test AnimateSpeedPopup executes safely without exceptions
+            Assert.DoesNotThrow(() =>
+            {
+                uiMgr.AnimateSpeedPopup(Vector3.zero, "TURBO +10%", ArcadeUIManager.SpeedPopupType.Turbo);
+                uiMgr.AnimateSpeedPopup(Vector3.zero, "DAMPEN -1.2", ArcadeUIManager.SpeedPopupType.Dampen);
+                uiMgr.AnimateSpeedPopup(Vector3.zero, "STRIKE! +8%", ArcadeUIManager.SpeedPopupType.ActiveStrike);
+            });
+
+            Object.DestroyImmediate(uiObj);
+        }
     }
 }
 

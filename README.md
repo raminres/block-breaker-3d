@@ -101,7 +101,8 @@ The Level Selection screen provides an expanded responsive card grid with smooth
   - `PF_VFX_FallingTrail`: Tumbling drop particle tails.
   - `PF_VFX_ShieldBarrier`: Energy impacts on shield defense.
   - All VFX serialized directly on scene GameObjects in `LV_BlockBreaker.unity` for 100% iOS build inclusion without `Resources/` directory.
-- **UI Toolkit & Screen Harmonization**: Native Unity 6 `PanelRenderer` scaled for iPhone portrait reference resolution (`1170x2532`). Features 1:1 design parity across Main Menu and Pause Menu sub-screens, tactile 3D extruded push-button geometry with procedural gradients, radiant neon pod glows, custom animated checkmark mute toggles for SFX and Music (`68px × 68px`) with cyan/crimson audio feedback, dynamic UI motion (`UIAnimationHelper.cs`), and `SafeAreaController` handling mobile device insets.
+- **UI Toolkit & Screen Harmonization**: Native Unity 6 `PanelRenderer` scaled for iPhone portrait reference resolution (`1170x2532`). Features 1:1 design parity across Main Menu and Pause Menu sub-screens, tactile 3D extruded push-button geometry with procedural gradients, radiant neon pod glows, custom animated checkmark mute toggles for SFX and Music (`68px × 68px`) with cyan/crimson audio feedback, dynamic UI motion (`UIAnimationHelper.cs`), compact powerup and hazard badges ($60\text{px}$) optimized for iPad Mini (6th Gen) and tablets to prevent block occlusion, and `SafeAreaController` handling mobile device insets.
+- **Ball Speed Hybrid Visualization System**: Synchronized 3-layer feedback conveying dynamic speed shifts: (1) Diegetic trail length scaling ($0.55\times \to 1.75\times$) with 4-tier emission color transitions (Ice Blue, Electric Cyan, Solar Gold, Plasma Flame); (2) Event-driven floating text popups (`TURBO +10%`, `DAMPEN -1.2`, `STRIKE! +8%`, `BALL SLOWED!`, `SPEED UP! +8%`); and (3) Cockpit HUD Speed Pod (`#speed-container`) displaying live multiplier with tier glows and micro punch-pops.
 - **Unity Localization Tables (`com.unity.localization` 1.5.13)**: Multi-language `StringTableCollection` under `Assets/Localization/Tables/` supporting English (`en`) and Turkish (`tr`). Localized strings can be modified dynamically via Unity Editor table windows without code changes, backed by an instant-access fallback dictionary.
 - **Audio Engine**: `ArcadeAudioManager.cs` with custom SFX and automatic procedural synthesizer fallback.
 
@@ -109,7 +110,7 @@ The Level Selection screen provides an expanded responsive card grid with smooth
 
 ## 🧪 Automated Testing
 
-The project includes **310 automated NUnit EditMode tests** covering physics deflection math, boundary clamps, powerup & hazard lifecycles, diamond falling geometries, shield wall mechanics, modular prefab hierarchies, normalized 1.0 prefab parent scale invariants, anti-trap passthrough, UI menu parity, custom mute toggles, dynamic UI motion, localization tables, touch ergonomics, and 30-level campaign scaling:
+The project includes **312 automated NUnit EditMode tests** covering physics deflection math, boundary clamps, powerup & hazard lifecycles, diamond falling geometries, shield wall mechanics, modular prefab hierarchies, normalized 1.0 prefab parent scale invariants, anti-trap passthrough, UI menu parity, custom mute toggles, dynamic UI motion, localization tables, touch ergonomics, 3-layer ball speed visualization, tablet badge real-estate, and 30-level campaign scaling:
 
 ```bash
 unity cmd run_tests --mode editor

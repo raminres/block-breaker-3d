@@ -92,6 +92,14 @@ namespace Arcade.BlockBreaker
         private static readonly int EmissionColorProp = Shader.PropertyToID("_EmissionColor");
         private static readonly int BaseColorProp = Shader.PropertyToID("_BaseColor");
 
+        public static event System.Action<BallController, float, float> OnAnyBallSpeedChanged;
+        public event System.Action<float, float> OnSpeedChanged;
+
+        public static readonly Color ColorSpeedSlow = new Color(0.35f, 0.85f, 0.95f, 1f); // Frosted Ice Blue (<12 u/s)
+        public static readonly Color ColorSpeedNormal = new Color(0f, 0.95f, 1f, 1f); // Electric Cyan (12-17 u/s)
+        public static readonly Color ColorSpeedBoost = new Color(1f, 0.82f, 0.15f, 1f); // Solar Gold (17-20 u/s)
+        public static readonly Color ColorSpeedTurbo = new Color(1f, 0.35f, 0.08f, 1f); // Blazing Plasma Flame (>20 u/s)
+
         public bool IsLaunched => isLaunched;
         public Vector3 Velocity => rb != null ? rb.linearVelocity : Vector3.zero;
         public float BaseSpeed => baseSpeed;
@@ -125,6 +133,60 @@ namespace Arcade.BlockBreaker
 
         public bool IsPaddleCollisionIgnored => isPaddleCollisionIgnored;
 
+        public Color GetSpeedColor(float speed)
+        {
+            if (speed < 12f)
+            {
+                return ColorSpeedSlow;
+            }
+            else if (speed < 17f)
+            {
+                float t = Mathf.Clamp01((speed - 12f) / 5f);
+                return Color.Lerp(ColorSpeedNormal, ColorSpeedBoost, t);
+            }
+            else if (speed < 20f)
+            {
+                float t = Mathf.Clamp01((speed - 17f) / 3f);
+                return Color.Lerp(ColorSpeedBoost, ColorSpeedTurbo, t);
+            }
+            else
+            {
+                return ColorSpeedTurbo;
+            }
+        }
+
+        public float CalculateOuterTrailDuration(float speed)
+        {
+            float factor = Mathf.Lerp(0.55f, 1.75f, Mathf.Clamp01((speed - sluggishSpeed) / Mathf.Max(1f, maxSpeed - sluggishSpeed)));
+            return OuterDuration * factor;
+        }
+
+        public float CalculateInnerTrailDuration(float speed)
+        {
+            float factor = Mathf.Lerp(0.55f, 1.75f, Mathf.Clamp01((speed - sluggishSpeed) / Mathf.Max(1f, maxSpeed - sluggishSpeed)));
+            return InnerDuration * factor;
+        }
+
+        private bool hasCustomTrailColor = false;
+        public bool HasCustomTrailColor => hasCustomTrailColor;
+
+        public void UpdateDynamicSpeedVisuals()
+        {
+            if (!hasCustomTrailColor)
+            {
+                Color speedColor = GetSpeedColor(currentSpeed);
+                ApplyTrailColorInternal(speedColor);
+            }
+
+            if (outerTrail == null || innerTrail == null) EnsureTrails();
+            if (outerTrail != null) outerTrail.time = CalculateOuterTrailDuration(currentSpeed);
+            if (innerTrail != null) innerTrail.time = CalculateInnerTrailDuration(currentSpeed);
+
+            float mult = baseSpeed > 0f ? currentSpeed / baseSpeed : 1f;
+            OnSpeedChanged?.Invoke(currentSpeed, mult);
+            OnAnyBallSpeedChanged?.Invoke(this, currentSpeed, mult);
+        }
+
         public void SetBallShrunk(bool shrunk)
         {
             if (!isBallShrunk && shrunk)
@@ -146,6 +208,8 @@ namespace Arcade.BlockBreaker
                 {
                     rb.linearVelocity = rb.linearVelocity.normalized * currentSpeed;
                 }
+                UpdateDynamicSpeedVisuals();
+                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, "BALL SLOWED!", UI.ArcadeUIManager.SpeedPopupType.Slowed);
             }
             else
             {
@@ -156,6 +220,7 @@ namespace Arcade.BlockBreaker
                     {
                         rb.linearVelocity = rb.linearVelocity.normalized * currentSpeed;
                     }
+                    UpdateDynamicSpeedVisuals();
                 }
             }
         }
@@ -204,7 +269,7 @@ namespace Arcade.BlockBreaker
 
             if (isPrimaryBall)
             {
-                SetTrailColor(primaryBallColor);
+                ApplyTrailColorInternal(primaryBallColor);
             }
         }
 
@@ -469,6 +534,8 @@ namespace Arcade.BlockBreaker
                 float speedBoost = baseSpeed * speedRampStepMultiplier;
                 currentSpeed = Mathf.Min(currentSpeed + speedBoost, maxSpeed);
                 nextSpeedRampTime += speedRampInterval;
+                UpdateDynamicSpeedVisuals();
+                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, "SPEED UP! +8%", UI.ArcadeUIManager.SpeedPopupType.VolleyRamp);
             }
         }
 
@@ -482,10 +549,23 @@ namespace Arcade.BlockBreaker
                 currentSpeed = baseSpeed;
                 activeVolleyTime = 0f;
                 nextSpeedRampTime = speedRampInterval;
+                UpdateDynamicSpeedVisuals();
             }
         }
 
         public void SetTrailColor(Color color)
+        {
+            hasCustomTrailColor = true;
+            ApplyTrailColorInternal(color);
+        }
+
+        public void ResetCustomTrailColor()
+        {
+            hasCustomTrailColor = false;
+            UpdateDynamicSpeedVisuals();
+        }
+
+        private void ApplyTrailColorInternal(Color color)
         {
             currentTrailColor = color;
             UpdateTrailGradients(color);
@@ -552,6 +632,11 @@ namespace Arcade.BlockBreaker
             consecutiveSideWallBounces = 0;
             currentVolleyStreak = 0;
             currentSpeed = baseSpeed;
+            if (isPrimaryBall)
+            {
+                hasCustomTrailColor = false;
+            }
+            UpdateDynamicSpeedVisuals();
             if (rb != null)
             {
                 rb.linearVelocity = Vector3.zero;
@@ -616,6 +701,7 @@ namespace Arcade.BlockBreaker
             consecutiveSideWallBounces = 0;
             currentVolleyStreak = 0;
             currentSpeed = baseSpeed;
+            UpdateDynamicSpeedVisuals();
 
             Clear();
             SetEmitting(true);
@@ -647,6 +733,7 @@ namespace Arcade.BlockBreaker
             consecutiveSideWallBounces = 0;
             currentVolleyStreak = 0;
             currentSpeed = speed > 0f ? speed : baseSpeed;
+            UpdateDynamicSpeedVisuals();
 
             Clear();
             SetEmitting(true);
@@ -835,18 +922,32 @@ namespace Arcade.BlockBreaker
             switch (tier)
             {
                 case BlockColorTier.Red:
+                    float prevRedSpeed = currentSpeed;
                     currentSpeed = Mathf.Max(baseSpeed, currentSpeed - redDampenAmount);
                     if (rb != null && rb.linearVelocity.sqrMagnitude > 0.01f)
                     {
                         rb.linearVelocity = rb.linearVelocity.normalized * currentSpeed;
                     }
+                    UpdateDynamicSpeedVisuals();
+                    if (currentSpeed < prevRedSpeed)
+                    {
+                        Vector3 popupPos = collision != null && collision.contacts.Length > 0 ? collision.contacts[0].point : transform.position;
+                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, "-1.2 DAMPEN", UI.ArcadeUIManager.SpeedPopupType.Dampen);
+                    }
                     break;
 
                 case BlockColorTier.Green:
+                    float prevGreenSpeed = currentSpeed;
                     currentSpeed = Mathf.Min(currentSpeed * (1f + greenBoostPercent), maxSpeed);
                     if (rb != null && rb.linearVelocity.sqrMagnitude > 0.01f)
                     {
                         rb.linearVelocity = rb.linearVelocity.normalized * currentSpeed;
+                    }
+                    UpdateDynamicSpeedVisuals();
+                    if (currentSpeed > prevGreenSpeed)
+                    {
+                        Vector3 popupPos = collision != null && collision.contacts.Length > 0 ? collision.contacts[0].point : transform.position;
+                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, "TURBO +10%", UI.ArcadeUIManager.SpeedPopupType.Turbo);
                     }
                     break;
 
@@ -861,6 +962,7 @@ namespace Arcade.BlockBreaker
                         Vector3 scattered = rot * rb.linearVelocity;
                         rb.linearVelocity = SanitizeTrajectory(scattered, currentSpeed, minVerticalAngleDeg, minHorizontalAngleDeg, transform.position.x);
                     }
+                    UpdateDynamicSpeedVisuals();
                     break;
             }
         }
@@ -971,6 +1073,8 @@ namespace Arcade.BlockBreaker
             if (isSmash)
             {
                 currentSpeed = Mathf.Min(currentSpeed * activeSmashSpeedMultiplier, maxSpeed);
+                UpdateDynamicSpeedVisuals();
+                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, "STRIKE! +8%", UI.ArcadeUIManager.SpeedPopupType.ActiveStrike);
             }
 
             if (rb != null)

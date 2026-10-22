@@ -162,7 +162,7 @@ High-density technical context and architectural rules for BlockBreaker.
 
 ## 10. Current Handoff State & Verification
 - **Active Branch**: `feature/level-expansion-and-fixes` (Up to date with origin, clean working tree)
-- **Automated Tests**: 309/309 EditMode tests passing (100% pass rate)
+- **Automated Tests**: 312/312 EditMode tests passing (100% pass rate)
 - **Verification Command**:
   ```bash
   unity cmd run_tests --mode editor --timeout 90
@@ -200,6 +200,12 @@ High-density technical context and architectural rules for BlockBreaker.
      - Restructured launch banner in `BlockBreakerHUD.uxml` and `BlockBreakerHUD.uss` with a vertical stacked layout (motion cue icons row on top, "TAP TO LAUNCH" label below).
      - Enlarged finger icon to $96\text{px} \times 96\text{px}$ (+44% scale) and directional arrows to $80\text{px} \times 80\text{px}$ for tactile readability.
      - Added continuous left-to-right swipe motion animation via `UIAnimationHelper.StartHorizontalSwipe` with native USS ease-in-out translation.
-     - Calibrated world projection to $Y = -0.5\text{f}$ in `ArcadeUIManager`, ensuring $> 240\text{px}$ clearance above the ball/paddle and $> 340\text{px}$ below the bricks. All 309 tests passing.
+     - Calibrated world projection to $Y = -0.5\text{f}$ in `ArcadeUIManager`, ensuring $> 240\text{px}$ clearance above the ball/paddle and $> 340\text{px}$ below the bricks.
+  12. **Tablet Screen Real-Estate & 3-Layer Ball Speed Hybrid System**:
+     - Compact Badges on Tablet/iPad Mini: Reduced `.powerup-badge` height ($108\text{px} \to 60\text{px}$), icon size ($64\text{px} \to 36\text{px}$), and tightened margins, preventing block occlusion on 3:2 and squarer displays.
+     - Layer 1 (Diegetic Ball Visuals): Dynamic trail duration scaling ($0.55\times \to 1.75\times$) with 4-tier color shifts (Frosted Ice Blue `<12`, Electric Cyan `12-17`, Solar Gold `17-20`, Plasma Flame `>20`), preserving custom multi-ball identity colors.
+     - Layer 2 (Event-Driven Floating Text Popups): Interactive floating arcade popups at strike points (`TURBO +10%`, `DAMPEN -1.2`, `STRIKE! +8%`, `BALL SLOWED!`, `SPEED UP! +8%`).
+     - Layer 3 (Cockpit HUD Speed Pod): Integrated `#speed-container` pod with invariant culture formatting (`1.0x`, `1.2x`), tier glow styles, and micro punch-pops on speed changes.
+     - All 312 EditMode tests passing with 100% pass rate.
 
 

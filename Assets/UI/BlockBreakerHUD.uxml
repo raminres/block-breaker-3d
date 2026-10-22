@@ -11,6 +11,10 @@
                 <ui:Label name="score-label" text="SCORE: 0" picking-mode="Ignore" class="score-main"/>
                 <ui:Label name="score-delta-label" text="" picking-mode="Ignore" class="score-delta delta-hidden"/>
             </ui:VisualElement>
+            <ui:VisualElement name="speed-container" picking-mode="Ignore" class="speed-container hud-pod speed-pod">
+                <ui:VisualElement name="icon-speed" picking-mode="Ignore" class="speed-icon"/>
+                <ui:Label name="speed-label" text="1.0x" picking-mode="Ignore" class="speed-main"/>
+            </ui:VisualElement>
             <ui:VisualElement name="timer-container" picking-mode="Ignore" class="timer-container hud-pod timer-pod">
                 <ui:VisualElement name="icon-timer" picking-mode="Ignore" class="timer-icon"/>
                 <ui:Label name="timer-label" text="00:00" picking-mode="Ignore" class="timer-main"/>

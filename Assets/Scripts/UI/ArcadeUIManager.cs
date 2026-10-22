@@ -187,6 +187,23 @@ namespace Arcade.UI
         private SliderInt sliderLaser;
         private Label valLaser;
 
+        public enum SpeedPopupType
+        {
+            Turbo,
+            Dampen,
+            ActiveStrike,
+            Slowed,
+            VolleyRamp
+        }
+
+        // Active Speed Pod
+        private VisualElement speedContainer;
+        private Label speedLabel;
+        private VisualElement speedIcon;
+
+        public VisualElement SpeedContainer => speedContainer;
+        public Label SpeedLabel => speedLabel;
+
         // Active Powerup Badges
         private VisualElement shieldStatusBadge;
         private Label shieldTimerLabel;
@@ -532,6 +549,9 @@ namespace Arcade.UI
             scoreLabel = root.Q<Label>("score-label");
             scoreContainer = root.Q<VisualElement>("score-container");
             highscoreLabel = root.Q<Label>("highscore-label");
+            speedContainer = root.Q<VisualElement>("speed-container");
+            speedLabel = root.Q<Label>("speed-label");
+            speedIcon = root.Q<VisualElement>("icon-speed");
             timerLabel = root.Q<Label>("timer-label");
             scoreDeltaLabel = root.Q<Label>("score-delta-label");
             comboStatusBadge = root.Q<VisualElement>("combo-status-badge");
@@ -1163,6 +1183,8 @@ namespace Arcade.UI
                 ArcadeGameManager.Instance.OnLevelClearPending += HandleLevelClearPending;
                 ArcadeGameManager.Instance.OnPowerdownStateChanged += HandlePowerdownStateChanged;
                 ArcadeGameManager.Instance.OnPowerdownTick += HandlePowerdownTick;
+                BallController.OnAnyBallSpeedChanged -= HandleBallSpeedChanged;
+                BallController.OnAnyBallSpeedChanged += HandleBallSpeedChanged;
             }
         }
 
@@ -1191,6 +1213,7 @@ namespace Arcade.UI
                 ArcadeGameManager.Instance.OnLevelClearPending -= HandleLevelClearPending;
                 ArcadeGameManager.Instance.OnPowerdownStateChanged -= HandlePowerdownStateChanged;
                 ArcadeGameManager.Instance.OnPowerdownTick -= HandlePowerdownTick;
+                BallController.OnAnyBallSpeedChanged -= HandleBallSpeedChanged;
             }
         }
 
@@ -1232,6 +1255,7 @@ namespace Arcade.UI
             UpdateLocalizedTexts();
 
             UpdatePauseButtonIcon(ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.State == GameState.Paused);
+            UpdateSpeedDisplay(14f, 1.0f);
 
             targetFps = PlayerPrefs.GetInt("Arcade_TargetFPS", 60);
             Application.targetFrameRate = targetFps;
@@ -2037,6 +2061,136 @@ namespace Arcade.UI
             yield return new WaitForSecondsRealtime(0.10f);
             target.RemoveFromClassList("score-pop");
             scorePulseCoroutine = null;
+        }
+
+        public void HandleBallSpeedChanged(BallController ball, float currentSpeed, float speedMultiplier)
+        {
+            UpdateSpeedDisplay(currentSpeed, speedMultiplier);
+        }
+
+        public void UpdateSpeedDisplay(float currentSpeed, float speedMultiplier)
+        {
+            if (speedLabel != null)
+            {
+                speedLabel.text = $"{speedMultiplier.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}x";
+            }
+
+            if (speedContainer != null)
+            {
+                speedContainer.RemoveFromClassList("speed-tier-slow");
+                speedContainer.RemoveFromClassList("speed-tier-normal");
+                speedContainer.RemoveFromClassList("speed-tier-boost");
+                speedContainer.RemoveFromClassList("speed-tier-turbo");
+
+                if (currentSpeed < 12f)
+                {
+                    speedContainer.AddToClassList("speed-tier-slow");
+                }
+                else if (currentSpeed < 17f)
+                {
+                    speedContainer.AddToClassList("speed-tier-normal");
+                }
+                else if (currentSpeed < 20f)
+                {
+                    speedContainer.AddToClassList("speed-tier-boost");
+                }
+                else
+                {
+                    speedContainer.AddToClassList("speed-tier-turbo");
+                }
+
+                if (gameObject.activeInHierarchy)
+                {
+                    UIAnimationHelper.PunchElement(this, speedContainer, "ui-punch-pop", 0.12f);
+                }
+            }
+        }
+
+        public void AnimateSpeedPopup(Vector3 worldPosition, string text, SpeedPopupType type)
+        {
+            if (gameObject.activeInHierarchy && root != null)
+            {
+                StartCoroutine(DoSpeedPopupAnimation(worldPosition, text, type));
+            }
+        }
+
+        private System.Collections.IEnumerator DoSpeedPopupAnimation(Vector3 worldPos, string text, SpeedPopupType type)
+        {
+            if (root == null) yield break;
+
+            Camera cam = Camera.main;
+            Vector2 panelPos;
+            if (cam != null)
+            {
+                Vector3 screenPt = cam.WorldToScreenPoint(worldPos);
+                panelPos = new Vector2(screenPt.x, Screen.height - screenPt.y);
+                if (root.panel != null)
+                {
+                    panelPos = RuntimePanelUtils.ScreenToPanel(root.panel, panelPos);
+                }
+            }
+            else
+            {
+                panelPos = new Vector2(root.resolvedStyle.width * 0.5f, root.resolvedStyle.height * 0.5f);
+            }
+
+            Label popup = new Label(text);
+            popup.AddToClassList("speed-popup");
+
+            switch (type)
+            {
+                case SpeedPopupType.Turbo:
+                    popup.AddToClassList("speed-popup-turbo");
+                    break;
+                case SpeedPopupType.Dampen:
+                    popup.AddToClassList("speed-popup-dampen");
+                    break;
+                case SpeedPopupType.ActiveStrike:
+                    popup.AddToClassList("speed-popup-strike");
+                    break;
+                case SpeedPopupType.Slowed:
+                    popup.AddToClassList("speed-popup-slowed");
+                    break;
+                case SpeedPopupType.VolleyRamp:
+                    popup.AddToClassList("speed-popup-ramp");
+                    break;
+            }
+
+            popup.pickingMode = PickingMode.Ignore;
+            popup.style.left = panelPos.x - 45f;
+            popup.style.top = panelPos.y - 25f;
+            root.Add(popup);
+
+            float duration = 0.70f;
+            float elapsed = 0f;
+            float startY = panelPos.y - 25f;
+            float driftDist = 42f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+
+                float easeT = Mathf.SmoothStep(0f, 1f, t);
+                popup.style.top = startY - (easeT * driftDist);
+
+                float scale = t < 0.20f
+                    ? Mathf.Lerp(0.75f, 1.25f, t / 0.20f)
+                    : Mathf.Lerp(1.25f, 1.0f, (t - 0.20f) / 0.80f);
+                popup.style.scale = new StyleScale(new Scale(new Vector2(scale, scale)));
+
+                if (t > 0.65f)
+                {
+                    popup.style.opacity = Mathf.Lerp(1f, 0f, (t - 0.65f) / 0.35f);
+                }
+
+                yield return null;
+            }
+
+            if (root.Contains(popup))
+            {
+                root.Remove(popup);
+            }
         }
 
         private System.Collections.IEnumerator DoScoreDeltaAnimation(int points, int multiplier)
