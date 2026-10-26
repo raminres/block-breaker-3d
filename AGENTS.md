@@ -24,7 +24,7 @@ High-density technical context, architectural rules, and subsystem specification
 ---
 
 ## 2. Inviolable Architectural Mandates
-1. **Preservation of User-Authored Work (STRICT)**: The user directly customizes and hand-tunes scenes (`Assets/Scenes/LV_BlockBreaker.unity`), materials (`MI_*`), prefabs (`PF_Background.prefab`, `PF_Walls.prefab`), volume profiles (`SampleSceneProfile.asset`), and gradient textures (`TX_Background_Gradient_*.png`) in the Unity Editor. Agents must **NEVER** overwrite these files or execute automated scene rebuild scripts (e.g. `SetupBlockBreakerScenes.cs` / `Tools > Arcade > Setup All Block Breaker Scenes`).
+1. **Preservation of User-Authored Work (STRICT)**: The user directly customizes and hand-tunes scenes (`Assets/Scenes/LV_BlockBreaker.unity`), materials (`MI_*`), prefabs (`PF_Background.prefab`, `PF_Walls.prefab`), volume profiles (`SampleSceneProfile.asset`), gradient textures (`TX_Background_Gradient_*.png`), and UI visuals/icons (`Assets/UI/Icons/`, medals, flags). Agents must **NEVER** revert, overwrite, or discard visual assets or hand-tuned values when diffing, staging, or committing, nor execute automated scene rebuild scripts (e.g. `SetupBlockBreakerScenes.cs`).
 2. **Parent Scale Normalization (1.0 Root Rule)**: All prefab root containers (`PF_Paddle.prefab`, `PF_Ball_Standard.prefab`, `PF_LaserBolt.prefab`) strictly maintain `transform.localScale = Vector3.one`. Dimensions and dynamic expansions are driven by child visual sockets (`visuals`, `frost`, `guns`) and root colliders without reciprocal squishing, allowing artists to add child meshes directly at true 1:1 scale.
 3. **Zero Runtime Primitives**: DO NOT use `GameObject.CreatePrimitive` at runtime or in scene setups. All entities instantiate directly from `Assets/Prefabs/`.
 4. **Decoupled Physics & Visuals**: Physical colliders reside exclusively on root container objects; 3D visual models reside in child GameObjects with all colliders removed to prevent double-collision glitches and phantom catches.
@@ -37,6 +37,7 @@ High-density technical context, architectural rules, and subsystem specification
    - ScriptableObjects: `SO_*` (e.g. `SO_Level_*.asset`, `SO_PowerupIcons.asset`)
    - Prefabs: `PF_*` under `Assets/Prefabs/`
    - Presets: `PR_*` under `Assets/Presets/`
+8. **Humanized Localization Copy & Decoupled Tests**: The user refines and customizes English and Turkish translation strings in `ArcadeTable` for natural tone. **NEVER** overwrite existing table translations, and unit tests **MUST NEVER** assert hardcoded literal string values. Tests must verify key presence, non-emptiness, dynamic binding against `LocalizationManager.Get(key)`, and argument formatting, giving the user complete freedom over the actual copy.
 
 ---
 

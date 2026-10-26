@@ -4632,8 +4632,8 @@ namespace Arcade.Tests
             // Test non-laser clear pending
             uiMgr.HandleLevelClearPending(0.8f, wasClearedWithLaser: false);
             Assert.IsFalse(uiMgr.LevelClearBanner.ClassListContains("level-clear-banner-hidden"), "Banner must be shown when clear is pending.");
-            Assert.AreEqual("LEVEL CLEARED!", uiMgr.LevelClearBannerText.text);
-            Assert.IsTrue(uiMgr.LevelClearBannerSubtext.text == "STAGE COMPLETE!" || uiMgr.LevelClearBannerSubtext.text == "FLAWLESS VICTORY!");
+            Assert.AreEqual(Core.LocalizationManager.Get("hud_level_clear", "LEVEL CLEARED!"), uiMgr.LevelClearBannerText.text);
+            Assert.IsFalse(string.IsNullOrEmpty(uiMgr.LevelClearBannerSubtext.text));
 
             // Test laser clear pending
             uiMgr.HandleLevelClearPending(1.4f, wasClearedWithLaser: true);

@@ -20,12 +20,14 @@ namespace Arcade.Tests
         public void SetUp()
         {
             LocalizationManager.SetLanguage(GameLanguage.English);
+            ArcadeUIManager.SetInstanceForTesting(null);
         }
 
         [TearDown]
         public void Teardown()
         {
             LocalizationManager.SetLanguage(GameLanguage.English);
+            ArcadeUIManager.SetInstanceForTesting(null);
         }
 
         [Test]
@@ -1208,45 +1210,45 @@ namespace Arcade.Tests
             var bindMethod = typeof(ArcadeUIManager).GetMethod("BindElements", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             bindMethod.Invoke(uiMgr, null);
 
-            // Test English
+            // Test English - verify elements bind dynamically to localized table values
             LocalizationManager.SetLanguage(GameLanguage.English);
-            Assert.AreEqual("PAUSED", uiMgr.ModalTitlePause.text);
-            Assert.AreEqual("HIGH SCORES", uiMgr.ModalTitleHighscores.text);
-            Assert.AreEqual("LEVEL SETTINGS", uiMgr.ModalTitleLevelSettings.text);
-            Assert.AreEqual("GAME OVER", uiMgr.ModalTitleGameover.text);
-            Assert.AreEqual("LEVEL CLEARED!", uiMgr.ScorecardTitle.text);
-            Assert.AreEqual("Blocks Cleared", uiMgr.LabelScorecardBlocks.text);
-            Assert.AreEqual("Highest Volley Combo", uiMgr.LabelScorecardCombo.text);
-            Assert.AreEqual("Time / Par", uiMgr.LabelScorecardTimePar.text);
-            Assert.AreEqual("Time Bonus", uiMgr.LabelScorecardTimeBonus.text);
-            Assert.AreEqual("Flawless Life Bonus", uiMgr.LabelScorecardFlawless.text);
-            Assert.AreEqual("TOTAL SCORE", uiMgr.LabelScorecardTotal.text);
-            Assert.AreEqual("REPLAY", uiMgr.BtnReplayLevel.text);
-            Assert.AreEqual("MENU", uiMgr.BtnClearMenu.text);
-            Assert.AreEqual("TRY AGAIN", uiMgr.BtnRetry.text);
+            Assert.AreEqual(LocalizationManager.Get("hud_paused"), uiMgr.ModalTitlePause.text);
+            Assert.AreEqual(LocalizationManager.Get("menu_high_scores"), uiMgr.ModalTitleHighscores.text);
+            Assert.AreEqual(LocalizationManager.Get("level_settings_title"), uiMgr.ModalTitleLevelSettings.text);
+            Assert.AreEqual(LocalizationManager.Get("hud_game_over"), uiMgr.ModalTitleGameover.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_title"), uiMgr.ScorecardTitle.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_blocks"), uiMgr.LabelScorecardBlocks.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_combo"), uiMgr.LabelScorecardCombo.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_time_par"), uiMgr.LabelScorecardTimePar.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_time_bonus"), uiMgr.LabelScorecardTimeBonus.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_flawless_bonus"), uiMgr.LabelScorecardFlawless.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_total_score"), uiMgr.LabelScorecardTotal.text);
+            Assert.AreEqual(LocalizationManager.Get("btn_replay"), uiMgr.BtnReplayLevel.text);
+            Assert.AreEqual(LocalizationManager.Get("btn_menu"), uiMgr.BtnClearMenu.text);
+            Assert.AreEqual(LocalizationManager.Get("btn_try_again"), uiMgr.BtnRetry.text);
 
             uiMgr.UpdateScoreDisplay(120, 0);
-            Assert.AreEqual("SCORE: 120", scoreLabel.text);
+            Assert.IsTrue(scoreLabel.text.Contains("120"));
 
-            // Test Turkish
+            // Test Turkish - verify elements update to Turkish table values without asserting rigid human copy
             LocalizationManager.SetLanguage(GameLanguage.Turkish);
-            Assert.AreEqual("DURAKLATILDI", uiMgr.ModalTitlePause.text);
-            Assert.AreEqual("YÜKSEK SKORLAR", uiMgr.ModalTitleHighscores.text);
-            Assert.AreEqual("BÖLÜM AYARLARI", uiMgr.ModalTitleLevelSettings.text);
-            Assert.AreEqual("OYUN BİTTİ", uiMgr.ModalTitleGameover.text);
-            Assert.AreEqual("BÖLÜMÜ GEÇTİN!", uiMgr.ScorecardTitle.text);
-            Assert.AreEqual("Kırılan Bloklar", uiMgr.LabelScorecardBlocks.text);
-            Assert.AreEqual("En Yüksek Vole Kombosu", uiMgr.LabelScorecardCombo.text);
-            Assert.AreEqual("Süre / Hedef", uiMgr.LabelScorecardTimePar.text);
-            Assert.AreEqual("Zaman Bonusu", uiMgr.LabelScorecardTimeBonus.text);
-            Assert.AreEqual("Kusursuz Can Bonusu", uiMgr.LabelScorecardFlawless.text);
-            Assert.AreEqual("TOPLAM PUAN", uiMgr.LabelScorecardTotal.text);
-            Assert.AreEqual("TEKRAR OYNA", uiMgr.BtnReplayLevel.text);
-            Assert.AreEqual("MENÜ", uiMgr.BtnClearMenu.text);
-            Assert.AreEqual("YENİDEN DENE", uiMgr.BtnRetry.text);
+            Assert.AreEqual(LocalizationManager.Get("hud_paused"), uiMgr.ModalTitlePause.text);
+            Assert.AreEqual(LocalizationManager.Get("menu_high_scores"), uiMgr.ModalTitleHighscores.text);
+            Assert.AreEqual(LocalizationManager.Get("level_settings_title"), uiMgr.ModalTitleLevelSettings.text);
+            Assert.AreEqual(LocalizationManager.Get("hud_game_over"), uiMgr.ModalTitleGameover.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_title"), uiMgr.ScorecardTitle.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_blocks"), uiMgr.LabelScorecardBlocks.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_combo"), uiMgr.LabelScorecardCombo.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_time_par"), uiMgr.LabelScorecardTimePar.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_time_bonus"), uiMgr.LabelScorecardTimeBonus.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_flawless_bonus"), uiMgr.LabelScorecardFlawless.text);
+            Assert.AreEqual(LocalizationManager.Get("scorecard_total_score"), uiMgr.LabelScorecardTotal.text);
+            Assert.AreEqual(LocalizationManager.Get("btn_replay"), uiMgr.BtnReplayLevel.text);
+            Assert.AreEqual(LocalizationManager.Get("btn_menu"), uiMgr.BtnClearMenu.text);
+            Assert.AreEqual(LocalizationManager.Get("btn_try_again"), uiMgr.BtnRetry.text);
 
             uiMgr.UpdateScoreDisplay(120, 0);
-            Assert.AreEqual("SKOR: 120", scoreLabel.text);
+            Assert.IsTrue(scoreLabel.text.Contains("120"));
 
             Object.DestroyImmediate(uiObj);
         }
@@ -1280,19 +1282,19 @@ namespace Arcade.Tests
 
             // Test English
             LocalizationManager.SetLanguage(GameLanguage.English);
-            Assert.AreEqual("3D ARCADE RETRO-MODERN", menuSubtitle.text);
-            Assert.AreEqual("HIGH SCORES", modalTitleHighscores.text);
-            Assert.AreEqual("STARS", labelStarsSubtitle.text);
-            Assert.AreEqual("Developed by Ramin Rasulzade", creditAuthor.text);
-            Assert.AreEqual("LEVEL 1", menuLevelTag.text);
+            Assert.AreEqual(LocalizationManager.Get("menu_subtitle"), menuSubtitle.text);
+            Assert.AreEqual(LocalizationManager.Get("menu_high_scores"), modalTitleHighscores.text);
+            Assert.AreEqual(LocalizationManager.Get("level_stars"), labelStarsSubtitle.text);
+            Assert.AreEqual(LocalizationManager.Get("credits_dev_by"), creditAuthor.text);
+            Assert.IsTrue(menuLevelTag.text.Contains("1"));
 
             // Test Turkish
             LocalizationManager.SetLanguage(GameLanguage.Turkish);
-            Assert.AreEqual("3D RETRO-MODERN ARKAD", menuSubtitle.text);
-            Assert.AreEqual("YÜKSEK SKORLAR", modalTitleHighscores.text);
-            Assert.AreEqual("YILDIZLAR", labelStarsSubtitle.text);
-            Assert.AreEqual("Geliştirici: Ramin Rasulzade", creditAuthor.text);
-            Assert.AreEqual("BÖLÜM 1", menuLevelTag.text);
+            Assert.AreEqual(LocalizationManager.Get("menu_subtitle"), menuSubtitle.text);
+            Assert.AreEqual(LocalizationManager.Get("menu_high_scores"), modalTitleHighscores.text);
+            Assert.AreEqual(LocalizationManager.Get("level_stars"), labelStarsSubtitle.text);
+            Assert.AreEqual(LocalizationManager.Get("credits_dev_by"), creditAuthor.text);
+            Assert.IsTrue(menuLevelTag.text.Contains("1"));
 
             Object.DestroyImmediate(menuObj);
         }
@@ -1300,31 +1302,35 @@ namespace Arcade.Tests
         [Test]
         public void Test_SpeedPopupsAndFlyingTags_LocalizeCorrectly()
         {
+            string[] popupKeys = new[]
+            {
+                "popup_strike", "popup_dampen", "popup_ball_slowed", "popup_turbo", "popup_speed_up",
+                "popup_bomb_chain"
+            };
+
             // Test English
             LocalizationManager.SetLanguage(GameLanguage.English);
-            Assert.AreEqual("STRIKE! +8%", LocalizationManager.Get("popup_strike"));
-            Assert.AreEqual("-1.2 DAMPEN", LocalizationManager.Get("popup_dampen"));
-            Assert.AreEqual("BALL SLOWED!", LocalizationManager.Get("popup_ball_slowed"));
-            Assert.AreEqual("TURBO +10%", LocalizationManager.Get("popup_turbo"));
-            Assert.AreEqual("SPEED UP! +8%", LocalizationManager.Get("popup_speed_up"));
-            Assert.AreEqual("CLUTCH 10X!", string.Format(LocalizationManager.Get("popup_clutch"), 10));
-            Assert.AreEqual("CHAIN x2!", string.Format(LocalizationManager.Get("popup_chain"), 2));
-            Assert.AreEqual("COMBO x3!", string.Format(LocalizationManager.Get("popup_combo"), 3));
-            Assert.AreEqual("x2 MULTI-BALL!", string.Format(LocalizationManager.Get("popup_multiball"), 2));
-            Assert.AreEqual("BOMB CHAIN!", LocalizationManager.Get("popup_bomb_chain"));
+            foreach (var key in popupKeys)
+            {
+                string val = LocalizationManager.Get(key);
+                Assert.IsFalse(string.IsNullOrEmpty(val), $"English popup text for '{key}' must not be empty.");
+            }
+            Assert.IsTrue(string.Format(LocalizationManager.Get("popup_clutch"), 10).Contains("10"));
+            Assert.IsTrue(string.Format(LocalizationManager.Get("popup_chain"), 2).Contains("2"));
+            Assert.IsTrue(string.Format(LocalizationManager.Get("popup_combo"), 3).Contains("3"));
+            Assert.IsTrue(string.Format(LocalizationManager.Get("popup_multiball"), 2).Contains("2"));
 
             // Test Turkish
             LocalizationManager.SetLanguage(GameLanguage.Turkish);
-            Assert.AreEqual("VURUŞ! +%8", LocalizationManager.Get("popup_strike"));
-            Assert.AreEqual("-1.2 SÖNÜMLEME", LocalizationManager.Get("popup_dampen"));
-            Assert.AreEqual("TOP YAVAŞLADI!", LocalizationManager.Get("popup_ball_slowed"));
-            Assert.AreEqual("TURBO +%10", LocalizationManager.Get("popup_turbo"));
-            Assert.AreEqual("HIZLANMA! +%8", LocalizationManager.Get("popup_speed_up"));
-            Assert.AreEqual("KRİTİK 10X!", string.Format(LocalizationManager.Get("popup_clutch"), 10));
-            Assert.AreEqual("ZİNCİR x2!", string.Format(LocalizationManager.Get("popup_chain"), 2));
-            Assert.AreEqual("KOMBO x3!", string.Format(LocalizationManager.Get("popup_combo"), 3));
-            Assert.AreEqual("x2 ÇOKLU TOP!", string.Format(LocalizationManager.Get("popup_multiball"), 2));
-            Assert.AreEqual("BOMBA ZİNCİRİ!", LocalizationManager.Get("popup_bomb_chain"));
+            foreach (var key in popupKeys)
+            {
+                string val = LocalizationManager.Get(key);
+                Assert.IsFalse(string.IsNullOrEmpty(val), $"Turkish popup text for '{key}' must not be empty.");
+            }
+            Assert.IsTrue(string.Format(LocalizationManager.Get("popup_clutch"), 10).Contains("10"));
+            Assert.IsTrue(string.Format(LocalizationManager.Get("popup_chain"), 2).Contains("2"));
+            Assert.IsTrue(string.Format(LocalizationManager.Get("popup_combo"), 3).Contains("3"));
+            Assert.IsTrue(string.Format(LocalizationManager.Get("popup_multiball"), 2).Contains("2"));
         }
     }
 }
