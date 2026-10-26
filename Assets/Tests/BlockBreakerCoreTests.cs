@@ -2836,26 +2836,20 @@ namespace Arcade.Tests
             var pCtrl = pObj.AddComponent<PaddleController>();
 
             // Construct 3-tier stepped children
-            var stepTop = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            stepTop.name = "Step_Top";
+            var stepTop = new GameObject("Step_Top");
             stepTop.transform.SetParent(pObj.transform, false);
             stepTop.transform.localPosition = new Vector3(0f, 0.38f, 0f);
             stepTop.transform.localScale = new Vector3(1.0f, 0.24f, 1.0f);
-            Object.DestroyImmediate(stepTop.GetComponent<Collider>());
 
-            var stepMid = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            stepMid.name = "Step_Mid";
+            var stepMid = new GameObject("Step_Mid");
             stepMid.transform.SetParent(pObj.transform, false);
             stepMid.transform.localPosition = new Vector3(0f, 0.16f, 0f);
             stepMid.transform.localScale = new Vector3(0.72f, 0.20f, 0.88f);
-            Object.DestroyImmediate(stepMid.GetComponent<Collider>());
 
-            var stepBtm = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            stepBtm.name = "Step_Bottom";
+            var stepBtm = new GameObject("Step_Bottom");
             stepBtm.transform.SetParent(pObj.transform, false);
             stepBtm.transform.localPosition = new Vector3(0f, -0.02f, 0f);
             stepBtm.transform.localScale = new Vector3(0.44f, 0.16f, 0.72f);
-            Object.DestroyImmediate(stepBtm.GetComponent<Collider>());
 
             pCtrl.EnsureSteppedMeshHierarchy();
 
@@ -3297,8 +3291,8 @@ namespace Arcade.Tests
         [Test]
         public void LevelBackgroundController_InitializesAndAppliesGradientTexture()
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            var mr = go.GetComponent<MeshRenderer>();
+            var go = new GameObject("TestBackground");
+            var mr = go.AddComponent<MeshRenderer>();
             var bgCtrl = go.AddComponent<LevelBackgroundController>();
 
             var tex1 = new Texture2D(32, 32);
@@ -3322,7 +3316,8 @@ namespace Arcade.Tests
         [Test]
         public void LevelBackgroundController_RandomizeBackground_AvoidsSameConsecutiveTexture()
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            var go = new GameObject("TestBackground");
+            go.AddComponent<MeshRenderer>();
             var bgCtrl = go.AddComponent<LevelBackgroundController>();
 
             var tex1 = new Texture2D(16, 16);
@@ -3348,7 +3343,8 @@ namespace Arcade.Tests
         [Test]
         public void LevelBackgroundController_SetBackgroundByIndex_ClampsSafely()
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            var go = new GameObject("TestBackground");
+            go.AddComponent<MeshRenderer>();
             var bgCtrl = go.AddComponent<LevelBackgroundController>();
 
             var tex1 = new Texture2D(16, 16);
@@ -3372,7 +3368,8 @@ namespace Arcade.Tests
         [Test]
         public void LevelGenerator_GenerateLevel_TriggersBackgroundRandomization()
         {
-            var bgGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            var bgGo = new GameObject("TestBackground");
+            bgGo.AddComponent<MeshRenderer>();
             var bgCtrl = bgGo.AddComponent<LevelBackgroundController>();
 
             var tex1 = new Texture2D(16, 16);
@@ -3833,8 +3830,9 @@ namespace Arcade.Tests
             Assert.IsNotNull(laserCtrl, "Paddle must have PaddleLaserController.");
 
             // Create a block above paddle at X=0, Y=5
-            var blockObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var blockObj = new GameObject("TestBlock");
             blockObj.transform.position = new Vector3(0f, 5f, 0f);
+            blockObj.AddComponent<BoxCollider>();
             var block = blockObj.AddComponent<Block>();
             block.Initialize(BlockColorTier.Red, null, Color.red);
 
@@ -3850,8 +3848,9 @@ namespace Arcade.Tests
         [Test]
         public void LaserBolt_ContinuousSweep_HitsAndDestroysBlock()
         {
-            var blockObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var blockObj = new GameObject("TestBlock");
             blockObj.transform.position = new Vector3(0f, 2f, 0f);
+            blockObj.AddComponent<BoxCollider>();
             var block = blockObj.AddComponent<Block>();
             block.Initialize(BlockColorTier.Green, null, Color.green);
 
@@ -3874,8 +3873,9 @@ namespace Arcade.Tests
         public void LaserBolt_VolumetricEdgeImpact_HitsAndDestroysBlock_AndBypassesTriggerObstructions()
         {
             // Block positioned at (0, 3, 0) with width 1.0 (-0.5 to +0.5 on X)
-            var blockObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var blockObj = new GameObject("TestBlock");
             blockObj.transform.position = new Vector3(0f, 3f, 0f);
+            blockObj.AddComponent<BoxCollider>();
             var block = blockObj.AddComponent<Block>();
             block.Initialize(BlockColorTier.Blue, null, Color.blue);
 
@@ -4306,11 +4306,13 @@ namespace Arcade.Tests
         [Test]
         public void Block_OnCollisionEnter_DoesNotDestroyIfBallNotLaunched()
         {
-            var blockGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var blockGo = new GameObject("TestBlock");
+            blockGo.AddComponent<BoxCollider>();
             var block = blockGo.AddComponent<Block>();
             block.Initialize(BlockColorTier.Red, null, Color.red, BlockSpecialType.Normal);
 
-            var ballGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var ballGo = new GameObject("TestBall");
+            ballGo.AddComponent<SphereCollider>();
             var ball = ballGo.AddComponent<BallController>();
             // Ball is NOT launched
             Assert.IsFalse(ball.IsLaunched);
@@ -4416,18 +4418,18 @@ namespace Arcade.Tests
         public void LevelGenerator_EnsureCornerChamfers_CreatesCalibratedChamfersWithColliders()
         {
             var boundariesRoot = new GameObject("Boundaries");
-            var topWall = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            topWall.name = "TopWall";
+            var topWall = new GameObject("TopWall");
+            topWall.AddComponent<BoxCollider>();
             topWall.transform.SetParent(boundariesRoot.transform);
             topWall.transform.localScale = new Vector3(21f, 0.5f, 2f);
 
-            var leftWall = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            leftWall.name = "LeftWall";
+            var leftWall = new GameObject("LeftWall");
+            leftWall.AddComponent<BoxCollider>();
             leftWall.transform.SetParent(boundariesRoot.transform);
             leftWall.transform.localScale = new Vector3(0.5f, 32f, 2f);
 
-            var rightWall = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            rightWall.name = "RightWall";
+            var rightWall = new GameObject("RightWall");
+            rightWall.AddComponent<BoxCollider>();
             rightWall.transform.SetParent(boundariesRoot.transform);
             rightWall.transform.localScale = new Vector3(0.5f, 32f, 2f);
 
@@ -5269,7 +5271,8 @@ namespace Arcade.Tests
         [Test]
         public void Block_Freeze_AbsorbsHitAndRequiresDefrostHitBeforeDestruction()
         {
-            var blockGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var blockGo = new GameObject("TestBlock");
+            blockGo.AddComponent<BoxCollider>();
             var block = blockGo.AddComponent<Block>();
             block.Initialize(BlockColorTier.Red, null, Color.red, BlockSpecialType.Normal);
 
@@ -5293,7 +5296,8 @@ namespace Arcade.Tests
         [Test]
         public void Block_BrickFreezer_InitializesFrozen_RemovesBadgeOnFirstHit_DestroysOnSecondHit_AwardsZeroPoints()
         {
-            var blockGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var blockGo = new GameObject("TestBlock");
+            blockGo.AddComponent<BoxCollider>();
             var block = blockGo.AddComponent<Block>();
             block.Initialize(BlockColorTier.Blue, null, Color.cyan, BlockSpecialType.BrickFreezer);
 
@@ -5323,7 +5327,8 @@ namespace Arcade.Tests
         {
             PowerupCapsule.ClearAllFallingCapsules();
 
-            var blockGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var blockGo = new GameObject("TestBlock");
+            blockGo.AddComponent<BoxCollider>();
             var block = blockGo.AddComponent<Block>();
             block.Initialize(BlockColorTier.Red, null, Color.red, BlockSpecialType.PaddleShortener);
 
@@ -5849,11 +5854,13 @@ namespace Arcade.Tests
         [Test]
         public void Block_Freeze_RefusesToFreezeSpecialPowerupOrPowerdownBlocks()
         {
-            var expGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var expGo = new GameObject("ExpBlock");
+            expGo.AddComponent<BoxCollider>();
             var expBlock = expGo.AddComponent<Block>();
             expBlock.Initialize(BlockColorTier.Green, null, Color.green, BlockSpecialType.PaddleExpander);
 
-            var shortGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var shortGo = new GameObject("ShortBlock");
+            shortGo.AddComponent<BoxCollider>();
             var shortBlock = shortGo.AddComponent<Block>();
             shortBlock.Initialize(BlockColorTier.Red, null, Color.red, BlockSpecialType.PaddleShortener);
 
@@ -5875,11 +5882,13 @@ namespace Arcade.Tests
             var gm = gmGo.AddComponent<Arcade.Core.ArcadeGameManager>();
             Arcade.Core.ArcadeGameManager.SetInstanceForTesting(gm);
 
-            var normGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var normGo = new GameObject("NormBlock");
+            normGo.AddComponent<BoxCollider>();
             var normBlock = normGo.AddComponent<Block>();
             normBlock.Initialize(BlockColorTier.Blue, null, Color.cyan, BlockSpecialType.Normal);
 
-            var specialGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var specialGo = new GameObject("SpecialBlock");
+            specialGo.AddComponent<BoxCollider>();
             var specialBlock = specialGo.AddComponent<Block>();
             specialBlock.Initialize(BlockColorTier.Green, null, Color.green, BlockSpecialType.MultiBall);
 
@@ -5896,7 +5905,8 @@ namespace Arcade.Tests
         [Test]
         public void Block_BrickFreezer_DefrostsToNormalBlock_AndAwardsStandardPointsOnBreak()
         {
-            var blockGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var blockGo = new GameObject("TestBlock");
+            blockGo.AddComponent<BoxCollider>();
             var block = blockGo.AddComponent<Block>();
             block.Initialize(BlockColorTier.Green, null, Color.green, BlockSpecialType.BrickFreezer);
 
