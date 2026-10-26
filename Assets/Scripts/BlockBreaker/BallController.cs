@@ -462,7 +462,7 @@ namespace Arcade.BlockBreaker
                 ApplyTimeBasedSpeedRamp(Time.fixedDeltaTime);
             }
 
-            // Maintain target speed and prevent stagnation (Options A3 & B3)
+            // Maintain target speed and prevent stagnation via anti-trap safeguards
             Vector3 vel = rb.linearVelocity;
             vel.z = 0f;
 
@@ -488,7 +488,7 @@ namespace Arcade.BlockBreaker
             float vx = velocity.x;
             float vy = velocity.y;
 
-            // 1. Option A3: Guard against near-horizontal trap (|vy| >= speed * sin(minVertAngleDeg))
+            // 1. Guard against near-horizontal trap (|vy| >= speed * sin(minVertAngleDeg))
             if (minVertAngleDeg > 0f)
             {
                 float sinMinVert = Mathf.Sin(minVertAngleDeg * Mathf.Deg2Rad);
@@ -501,7 +501,7 @@ namespace Arcade.BlockBreaker
                 }
             }
 
-            // 2. Option B3: Guard against near-vertical loop (|vx| >= speed * sin(minHorizAngleDeg))
+            // 2. Guard against near-vertical loop (|vx| >= speed * sin(minHorizAngleDeg))
             if (minHorizAngleDeg > 0f)
             {
                 float sinMinHoriz = Mathf.Sin(minHorizAngleDeg * Mathf.Deg2Rad);
@@ -868,7 +868,7 @@ namespace Arcade.BlockBreaker
                     consecutiveSideWallBounces++;
                     if (consecutiveSideWallBounces >= 2)
                     {
-                        // Option A3: Boost vertical angle to >= consecutiveWallSteepAngleDeg (e.g. 35°)
+                        // Boost vertical angle to >= consecutiveWallSteepAngleDeg (e.g. 35°)
                         ApplyConsecutiveWallSteepening();
                     }
                 }
@@ -1009,7 +1009,7 @@ namespace Arcade.BlockBreaker
 
             float computedAngleDeg = rayAngleDeg + steerAngleDeg + velocitySteerDeg;
 
-            // Option B3: Exclude near-vertical deadzone [90° - deadzone, 90° + deadzone]
+            // Exclude near-vertical deadzone [90° - deadzone, 90° + deadzone]
             if (verticalDeadzoneAngleDeg > 0f)
             {
                 float minDeadzone = 90f - verticalDeadzoneAngleDeg;

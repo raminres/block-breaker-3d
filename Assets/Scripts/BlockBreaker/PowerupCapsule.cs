@@ -6,9 +6,8 @@ namespace Arcade.BlockBreaker
 {
     /// <summary>
     /// Collectible falling powerup capsule dropped by destroyed special blocks.
-    /// Features decoupled hierarchy (tumbling visual capsule mesh child + independent upright billboard icon),
-    /// enlarged dimensions (4x larger icon, 2.1x larger capsule) for instant visibility,
-    /// and foreground depth (-1.0f) preventing occlusion behind lower bricks.
+    /// Features decoupled hierarchy (tumbling visual mesh child with synchronously oscillating billboard icon),
+    /// high-visibility dimensions, and foreground depth (-1.0f) preventing occlusion behind lower bricks.
     /// </summary>
     [RequireComponent(typeof(Collider))]
     public class PowerupCapsule : MonoBehaviour
@@ -765,7 +764,7 @@ namespace Arcade.BlockBreaker
 
         /// <summary>
         /// Factory method to spawn a 3D collectible powerup capsule.
-        /// Decoupled hierarchy: non-rotating container with exactly 1 tumbling visual capsule child and 1 independent foreground billboard icon.
+        /// Decoupled hierarchy: non-rotating container with tumbling visual mesh child and billboard icon.
         /// </summary>
         public static PowerupCapsule Spawn(Vector3 position, BlockSpecialType type, Material baseMat = null)
         {
