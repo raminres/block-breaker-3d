@@ -88,6 +88,10 @@ namespace Arcade.UI
         private Label labelDiffSubtitle;
         private Label labelStarsSubtitle;
         private Label labelTimeSubtitle;
+        private Label menuSubtitle;
+        private Label modalTitleHighscores;
+        private Label creditAuthor;
+        private Label creditFootnote;
         private Label modalTitleHowToPlay;
         private Label guideH1;
         private Label guideP1;
@@ -350,6 +354,10 @@ namespace Arcade.UI
             labelDiffSubtitle = root.Q<Label>("label-diff-subtitle");
             labelStarsSubtitle = root.Q<Label>("label-stars-subtitle");
             labelTimeSubtitle = root.Q<Label>("label-time-subtitle");
+            menuSubtitle = root.Q<Label>("menu-subtitle");
+            modalTitleHighscores = root.Q<Label>("modal-title-highscores");
+            creditAuthor = root.Q<Label>("credit-author");
+            creditFootnote = root.Q<Label>("credit-footnote");
             modalTitleHowToPlay = root.Q<Label>("modal-title-how-to-play");
             guideH1 = root.Q<Label>("guide-h1");
             guideP1 = root.Q<Label>("guide-p1");
@@ -517,8 +525,12 @@ namespace Arcade.UI
             if (modalTitleSelectLevel != null) modalTitleSelectLevel.text = LocalizationManager.Get("level_select_title", "SELECT LEVEL");
             if (modalSubSelectLevel != null) modalSubSelectLevel.text = LocalizationManager.Get("level_select_subtitle", "Choose your next challenge");
             if (labelDiffSubtitle != null) labelDiffSubtitle.text = LocalizationManager.Get("level_difficulty", "DIFFICULTY");
-            if (labelStarsSubtitle != null) labelStarsSubtitle.text = "STARS";
+            if (labelStarsSubtitle != null) labelStarsSubtitle.text = LocalizationManager.Get("level_stars", "STARS");
             if (labelTimeSubtitle != null) labelTimeSubtitle.text = LocalizationManager.Get("level_best_time", "BEST TIME");
+            if (menuSubtitle != null) menuSubtitle.text = LocalizationManager.Get("menu_subtitle", "3D ARCADE RETRO-MODERN");
+            if (modalTitleHighscores != null) modalTitleHighscores.text = LocalizationManager.Get("menu_high_scores", "HIGH SCORES");
+            if (creditAuthor != null) creditAuthor.text = LocalizationManager.Get("credits_dev_by", "Developed by Ramin Rasulzade");
+            if (creditFootnote != null) creditFootnote.text = LocalizationManager.Get("credits_footnote", "Unity 6000.6 (URP) • Apple Metal • WebGPU");
             if (modalTitleCredits != null) modalTitleCredits.text = LocalizationManager.Get("credits_title", "CREDITS");
             if (modalTitleHowToPlay != null) modalTitleHowToPlay.text = LocalizationManager.Get("guide_title", "HOW TO PLAY");
             if (guideH1 != null) guideH1.text = LocalizationManager.Get("guide_h1", "1. CONTROLS & LAUNCH");
@@ -566,7 +578,7 @@ namespace Arcade.UI
 
             if (menuLevelTag != null)
             {
-                menuLevelTag.text = $"LEVEL {levelNumber}";
+                menuLevelTag.text = string.Format(LocalizationManager.Get("level_tag_format", "LEVEL {0}"), levelNumber);
             }
 
             if (menuLevelDiff != null)

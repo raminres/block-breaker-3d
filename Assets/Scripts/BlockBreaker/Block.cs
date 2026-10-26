@@ -469,7 +469,7 @@ namespace Arcade.BlockBreaker
                         Vector3 outward = (neighbor.transform.position - transform.position).normalized;
                         if (outward == Vector3.zero) outward = Vector3.up;
                         int chainMult = Mathf.Max(1, chainIndex);
-                        neighbor.DestroyBlock(outward, volleyMultiplier: 1, volleyStreak: 0, chainMultiplier: chainMult, bonusTag: "BOMB CHAIN!");
+                        neighbor.DestroyBlock(outward, volleyMultiplier: 1, volleyStreak: 0, chainMultiplier: chainMult, bonusTag: LocalizationManager.Get("popup_bomb_chain", "BOMB CHAIN!"));
                         chainIndex++;
                     }
                 }

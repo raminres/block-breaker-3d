@@ -322,35 +322,42 @@ namespace Arcade.BlockBreaker
                 }
             }
 
-            if (hyperBeamObject != null)
-            {
-                var filter = hyperBeamObject.GetComponent<MeshFilter>();
-                if (filter != null && filter.sharedMesh != null && filter.sharedMesh.name.Contains("Cube"))
-                {
-                    DestroyImmediate(hyperBeamObject);
-                    hyperBeamObject = null;
-                }
-            }
-
             if (hyperBeamObject == null)
             {
-                hyperBeamObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                hyperBeamObject.name = "VFX_Railgun_HyperBeam";
+                hyperBeamObject = new GameObject("VFX_Railgun_HyperBeam");
                 Transform parent = laserGunRoot != null ? laserGunRoot.transform : transform;
                 hyperBeamObject.transform.SetParent(parent, false);
 
-                // Disable default collider so ball doesn't bounce off beam mesh
-                var col = hyperBeamObject.GetComponent<Collider>();
-                if (col != null) DestroyImmediate(col);
+                var filter = hyperBeamObject.AddComponent<MeshFilter>();
+                filter.sharedMesh = GetQuadMesh();
 
-                var rend = hyperBeamObject.GetComponent<MeshRenderer>();
-                if (rend != null)
+                var rend = hyperBeamObject.AddComponent<MeshRenderer>();
+                rend.sharedMaterial = GetOrCreateHyperBeamMaterial(hyperBeamMaterialAsset);
+                rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                rend.receiveShadows = false;
+            }
+        }
+
+        private static Mesh cachedQuadMesh;
+        private static Mesh GetQuadMesh()
+        {
+            if (cachedQuadMesh == null)
+            {
+                cachedQuadMesh = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+                if (cachedQuadMesh == null)
                 {
-                    rend.sharedMaterial = GetOrCreateHyperBeamMaterial(hyperBeamMaterialAsset);
-                    rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                    rend.receiveShadows = false;
+                    cachedQuadMesh = new Mesh
+                    {
+                        name = "HyperBeamQuad",
+                        vertices = new[] { new Vector3(-0.5f, -0.5f, 0f), new Vector3(0.5f, -0.5f, 0f), new Vector3(-0.5f, 0.5f, 0f), new Vector3(0.5f, 0.5f, 0f) },
+                        uv = new[] { new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f) },
+                        triangles = new[] { 0, 2, 1, 2, 3, 1 }
+                    };
+                    cachedQuadMesh.RecalculateNormals();
+                    cachedQuadMesh.RecalculateBounds();
                 }
             }
+            return cachedQuadMesh;
         }
 
         private void UpdateHyperBeamPosition(float height)

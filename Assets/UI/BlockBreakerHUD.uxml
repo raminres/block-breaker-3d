@@ -92,7 +92,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="pause-modal" class="modal-backdrop modal-hidden">
             <ui:VisualElement class="modal-card pause-card">
-                <ui:Label text="PAUSED" class="modal-title"/>
+                <ui:Label name="modal-title-pause" text="PAUSED" class="modal-title"/>
                 <ui:Button name="btn-resume" text="RESUME" class="arcade-btn btn-primary"/>
                 <ui:Button name="btn-level-select-pause" text="SELECT LEVEL" class="arcade-btn btn-secondary"/>
                 <ui:Button name="btn-options-pause" text="OPTIONS" class="arcade-btn btn-default"/>
@@ -105,7 +105,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="highscores-modal" class="modal-backdrop modal-hidden">
             <ui:VisualElement class="modal-card modal-card-wide leaderboard-card">
-                <ui:Label text="HIGH SCORES" class="modal-title"/>
+                <ui:Label name="modal-title-highscores" text="HIGH SCORES" class="modal-title"/>
                 <ui:VisualElement class="leaderboard-table">
                     <ui:VisualElement class="score-row row-gold">
                         <ui:VisualElement class="rank-badge-pod">
@@ -259,7 +259,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="level-settings-modal" class="modal-backdrop modal-hidden">
             <ui:VisualElement class="modal-card modal-card-wide">
-                <ui:Label text="LEVEL SETTINGS" class="modal-title"/>
+                <ui:Label name="modal-title-level-settings" text="LEVEL SETTINGS" class="modal-title"/>
                 <ui:ScrollView class="level-tabs-scroll-view">
                     <ui:VisualElement name="level-tabs-container" class="level-tabs-container"/>
                 </ui:ScrollView>
@@ -376,27 +376,27 @@
                 </ui:VisualElement>
                 <ui:VisualElement class="scorecard-table">
                     <ui:VisualElement class="scorecard-row">
-                        <ui:Label text="Blocks Cleared" class="scorecard-row-label"/>
+                        <ui:Label name="label-scorecard-blocks" text="Blocks Cleared" class="scorecard-row-label"/>
                         <ui:Label name="scorecard-blocks-val" text="0" class="scorecard-row-val"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="scorecard-row">
-                        <ui:Label text="Highest Volley Combo" class="scorecard-row-label"/>
+                        <ui:Label name="label-scorecard-combo" text="Highest Volley Combo" class="scorecard-row-label"/>
                         <ui:Label name="scorecard-combo-val" text="x1" class="scorecard-row-val val-combo"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="scorecard-row">
-                        <ui:Label text="Time / Par" class="scorecard-row-label"/>
+                        <ui:Label name="label-scorecard-time-par" text="Time / Par" class="scorecard-row-label"/>
                         <ui:Label name="scorecard-time-val" text="00:00 / 00:40" class="scorecard-row-val val-time"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="scorecard-row">
-                        <ui:Label text="Time Bonus" class="scorecard-row-label"/>
+                        <ui:Label name="label-scorecard-time-bonus" text="Time Bonus" class="scorecard-row-label"/>
                         <ui:Label name="scorecard-timebonus-val" text="+0" class="scorecard-row-val val-bonus"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="scorecard-row">
-                        <ui:Label text="Flawless Life Bonus" class="scorecard-row-label"/>
+                        <ui:Label name="label-scorecard-flawless" text="Flawless Life Bonus" class="scorecard-row-label"/>
                         <ui:Label name="scorecard-flawless-val" text="---" class="scorecard-row-val val-flawless"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="scorecard-row scorecard-total-row">
-                        <ui:Label text="TOTAL SCORE" class="scorecard-total-label"/>
+                        <ui:Label name="label-scorecard-total" text="TOTAL SCORE" class="scorecard-total-label"/>
                         <ui:Label name="clear-score-label" text="0" class="scorecard-total-val"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
@@ -409,7 +409,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="game-over-modal" class="modal-backdrop modal-hidden">
             <ui:VisualElement class="modal-card gameover-card">
-                <ui:Label text="GAME OVER" class="modal-title gameover-title"/>
+                <ui:Label name="modal-title-gameover" text="GAME OVER" class="modal-title gameover-title"/>
                 <ui:Label name="over-score-label" text="FINAL SCORE: 240" class="modal-score"/>
                 <ui:Label name="over-high-label" text="HIGH SCORE: 1200" class="modal-subscore"/>
                 <ui:Button name="btn-retry" text="TRY AGAIN" class="arcade-btn btn-primary"/>

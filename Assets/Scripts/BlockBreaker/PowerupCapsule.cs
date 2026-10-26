@@ -6,9 +6,8 @@ namespace Arcade.BlockBreaker
 {
     /// <summary>
     /// Collectible falling powerup capsule dropped by destroyed special blocks.
-    /// Features decoupled hierarchy (tumbling visual capsule mesh child + independent upright billboard icon),
-    /// enlarged dimensions (4x larger icon, 2.1x larger capsule) for instant visibility,
-    /// and foreground depth (-1.0f) preventing occlusion behind lower bricks.
+    /// Features decoupled hierarchy (tumbling visual mesh child with synchronously oscillating billboard icon),
+    /// high-visibility dimensions, and foreground depth (-1.0f) preventing occlusion behind lower bricks.
     /// </summary>
     [RequireComponent(typeof(Collider))]
     public class PowerupCapsule : MonoBehaviour
@@ -256,15 +255,7 @@ namespace Arcade.BlockBreaker
         {
             ResolveModularChildren();
 
-            // 1. Ensure Root container does NOT have any stray MeshRenderer, MeshFilter, or SpriteRenderer
-            var rootMr = GetComponent<MeshRenderer>();
-            if (rootMr != null) { if (Application.isPlaying) Destroy(rootMr); else DestroyImmediate(rootMr); }
-            var rootMf = GetComponent<MeshFilter>();
-            if (rootMf != null) { if (Application.isPlaying) Destroy(rootMf); else DestroyImmediate(rootMf); }
-            var rootSr = GetComponent<SpriteRenderer>();
-            if (rootSr != null) { if (Application.isPlaying) Destroy(rootSr); else DestroyImmediate(rootSr); }
-
-            // 2. Resolve primary visual child
+            // 1. Resolve primary visual child
             Transform primaryVisual = visualCapsuleTransform;
             if (primaryVisual == null)
             {
@@ -282,12 +273,6 @@ namespace Arcade.BlockBreaker
             }
 
             visualCapsuleTransform = primaryVisual;
-
-            // Strip any collider and any stray SpriteRenderer on the visual mesh child
-            var col = visualCapsuleTransform.GetComponent<Collider>();
-            if (col != null) { if (Application.isPlaying) Destroy(col); else DestroyImmediate(col); }
-            var straySr = visualCapsuleTransform.GetComponent<SpriteRenderer>();
-            if (straySr != null) { if (Application.isPlaying) Destroy(straySr); else DestroyImmediate(straySr); }
 
             capsuleRenderer = visualCapsuleTransform.GetComponent<MeshRenderer>();
             if (capsuleRenderer == null)
@@ -345,14 +330,6 @@ namespace Arcade.BlockBreaker
                 int uiLayer = LayerMask.NameToLayer("UI");
                 if (uiLayer != -1) iconTransform.gameObject.layer = uiLayer;
             }
-
-            // Strip any MeshFilter, MeshRenderer, or Collider on the icon child
-            var strayMf = iconTransform.GetComponent<MeshFilter>();
-            if (strayMf != null) { if (Application.isPlaying) Destroy(strayMf); else DestroyImmediate(strayMf); }
-            var strayMr = iconTransform.GetComponent<MeshRenderer>();
-            if (strayMr != null) { if (Application.isPlaying) Destroy(strayMr); else DestroyImmediate(strayMr); }
-            var strayCol = iconTransform.GetComponent<Collider>();
-            if (strayCol != null) { if (Application.isPlaying) Destroy(strayCol); else DestroyImmediate(strayCol); }
 
             iconRenderer = iconTransform.GetComponent<SpriteRenderer>();
             if (iconRenderer == null)
@@ -765,7 +742,7 @@ namespace Arcade.BlockBreaker
 
         /// <summary>
         /// Factory method to spawn a 3D collectible powerup capsule.
-        /// Decoupled hierarchy: non-rotating container with exactly 1 tumbling visual capsule child and 1 independent foreground billboard icon.
+        /// Decoupled hierarchy: non-rotating container with tumbling visual mesh child and billboard icon.
         /// </summary>
         public static PowerupCapsule Spawn(Vector3 position, BlockSpecialType type, Material baseMat = null)
         {
@@ -799,49 +776,18 @@ namespace Arcade.BlockBreaker
                 }
             }
 
-            PowerupCapsule comp;
-            if (template != null)
+            if (template == null)
             {
-                GameObject go = Object.Instantiate(template, position, Quaternion.identity);
-                go.name = $"Powerup_{type}";
-                comp = go.GetComponent<PowerupCapsule>();
+                Debug.LogError($"[PowerupCapsule] Cannot spawn powerup {type}: Prefab template is missing.");
+                return null;
             }
-            else
+
+            GameObject go = Object.Instantiate(template, position, Quaternion.identity);
+            go.name = $"Powerup_{type}";
+            PowerupCapsule comp = go.GetComponent<PowerupCapsule>();
+            if (comp == null)
             {
-                // 1. Root container (does NOT rotate, clean physics)
-                var rootGo = new GameObject($"Powerup_{type}");
-                rootGo.transform.position = position;
-                rootGo.transform.localScale = Vector3.one;
-                rootGo.transform.rotation = Quaternion.identity;
-
-                var rb = rootGo.AddComponent<Rigidbody>();
-                rb.isKinematic = true;
-                rb.useGravity = false;
-
-                var box = rootGo.AddComponent<BoxCollider>();
-                box.isTrigger = true;
-                box.size = new Vector3(1.6f, 1.6f, 4.0f);
-                box.center = new Vector3(0f, 0f, 1.0f);
-
-                comp = rootGo.AddComponent<PowerupCapsule>();
-
-                // Fallback visual children so drop is NEVER invisible even without prefabs
-                var modelGo = GameObject.CreatePrimitive(isHazard ? PrimitiveType.Cube : PrimitiveType.Capsule);
-                modelGo.name = "Visual_Capsule";
-                modelGo.transform.SetParent(rootGo.transform, false);
-                modelGo.transform.localPosition = Vector3.zero;
-                modelGo.transform.localScale = isHazard ? new Vector3(0.72f, 0.72f, 0.72f) : new Vector3(0.85f, 0.85f, 0.85f);
-                if (isHazard) modelGo.transform.localRotation = Quaternion.Euler(45f, 45f, 0f);
-                var modelCol = modelGo.GetComponent<Collider>();
-                if (modelCol != null) Object.DestroyImmediate(modelCol);
-
-                var spriteGo = new GameObject("Icon_Billboard");
-                spriteGo.transform.SetParent(modelGo.transform, false);
-                spriteGo.transform.localPosition = new Vector3(0f, 0f, -0.24f);
-                spriteGo.transform.localRotation = Quaternion.identity;
-                spriteGo.transform.localScale = Vector3.one;
-                var sr = spriteGo.AddComponent<SpriteRenderer>();
-                sr.sortingOrder = 35;
+                comp = go.AddComponent<PowerupCapsule>();
             }
 
             baseMat = baseMat ?? GetOrCreateCapsuleMaterial();

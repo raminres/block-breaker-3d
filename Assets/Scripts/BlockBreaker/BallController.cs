@@ -208,7 +208,7 @@ namespace Arcade.BlockBreaker
                     rb.linearVelocity = rb.linearVelocity.normalized * currentSpeed;
                 }
                 UpdateDynamicSpeedVisuals();
-                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, "BALL SLOWED!", UI.ArcadeUIManager.SpeedPopupType.Slowed);
+                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, LocalizationManager.Get("popup_ball_slowed", "BALL SLOWED!"), UI.ArcadeUIManager.SpeedPopupType.Slowed);
             }
             else
             {
@@ -462,7 +462,7 @@ namespace Arcade.BlockBreaker
                 ApplyTimeBasedSpeedRamp(Time.fixedDeltaTime);
             }
 
-            // Maintain target speed and prevent stagnation (Options A3 & B3)
+            // Maintain target speed and prevent stagnation via anti-trap safeguards
             Vector3 vel = rb.linearVelocity;
             vel.z = 0f;
 
@@ -488,7 +488,7 @@ namespace Arcade.BlockBreaker
             float vx = velocity.x;
             float vy = velocity.y;
 
-            // 1. Option A3: Guard against near-horizontal trap (|vy| >= speed * sin(minVertAngleDeg))
+            // 1. Guard against near-horizontal trap (|vy| >= speed * sin(minVertAngleDeg))
             if (minVertAngleDeg > 0f)
             {
                 float sinMinVert = Mathf.Sin(minVertAngleDeg * Mathf.Deg2Rad);
@@ -501,7 +501,7 @@ namespace Arcade.BlockBreaker
                 }
             }
 
-            // 2. Option B3: Guard against near-vertical loop (|vx| >= speed * sin(minHorizAngleDeg))
+            // 2. Guard against near-vertical loop (|vx| >= speed * sin(minHorizAngleDeg))
             if (minHorizAngleDeg > 0f)
             {
                 float sinMinHoriz = Mathf.Sin(minHorizAngleDeg * Mathf.Deg2Rad);
@@ -534,7 +534,7 @@ namespace Arcade.BlockBreaker
                 currentSpeed = Mathf.Min(currentSpeed + speedBoost, maxSpeed);
                 nextSpeedRampTime += speedRampInterval;
                 UpdateDynamicSpeedVisuals();
-                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, "SPEED UP! +8%", UI.ArcadeUIManager.SpeedPopupType.VolleyRamp);
+                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, LocalizationManager.Get("popup_speed_up", "SPEED UP! +8%"), UI.ArcadeUIManager.SpeedPopupType.VolleyRamp);
             }
         }
 
@@ -868,7 +868,7 @@ namespace Arcade.BlockBreaker
                     consecutiveSideWallBounces++;
                     if (consecutiveSideWallBounces >= 2)
                     {
-                        // Option A3: Boost vertical angle to >= consecutiveWallSteepAngleDeg (e.g. 35°)
+                        // Boost vertical angle to >= consecutiveWallSteepAngleDeg (e.g. 35°)
                         ApplyConsecutiveWallSteepening();
                     }
                 }
@@ -931,7 +931,7 @@ namespace Arcade.BlockBreaker
                     if (currentSpeed < prevRedSpeed)
                     {
                         Vector3 popupPos = collision != null && collision.contacts.Length > 0 ? collision.contacts[0].point : transform.position;
-                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, "-1.2 DAMPEN", UI.ArcadeUIManager.SpeedPopupType.Dampen);
+                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, LocalizationManager.Get("popup_dampen", "-1.2 DAMPEN"), UI.ArcadeUIManager.SpeedPopupType.Dampen);
                     }
                     break;
 
@@ -946,7 +946,7 @@ namespace Arcade.BlockBreaker
                     if (currentSpeed > prevGreenSpeed)
                     {
                         Vector3 popupPos = collision != null && collision.contacts.Length > 0 ? collision.contacts[0].point : transform.position;
-                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, "TURBO +10%", UI.ArcadeUIManager.SpeedPopupType.Turbo);
+                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, LocalizationManager.Get("popup_turbo", "TURBO +10%"), UI.ArcadeUIManager.SpeedPopupType.Turbo);
                     }
                     break;
 
@@ -1009,7 +1009,7 @@ namespace Arcade.BlockBreaker
 
             float computedAngleDeg = rayAngleDeg + steerAngleDeg + velocitySteerDeg;
 
-            // Option B3: Exclude near-vertical deadzone [90° - deadzone, 90° + deadzone]
+            // Exclude near-vertical deadzone [90° - deadzone, 90° + deadzone]
             if (verticalDeadzoneAngleDeg > 0f)
             {
                 float minDeadzone = 90f - verticalDeadzoneAngleDeg;
@@ -1073,7 +1073,7 @@ namespace Arcade.BlockBreaker
             {
                 currentSpeed = Mathf.Min(currentSpeed * activeSmashSpeedMultiplier, maxSpeed);
                 UpdateDynamicSpeedVisuals();
-                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, "STRIKE! +8%", UI.ArcadeUIManager.SpeedPopupType.ActiveStrike);
+                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, LocalizationManager.Get("popup_strike", "STRIKE! +8%"), UI.ArcadeUIManager.SpeedPopupType.ActiveStrike);
             }
 
             if (rb != null)

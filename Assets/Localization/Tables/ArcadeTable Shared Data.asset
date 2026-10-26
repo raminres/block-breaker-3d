@@ -211,6 +211,146 @@ MonoBehaviour:
     m_Key: test_custom_unique_key_42
     m_Metadata:
       m_Items: []
+  - m_Id: 12263776839946240
+    m_Key: hud_best
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776898666496
+    m_Key: hud_balls_count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776898666497
+    m_Key: hud_combo_count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776898666498
+    m_Key: hud_combo_ended
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860800
+    m_Key: banner_clutch
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860801
+    m_Key: banner_flawless
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860802
+    m_Key: banner_complete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860803
+    m_Key: scorecard_blocks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860804
+    m_Key: scorecard_combo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860805
+    m_Key: scorecard_time_par
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860806
+    m_Key: scorecard_time_bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860807
+    m_Key: scorecard_flawless_bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860808
+    m_Key: scorecard_flawless_val
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860809
+    m_Key: scorecard_total_score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860810
+    m_Key: btn_replay
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860811
+    m_Key: btn_next_level_n
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860812
+    m_Key: btn_play_again_loop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860813
+    m_Key: btn_menu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860814
+    m_Key: gameover_final_score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860815
+    m_Key: gameover_high_score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860816
+    m_Key: btn_try_again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860817
+    m_Key: level_stars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860818
+    m_Key: level_tag_format
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860819
+    m_Key: level_settings_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807181316096
+    m_Key: popup_strike
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259136
+    m_Key: popup_dampen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259137
+    m_Key: popup_ball_slowed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259138
+    m_Key: popup_turbo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259139
+    m_Key: popup_speed_up
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259140
+    m_Key: popup_clutch
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259141
+    m_Key: popup_chain
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259142
+    m_Key: popup_combo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259143
+    m_Key: popup_multiball
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259144
+    m_Key: popup_bomb_chain
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12274121155432448
+    m_Key: scorecard_title
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

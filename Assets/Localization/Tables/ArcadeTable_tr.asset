@@ -47,7 +47,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1013338118
-    m_Localized: 3D ARCADE RETRO-MODERN
+    m_Localized: 3D RETRO-MODERN ARKAD
     m_Metadata:
       m_Items: []
   - m_Id: 1013338119
@@ -167,11 +167,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1013338148
-    m_Localized: 'Yapan: Ramin Rasulzade'
+    m_Localized: "Geli\u015Ftirici: Ramin Rasulzade"
     m_Metadata:
       m_Items: []
   - m_Id: 1013338149
-    m_Localized: Unity 6.6
+    m_Localized: "Unity 6000.6 (URP) \u2022 Apple Metal \u2022 WebGPU"
     m_Metadata:
       m_Items: []
   - m_Id: 1013338150
@@ -208,6 +208,146 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 1013338158
     m_Localized: "\u2022 Geni\u015Fletici: Raketi +%10 b\xFCy\xFCt\xFCr.\n\u2022 \xC7arpanlar: Blok ba\u015F\u0131na 2X, 3X, 4X, 5X bonus puan.\n\u2022 Kalkan: 10 saniye kinetik koruyucu bariyer.\n\u2022 \xC7oklu Top: 3 top! Ekstra toplar can kaybettirmez.\n\u2022 Lazer: Blok s\u0131ralar\u0131n\u0131 delen ikiz toplar!\n\u2022 Bomba: Etraf\u0131ndaki kom\u015Fu bloklar\u0131 patlat\u0131r!\n\u2022 Ekstra Can: +1 can kazand\u0131r\u0131r (en fazla 5).\n\u2022 Kritik Geri Say\u0131m: Son 1 blok kald\u0131\u011F\u0131nda, 12 saniyelik saya\xE7 10X'e kadar puan verir veya Rayl\u0131 Silah blo\u011Fu buharla\u015Ft\u0131r\u0131r!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776839946240
+    m_Localized: "EN \u0130Y\u0130"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776898666496
+    m_Localized: '{0} TOP'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776898666497
+    m_Localized: x{0} KOMBO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776898666498
+    m_Localized: "KOMBO B\u0130TT\u0130"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860800
+    m_Localized: "KR\u0130T\u0130K A\u015EIRI Y\xDCKLEME!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860801
+    m_Localized: KUSURSUZ ZAFER!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860802
+    m_Localized: "A\u015EAMA TAMAMLANDI!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860803
+    m_Localized: "K\u0131r\u0131lan Bloklar"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860804
+    m_Localized: "En Y\xFCksek Vole Kombosu"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860805
+    m_Localized: "S\xFCre / Hedef"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860806
+    m_Localized: Zaman Bonusu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860807
+    m_Localized: Kusursuz Can Bonusu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860808
+    m_Localized: +1.000 KUSURSUZ!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860809
+    m_Localized: TOPLAM PUAN
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860810
+    m_Localized: TEKRAR OYNA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860811
+    m_Localized: "SONRAK\u0130 B\xD6L\xDCM ({0})"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860812
+    m_Localized: "TEKRAR OYNA (D\xD6NG\xDC)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860813
+    m_Localized: "MEN\xDC"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860814
+    m_Localized: 'SON PUAN: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860815
+    m_Localized: 'REKOR PUAN: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860816
+    m_Localized: "YEN\u0130DEN DENE"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860817
+    m_Localized: YILDIZLAR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860818
+    m_Localized: "B\xD6L\xDCM {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860819
+    m_Localized: "B\xD6L\xDCM AYARLARI"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807181316096
+    m_Localized: "VURU\u015E! +%8"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259136
+    m_Localized: "-1.2 S\xD6N\xDCMLEME"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259137
+    m_Localized: "TOP YAVA\u015ELADI!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259138
+    m_Localized: TURBO +%10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259139
+    m_Localized: HIZLANMA! +%8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259140
+    m_Localized: "KR\u0130T\u0130K {0}X!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259141
+    m_Localized: "Z\u0130NC\u0130R x{0}!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259142
+    m_Localized: KOMBO x{0}!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259143
+    m_Localized: "x{0} \xC7OKLU TOP!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259144
+    m_Localized: "BOMBA Z\u0130NC\u0130R\u0130!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12274121155432448
+    m_Localized: "B\xD6L\xDCM\xDC GE\xC7T\u0130N!"
     m_Metadata:
       m_Items: []
   references:
