@@ -33,10 +33,6 @@ namespace Arcade.BlockBreaker
         [SerializeField] private Material materialBlue;
         [SerializeField] private Material materialGlass;
 
-        [Header("Mesh Sources")]
-        [SerializeField] private Mesh[] largeParticleMeshes;
-        [SerializeField] private Mesh[] smallParticleMeshes;
-        [SerializeField] private Mesh[] frostParticleMeshes;
 
         [Header("Pool Configuration")]
         [SerializeField] private int poolSize = 10;
@@ -199,36 +195,6 @@ namespace Arcade.BlockBreaker
             {
                 materialGlass = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_Block_Glass.mat");
             }
-            if (largeParticleMeshes == null || largeParticleMeshes.Length == 0)
-            {
-                largeParticleMeshes = LoadMeshesFromFbx("Assets/Models/SM_Block_Large_Particles.fbx");
-            }
-            if (smallParticleMeshes == null || smallParticleMeshes.Length == 0)
-            {
-                smallParticleMeshes = LoadMeshesFromFbx("Assets/Models/SM_Block_Small_Particles.fbx");
-            }
-            if (frostParticleMeshes == null || frostParticleMeshes.Length == 0)
-            {
-                frostParticleMeshes = LoadMeshesFromFbx("Assets/Models/SM_Block_Frost_Particles.fbx");
-            }
-#endif
-        }
-
-        private static Mesh[] LoadMeshesFromFbx(string path)
-        {
-#if UNITY_EDITOR
-            var all = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path);
-            var list = new List<Mesh>();
-            foreach (var a in all)
-            {
-                if (a is Mesh m && !m.name.StartsWith("__preview__"))
-                {
-                    list.Add(m);
-                }
-            }
-            return list.ToArray();
-#else
-            return new Mesh[0];
 #endif
         }
 

@@ -178,16 +178,6 @@ namespace Arcade.BlockBreaker
 
             ResolveModularChildren();
 
-            // Strip any stray colliders on child model to ensure single authoritative root collider
-            if (modelChild != null)
-            {
-                var childCols = modelChild.GetComponentsInChildren<Collider>();
-                for (int i = 0; i < childCols.Length; i++)
-                {
-                    if (Application.isPlaying) Destroy(childCols[i]);
-                    else DestroyImmediate(childCols[i]);
-                }
-            }
 
             // Fallback for bare test GameObjects instantiated without prefabs:
             if (meshRenderer == null)
