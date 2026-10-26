@@ -168,6 +168,7 @@ namespace Arcade.Editor
                 ("hud_tap_launch", "TAP TO LAUNCH", "FIRLATMAK İÇİN DOKUN"),
                 ("hud_paused", "PAUSED", "DURAKLATILDI"),
                 ("hud_level_clear", "LEVEL CLEAR!", "BÖLÜM GEÇİLDİ!"),
+                ("scorecard_title", "LEVEL CLEARED!", "BÖLÜMÜ GEÇTİN!"),
                 ("hud_game_over", "GAME OVER", "OYUN BİTTİ"),
 
                 // Credits

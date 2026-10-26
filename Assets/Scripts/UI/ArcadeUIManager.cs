@@ -323,6 +323,7 @@ namespace Arcade.UI
         public Label ModalTitleHighscores => modalTitleHighscores;
         public Label ModalTitleLevelSettings => modalTitleLevelSettings;
         public Label ModalTitleGameover => modalTitleGameover;
+        public Label ScorecardTitle => scorecardTitle;
         public Label LabelScorecardBlocks => labelScorecardBlocks;
         public Label LabelScorecardCombo => labelScorecardCombo;
         public Label LabelScorecardTimePar => labelScorecardTimePar;
@@ -2308,6 +2309,7 @@ namespace Arcade.UI
                 levelClearBanner.AddToClassList("level-clear-banner-hidden");
             }
 
+            if (scorecardTitle != null) scorecardTitle.text = LocalizationManager.Get("scorecard_title", "LEVEL CLEARED!");
             if (scorecardBlocksVal != null) scorecardBlocksVal.text = tally.blocksDestroyed.ToString();
             if (scorecardComboVal != null) scorecardComboVal.text = $"x{tally.highestCombo}";
             if (scorecardTimeVal != null) scorecardTimeVal.text = $"{HighScoreManager.FormatTime(tally.elapsedTime)} / {HighScoreManager.FormatTime(tally.parTime)}";

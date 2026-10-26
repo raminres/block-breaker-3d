@@ -1134,7 +1134,7 @@ namespace Arcade.Tests
             {
                 "hud_best", "hud_balls_count", "hud_combo_count", "hud_combo_ended",
                 "banner_clutch", "banner_flawless", "banner_complete",
-                "scorecard_blocks", "scorecard_combo", "scorecard_time_par", "scorecard_time_bonus",
+                "scorecard_title", "scorecard_blocks", "scorecard_combo", "scorecard_time_par", "scorecard_time_bonus",
                 "scorecard_flawless_bonus", "scorecard_flawless_val", "scorecard_total_score",
                 "btn_replay", "btn_next_level_n", "btn_play_again_loop", "btn_menu",
                 "gameover_final_score", "gameover_high_score", "btn_try_again",
@@ -1214,6 +1214,7 @@ namespace Arcade.Tests
             Assert.AreEqual("HIGH SCORES", uiMgr.ModalTitleHighscores.text);
             Assert.AreEqual("LEVEL SETTINGS", uiMgr.ModalTitleLevelSettings.text);
             Assert.AreEqual("GAME OVER", uiMgr.ModalTitleGameover.text);
+            Assert.AreEqual("LEVEL CLEARED!", uiMgr.ScorecardTitle.text);
             Assert.AreEqual("Blocks Cleared", uiMgr.LabelScorecardBlocks.text);
             Assert.AreEqual("Highest Volley Combo", uiMgr.LabelScorecardCombo.text);
             Assert.AreEqual("Time / Par", uiMgr.LabelScorecardTimePar.text);
@@ -1233,6 +1234,7 @@ namespace Arcade.Tests
             Assert.AreEqual("YÜKSEK SKORLAR", uiMgr.ModalTitleHighscores.text);
             Assert.AreEqual("BÖLÜM AYARLARI", uiMgr.ModalTitleLevelSettings.text);
             Assert.AreEqual("OYUN BİTTİ", uiMgr.ModalTitleGameover.text);
+            Assert.AreEqual("BÖLÜMÜ GEÇTİN!", uiMgr.ScorecardTitle.text);
             Assert.AreEqual("Kırılan Bloklar", uiMgr.LabelScorecardBlocks.text);
             Assert.AreEqual("En Yüksek Vole Kombosu", uiMgr.LabelScorecardCombo.text);
             Assert.AreEqual("Süre / Hedef", uiMgr.LabelScorecardTimePar.text);

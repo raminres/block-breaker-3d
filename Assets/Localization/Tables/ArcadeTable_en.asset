@@ -346,6 +346,10 @@ MonoBehaviour:
     m_Localized: BOMB CHAIN!
     m_Metadata:
       m_Items: []
+  - m_Id: 12274121155432448
+    m_Localized: LEVEL CLEARED!
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

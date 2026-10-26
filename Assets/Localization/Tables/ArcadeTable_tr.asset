@@ -346,6 +346,10 @@ MonoBehaviour:
     m_Localized: "BOMBA Z\u0130NC\u0130R\u0130!"
     m_Metadata:
       m_Items: []
+  - m_Id: 12274121155432448
+    m_Localized: "B\xD6L\xDCM\xDC GE\xC7T\u0130N!"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
