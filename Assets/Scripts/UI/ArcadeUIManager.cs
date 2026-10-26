@@ -148,6 +148,16 @@ namespace Arcade.UI
         private Label labelStarsSubtitle;
         private Label labelTimeSubtitle;
         private Label modalTitleHowToPlay;
+        private Label modalTitlePause;
+        private Label modalTitleHighscores;
+        private Label modalTitleLevelSettings;
+        private Label modalTitleGameover;
+        private Label labelScorecardBlocks;
+        private Label labelScorecardCombo;
+        private Label labelScorecardTimePar;
+        private Label labelScorecardTimeBonus;
+        private Label labelScorecardFlawless;
+        private Label labelScorecardTotal;
         private Label guideH1;
         private Label guideP1;
         private Label guideH2;
@@ -309,6 +319,19 @@ namespace Arcade.UI
         public Label ScorecardTimeVal => scorecardTimeVal;
         public Label ScorecardTimeBonusVal => scorecardTimeBonusVal;
         public Label ScorecardFlawlessVal => scorecardFlawlessVal;
+        public Label ModalTitlePause => modalTitlePause;
+        public Label ModalTitleHighscores => modalTitleHighscores;
+        public Label ModalTitleLevelSettings => modalTitleLevelSettings;
+        public Label ModalTitleGameover => modalTitleGameover;
+        public Label LabelScorecardBlocks => labelScorecardBlocks;
+        public Label LabelScorecardCombo => labelScorecardCombo;
+        public Label LabelScorecardTimePar => labelScorecardTimePar;
+        public Label LabelScorecardTimeBonus => labelScorecardTimeBonus;
+        public Label LabelScorecardFlawless => labelScorecardFlawless;
+        public Label LabelScorecardTotal => labelScorecardTotal;
+        public Button BtnRetry => btnRetry;
+        public Button BtnNextLevel => btnNextLevel;
+        public Button BtnClearMenu => btnClearMenu;
         public Button BtnReplayLevel => btnReplayLevel;
         public PowerupIconSet IconSet => iconSet;
         public void SetIconSet(PowerupIconSet set) => iconSet = set;
@@ -871,6 +894,16 @@ namespace Arcade.UI
             modalTitleCredits = root.Q<Label>("modal-title-credits");
             modalTitleSelectLevel = root.Q<Label>("modal-title-select-level");
             modalSubSelectLevel = root.Q<Label>("modal-sub-select-level");
+            modalTitlePause = root.Q<Label>("modal-title-pause");
+            modalTitleHighscores = root.Q<Label>("modal-title-highscores");
+            modalTitleLevelSettings = root.Q<Label>("modal-title-level-settings");
+            modalTitleGameover = root.Q<Label>("modal-title-gameover");
+            labelScorecardBlocks = root.Q<Label>("label-scorecard-blocks");
+            labelScorecardCombo = root.Q<Label>("label-scorecard-combo");
+            labelScorecardTimePar = root.Q<Label>("label-scorecard-time-par");
+            labelScorecardTimeBonus = root.Q<Label>("label-scorecard-time-bonus");
+            labelScorecardFlawless = root.Q<Label>("label-scorecard-flawless");
+            labelScorecardTotal = root.Q<Label>("label-scorecard-total");
             labelDiffSubtitle = root.Q<Label>("label-diff-subtitle");
             labelStarsSubtitle = root.Q<Label>("label-stars-subtitle");
             labelTimeSubtitle = root.Q<Label>("label-time-subtitle");
@@ -1307,10 +1340,26 @@ namespace Arcade.UI
             if (modalTitleCredits != null) modalTitleCredits.text = LocalizationManager.Get("credits_title", "CREDITS");
             if (modalTitleSelectLevel != null) modalTitleSelectLevel.text = LocalizationManager.Get("level_select_title", "SELECT LEVEL");
             if (modalSubSelectLevel != null) modalSubSelectLevel.text = LocalizationManager.Get("level_select_subtitle", "Choose your next challenge");
+            if (modalTitlePause != null) modalTitlePause.text = LocalizationManager.Get("hud_paused", "PAUSED");
+            if (modalTitleHighscores != null) modalTitleHighscores.text = LocalizationManager.Get("menu_high_scores", "HIGH SCORES");
+            if (modalTitleLevelSettings != null) modalTitleLevelSettings.text = LocalizationManager.Get("level_settings_title", "LEVEL SETTINGS");
+            if (modalTitleGameover != null) modalTitleGameover.text = LocalizationManager.Get("hud_game_over", "GAME OVER");
+            if (scorecardTitle != null) scorecardTitle.text = LocalizationManager.Get("scorecard_title", "LEVEL CLEARED!");
+            if (labelScorecardBlocks != null) labelScorecardBlocks.text = LocalizationManager.Get("scorecard_blocks", "Blocks Cleared");
+            if (labelScorecardCombo != null) labelScorecardCombo.text = LocalizationManager.Get("scorecard_combo", "Highest Volley Combo");
+            if (labelScorecardTimePar != null) labelScorecardTimePar.text = LocalizationManager.Get("scorecard_time_par", "Time / Par");
+            if (labelScorecardTimeBonus != null) labelScorecardTimeBonus.text = LocalizationManager.Get("scorecard_time_bonus", "Time Bonus");
+            if (labelScorecardFlawless != null) labelScorecardFlawless.text = LocalizationManager.Get("scorecard_flawless_bonus", "Flawless Life Bonus");
+            if (labelScorecardTotal != null) labelScorecardTotal.text = LocalizationManager.Get("scorecard_total_score", "TOTAL SCORE");
             if (labelDiffSubtitle != null) labelDiffSubtitle.text = LocalizationManager.Get("level_difficulty", "DIFFICULTY");
-            if (labelStarsSubtitle != null) labelStarsSubtitle.text = "STARS";
+            if (labelStarsSubtitle != null) labelStarsSubtitle.text = LocalizationManager.Get("level_stars", "STARS");
             if (labelTimeSubtitle != null) labelTimeSubtitle.text = LocalizationManager.Get("level_best_time", "BEST TIME");
             if (btnStartSelectedLevel != null) btnStartSelectedLevel.text = LocalizationManager.Get("level_play_btn", "PLAY LEVEL");
+            if (btnReplayLevel != null) btnReplayLevel.text = LocalizationManager.Get("btn_replay", "REPLAY");
+            if (btnClearMenu != null) btnClearMenu.text = LocalizationManager.Get("btn_menu", "MENU");
+            if (btnRetry != null) btnRetry.text = LocalizationManager.Get("btn_try_again", "TRY AGAIN");
+            if (btnOverMenu != null) btnOverMenu.text = LocalizationManager.Get("btn_main_menu", "MAIN MENU");
+            if (btnApplyLevel != null) btnApplyLevel.text = LocalizationManager.Get("btn_apply_restart", "APPLY & RESTART");
             if (btnCloseCredits != null) btnCloseCredits.text = LocalizationManager.Get("btn_back", "BACK");
             if (btnCloseLevelModal != null) btnCloseLevelModal.text = LocalizationManager.Get("btn_back", "BACK");
             if (btnCloseHowToPlay != null) btnCloseHowToPlay.text = LocalizationManager.Get("btn_back", "BACK");
@@ -1328,9 +1377,9 @@ namespace Arcade.UI
 
         public void UpdateScoreDisplay(int currentScore, int delta)
         {
-            if (scoreLabel != null) scoreLabel.text = $"SCORE: {currentScore}";
+            if (scoreLabel != null) scoreLabel.text = $"{LocalizationManager.Get("hud_score", "SCORE")}: {currentScore}";
             if (highscoreLabel != null && ArcadeGameManager.Instance != null)
-                highscoreLabel.text = $"BEST: {ArcadeGameManager.Instance.HighScore}";
+                highscoreLabel.text = $"{LocalizationManager.Get("hud_best", "BEST")}: {ArcadeGameManager.Instance.HighScore}";
         }
 
         public void UpdateLivesDisplay(int lives)
@@ -1570,7 +1619,9 @@ namespace Arcade.UI
                         int currentLvl = levelGenerator != null && levelGenerator.CurrentConfig != null ? levelGenerator.CurrentConfig.LevelNumber : 1;
                         int nextLvl = currentLvl + 1;
                         int total = levelGenerator != null ? levelGenerator.TotalLevels : 30;
-                        btnNextLevel.text = nextLvl > total ? "PLAY AGAIN (LOOP)" : $"NEXT LEVEL ({nextLvl})";
+                        btnNextLevel.text = nextLvl > total 
+                            ? LocalizationManager.Get("btn_play_again_loop", "PLAY AGAIN (LOOP)") 
+                            : string.Format(LocalizationManager.Get("btn_next_level_n", "NEXT LEVEL ({0})"), nextLvl);
                     }
 
                     if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.CurrentLevelSummary.levelNumber > 0)
@@ -1593,9 +1644,9 @@ namespace Arcade.UI
                 if (state == GameState.GameOver)
                 {
                     if (overScoreLabel != null && ArcadeGameManager.Instance != null)
-                        overScoreLabel.text = $"FINAL SCORE: {ArcadeGameManager.Instance.Score}";
+                        overScoreLabel.text = string.Format(LocalizationManager.Get("gameover_final_score", "FINAL SCORE: {0}"), ArcadeGameManager.Instance.Score);
                     if (overHighLabel != null && ArcadeGameManager.Instance != null)
-                        overHighLabel.text = $"HIGH SCORE: {ArcadeGameManager.Instance.HighScore}";
+                        overHighLabel.text = string.Format(LocalizationManager.Get("gameover_high_score", "HIGH SCORE: {0}"), ArcadeGameManager.Instance.HighScore);
                     UIAnimationHelper.ShowModal(this, gameOverModal, card, GetGameOverButtons());
                 }
                 else
@@ -1636,7 +1687,7 @@ namespace Arcade.UI
                 multiballStatusBadge.RemoveFromClassList("powerup-hidden");
                 multiballStatusBadge.style.display = DisplayStyle.Flex;
                 UIAnimationHelper.PunchElement(this, multiballStatusBadge, "ui-punch-pop", 0.14f);
-                if (multiballCountLabel != null) multiballCountLabel.text = $"{count} BALLS";
+                if (multiballCountLabel != null) multiballCountLabel.text = string.Format(LocalizationManager.Get("hud_balls_count", "{0} BALLS"), count);
             }
             else
             {
@@ -1860,7 +1911,7 @@ namespace Arcade.UI
 
                 if (comboLabel != null)
                 {
-                    comboLabel.text = $" x{multiplier} COMBO";
+                    comboLabel.text = string.Format(LocalizationManager.Get("hud_combo_count", " x{0} COMBO"), multiplier);
                 }
             }
             else
@@ -1869,7 +1920,7 @@ namespace Arcade.UI
                 {
                     previousVolleyMultiplier = 1;
                     if (comboEndedCoroutine != null) StopCoroutine(comboEndedCoroutine);
-                    if (comboLabel != null) comboLabel.text = "COMBO ENDED";
+                    if (comboLabel != null) comboLabel.text = LocalizationManager.Get("hud_combo_ended", "COMBO ENDED");
                     if (comboStatusIcon != null) comboStatusIcon.style.display = DisplayStyle.None;
 
                     if (Application.isPlaying && gameObject.activeInHierarchy)
@@ -1897,7 +1948,7 @@ namespace Arcade.UI
                 comboStatusBadge.RemoveFromClassList("powerup-hidden");
                 comboStatusBadge.style.display = DisplayStyle.Flex;
                 if (comboStatusIcon != null) comboStatusIcon.style.display = DisplayStyle.None;
-                if (comboLabel != null) comboLabel.text = "COMBO ENDED";
+                if (comboLabel != null) comboLabel.text = LocalizationManager.Get("hud_combo_ended", "COMBO ENDED");
             }
 
             yield return new WaitForSecondsRealtime(1.2f);
@@ -2214,22 +2265,22 @@ namespace Arcade.UI
             {
                 if (levelClearBannerText != null)
                 {
-                    levelClearBannerText.text = "LEVEL CLEARED!";
+                    levelClearBannerText.text = LocalizationManager.Get("hud_level_clear", "LEVEL CLEARED!");
                 }
 
                 if (levelClearBannerSubtext != null)
                 {
                     if (wasClearedWithLaser)
                     {
-                        levelClearBannerSubtext.text = "CLUTCH OVERCHARGE!";
+                        levelClearBannerSubtext.text = LocalizationManager.Get("banner_clutch", "CLUTCH OVERCHARGE!");
                     }
                     else if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.LivesLostThisLevel == 0)
                     {
-                        levelClearBannerSubtext.text = "FLAWLESS VICTORY!";
+                        levelClearBannerSubtext.text = LocalizationManager.Get("banner_flawless", "FLAWLESS VICTORY!");
                     }
                     else
                     {
-                        levelClearBannerSubtext.text = "STAGE COMPLETE!";
+                        levelClearBannerSubtext.text = LocalizationManager.Get("banner_complete", "STAGE COMPLETE!");
                     }
                 }
 
@@ -2255,7 +2306,7 @@ namespace Arcade.UI
             }
             if (scorecardFlawlessVal != null)
             {
-                scorecardFlawlessVal.text = tally.isFlawless ? "+1,000 FLAWLESS!" : "---";
+                scorecardFlawlessVal.text = tally.isFlawless ? LocalizationManager.Get("scorecard_flawless_val", "+1,000 FLAWLESS!") : "---";
             }
             if (clearScoreLabel != null)
             {
@@ -3129,7 +3180,7 @@ namespace Arcade.UI
 
             if (menuLevelTag != null)
             {
-                menuLevelTag.text = $"LEVEL {levelNumber}";
+                menuLevelTag.text = string.Format(LocalizationManager.Get("level_tag_format", "LEVEL {0}"), levelNumber);
             }
 
             if (menuLevelDiff != null)

@@ -22,6 +22,7 @@ namespace Arcade.Tests
         [SetUp]
         public void SetUp()
         {
+            LocalizationManager.SetLanguage(GameLanguage.English);
             testRoot = new GameObject("TestRoot");
             gameManager = testRoot.AddComponent<ArcadeGameManager>();
             ArcadeGameManager.SetInstanceForTesting(gameManager);
@@ -49,6 +50,8 @@ namespace Arcade.Tests
             {
                 Object.DestroyImmediate(testRoot);
             }
+
+            LocalizationManager.SetLanguage(GameLanguage.English);
         }
 
         #region 1. Scoring & Block Multiplier Tests

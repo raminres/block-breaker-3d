@@ -155,7 +155,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1013338145
-    m_Localized: LEVEL CLEAR!
+    m_Localized: LEVEL CLEARED!
     m_Metadata:
       m_Items: []
   - m_Id: 1013338146
@@ -208,6 +208,102 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 1013338158
     m_Localized: "\u2022 Expander: Widens paddle by +10%.\n\u2022 Multipliers: 2X, 3X, 4X, 5X bonus points per block.\n\u2022 Shield: Kinetic barrier protects for 10s.\n\u2022 Multi-Ball: 3 balls! Extra balls don't lose lives.\n\u2022 Laser Blaster: Twin cannons pierce brick rows!\n\u2022 Bombs: Radial detonation explodes neighbors!\n\u2022 Extra Heart: Grants +1 life (up to 5 max).\n\u2022 Clutch Countdown: When 1 brick remains, 12s timer yields up to 10X score or Railgun vaporizes it!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776839946240
+    m_Localized: BEST
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776898666496
+    m_Localized: '{0} BALLS'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776898666497
+    m_Localized: x{0} COMBO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776898666498
+    m_Localized: COMBO ENDED
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860800
+    m_Localized: CLUTCH OVERCHARGE!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860801
+    m_Localized: FLAWLESS VICTORY!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860802
+    m_Localized: STAGE COMPLETE!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860803
+    m_Localized: Blocks Cleared
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860804
+    m_Localized: Highest Volley Combo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860805
+    m_Localized: Time / Par
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860806
+    m_Localized: Time Bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860807
+    m_Localized: Flawless Life Bonus
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860808
+    m_Localized: +1,000 FLAWLESS!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860809
+    m_Localized: TOTAL SCORE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860810
+    m_Localized: REPLAY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860811
+    m_Localized: NEXT LEVEL ({0})
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860812
+    m_Localized: PLAY AGAIN (LOOP)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860813
+    m_Localized: MENU
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860814
+    m_Localized: 'FINAL SCORE: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860815
+    m_Localized: 'HIGH SCORE: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860816
+    m_Localized: TRY AGAIN
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860817
+    m_Localized: STARS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860818
+    m_Localized: LEVEL {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12263776902860819
+    m_Localized: LEVEL SETTINGS
     m_Metadata:
       m_Items: []
   references:

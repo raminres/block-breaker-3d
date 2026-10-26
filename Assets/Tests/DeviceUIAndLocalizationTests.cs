@@ -16,6 +16,12 @@ namespace Arcade.Tests
     [TestFixture]
     public class DeviceUIAndLocalizationTests
     {
+        [SetUp]
+        public void SetUp()
+        {
+            LocalizationManager.SetLanguage(GameLanguage.English);
+        }
+
         [TearDown]
         public void Teardown()
         {
@@ -1111,6 +1117,180 @@ namespace Arcade.Tests
             });
 
             Object.DestroyImmediate(uiObj);
+        }
+
+        [Test]
+        public void Test_AllLocalizationKeys_ExistInBothEnglishAndTurkishTables()
+        {
+            var enTable = AssetDatabase.LoadAssetAtPath<StringTable>("Assets/Localization/Tables/ArcadeTable_en.asset");
+            var trTable = AssetDatabase.LoadAssetAtPath<StringTable>("Assets/Localization/Tables/ArcadeTable_tr.asset");
+
+            Assert.IsNotNull(enTable, "ArcadeTable_en must exist.");
+            Assert.IsNotNull(trTable, "ArcadeTable_tr must exist.");
+            Assert.AreEqual(enTable.Count, trTable.Count, "Both tables must have the exact same number of entries.");
+            Assert.IsTrue(enTable.Count >= 70, $"Expected at least 70 localization keys, found {enTable.Count}");
+
+            string[] requiredKeys = new[]
+            {
+                "hud_best", "hud_balls_count", "hud_combo_count", "hud_combo_ended",
+                "banner_clutch", "banner_flawless", "banner_complete",
+                "scorecard_blocks", "scorecard_combo", "scorecard_time_par", "scorecard_time_bonus",
+                "scorecard_flawless_bonus", "scorecard_flawless_val", "scorecard_total_score",
+                "btn_replay", "btn_next_level_n", "btn_play_again_loop", "btn_menu",
+                "gameover_final_score", "gameover_high_score", "btn_try_again",
+                "level_stars", "level_tag_format", "level_settings_title"
+            };
+
+            foreach (var key in requiredKeys)
+            {
+                var enEntry = enTable.GetEntry(key);
+                Assert.IsNotNull(enEntry, $"Key '{key}' must exist in English table.");
+                Assert.IsFalse(string.IsNullOrEmpty(enEntry.Value), $"English entry for '{key}' must not be empty.");
+
+                var trEntry = trTable.GetEntry(key);
+                Assert.IsNotNull(trEntry, $"Key '{key}' must exist in Turkish table.");
+                Assert.IsFalse(string.IsNullOrEmpty(trEntry.Value), $"Turkish entry for '{key}' must not be empty.");
+            }
+        }
+
+        [Test]
+        public void Test_ArcadeUIManager_LocalizesAllModalsAndScorecardElements()
+        {
+            var uiObj = new GameObject("TestArcadeUIManager", typeof(PanelRenderer), typeof(ArcadeUIManager));
+            var uiMgr = uiObj.GetComponent<ArcadeUIManager>();
+
+            var rootVisual = new VisualElement();
+            var modalTitlePause = new Label { name = "modal-title-pause" };
+            var modalTitleHighscores = new Label { name = "modal-title-highscores" };
+            var modalTitleLevelSettings = new Label { name = "modal-title-level-settings" };
+            var modalTitleGameover = new Label { name = "modal-title-gameover" };
+            var scorecardTitle = new Label { name = "scorecard-title" };
+            var labelScorecardBlocks = new Label { name = "label-scorecard-blocks" };
+            var labelScorecardCombo = new Label { name = "label-scorecard-combo" };
+            var labelScorecardTimePar = new Label { name = "label-scorecard-time-par" };
+            var labelScorecardTimeBonus = new Label { name = "label-scorecard-time-bonus" };
+            var labelScorecardFlawless = new Label { name = "label-scorecard-flawless" };
+            var labelScorecardTotal = new Label { name = "label-scorecard-total" };
+            var labelStarsSubtitle = new Label { name = "label-stars-subtitle" };
+            var btnReplayLevel = new Button { name = "btn-replay-level" };
+            var btnClearMenu = new Button { name = "btn-clear-menu" };
+            var btnRetry = new Button { name = "btn-retry" };
+            var btnOverMenu = new Button { name = "btn-over-menu" };
+            var btnApplyLevel = new Button { name = "btn-apply-level" };
+            var scoreLabel = new Label { name = "score-label" };
+            var highscoreLabel = new Label { name = "highscore-label" };
+
+            rootVisual.Add(modalTitlePause);
+            rootVisual.Add(modalTitleHighscores);
+            rootVisual.Add(modalTitleLevelSettings);
+            rootVisual.Add(modalTitleGameover);
+            rootVisual.Add(scorecardTitle);
+            rootVisual.Add(labelScorecardBlocks);
+            rootVisual.Add(labelScorecardCombo);
+            rootVisual.Add(labelScorecardTimePar);
+            rootVisual.Add(labelScorecardTimeBonus);
+            rootVisual.Add(labelScorecardFlawless);
+            rootVisual.Add(labelScorecardTotal);
+            rootVisual.Add(labelStarsSubtitle);
+            rootVisual.Add(btnReplayLevel);
+            rootVisual.Add(btnClearMenu);
+            rootVisual.Add(btnRetry);
+            rootVisual.Add(btnOverMenu);
+            rootVisual.Add(btnApplyLevel);
+            rootVisual.Add(scoreLabel);
+            rootVisual.Add(highscoreLabel);
+
+            var rootField = typeof(ArcadeUIManager).GetField("root", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            rootField.SetValue(uiMgr, rootVisual);
+
+            var bindMethod = typeof(ArcadeUIManager).GetMethod("BindElements", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            bindMethod.Invoke(uiMgr, null);
+
+            // Test English
+            LocalizationManager.SetLanguage(GameLanguage.English);
+            Assert.AreEqual("PAUSED", uiMgr.ModalTitlePause.text);
+            Assert.AreEqual("HIGH SCORES", uiMgr.ModalTitleHighscores.text);
+            Assert.AreEqual("LEVEL SETTINGS", uiMgr.ModalTitleLevelSettings.text);
+            Assert.AreEqual("GAME OVER", uiMgr.ModalTitleGameover.text);
+            Assert.AreEqual("Blocks Cleared", uiMgr.LabelScorecardBlocks.text);
+            Assert.AreEqual("Highest Volley Combo", uiMgr.LabelScorecardCombo.text);
+            Assert.AreEqual("Time / Par", uiMgr.LabelScorecardTimePar.text);
+            Assert.AreEqual("Time Bonus", uiMgr.LabelScorecardTimeBonus.text);
+            Assert.AreEqual("Flawless Life Bonus", uiMgr.LabelScorecardFlawless.text);
+            Assert.AreEqual("TOTAL SCORE", uiMgr.LabelScorecardTotal.text);
+            Assert.AreEqual("REPLAY", uiMgr.BtnReplayLevel.text);
+            Assert.AreEqual("MENU", uiMgr.BtnClearMenu.text);
+            Assert.AreEqual("TRY AGAIN", uiMgr.BtnRetry.text);
+
+            uiMgr.UpdateScoreDisplay(120, 0);
+            Assert.AreEqual("SCORE: 120", scoreLabel.text);
+
+            // Test Turkish
+            LocalizationManager.SetLanguage(GameLanguage.Turkish);
+            Assert.AreEqual("DURAKLATILDI", uiMgr.ModalTitlePause.text);
+            Assert.AreEqual("YÜKSEK SKORLAR", uiMgr.ModalTitleHighscores.text);
+            Assert.AreEqual("BÖLÜM AYARLARI", uiMgr.ModalTitleLevelSettings.text);
+            Assert.AreEqual("OYUN BİTTİ", uiMgr.ModalTitleGameover.text);
+            Assert.AreEqual("Kırılan Bloklar", uiMgr.LabelScorecardBlocks.text);
+            Assert.AreEqual("En Yüksek Vole Kombosu", uiMgr.LabelScorecardCombo.text);
+            Assert.AreEqual("Süre / Hedef", uiMgr.LabelScorecardTimePar.text);
+            Assert.AreEqual("Zaman Bonusu", uiMgr.LabelScorecardTimeBonus.text);
+            Assert.AreEqual("Kusursuz Can Bonusu", uiMgr.LabelScorecardFlawless.text);
+            Assert.AreEqual("TOPLAM PUAN", uiMgr.LabelScorecardTotal.text);
+            Assert.AreEqual("TEKRAR OYNA", uiMgr.BtnReplayLevel.text);
+            Assert.AreEqual("MENÜ", uiMgr.BtnClearMenu.text);
+            Assert.AreEqual("YENİDEN DENE", uiMgr.BtnRetry.text);
+
+            uiMgr.UpdateScoreDisplay(120, 0);
+            Assert.AreEqual("SKOR: 120", scoreLabel.text);
+
+            Object.DestroyImmediate(uiObj);
+        }
+
+        [Test]
+        public void Test_MainMenuUIManager_LocalizesAllElements()
+        {
+            var menuObj = new GameObject("TestMainMenuUIManager", typeof(PanelRenderer), typeof(MainMenuUIManager));
+            var menuMgr = menuObj.GetComponent<MainMenuUIManager>();
+
+            var rootVisual = new VisualElement();
+            var menuSubtitle = new Label { name = "menu-subtitle" };
+            var modalTitleHighscores = new Label { name = "modal-title-highscores" };
+            var labelStarsSubtitle = new Label { name = "label-stars-subtitle" };
+            var creditAuthor = new Label { name = "credit-author" };
+            var creditFootnote = new Label { name = "credit-footnote" };
+            var menuLevelTag = new Label { name = "menu-level-tag" };
+
+            rootVisual.Add(menuSubtitle);
+            rootVisual.Add(modalTitleHighscores);
+            rootVisual.Add(labelStarsSubtitle);
+            rootVisual.Add(creditAuthor);
+            rootVisual.Add(creditFootnote);
+            rootVisual.Add(menuLevelTag);
+
+            var rootField = typeof(MainMenuUIManager).GetField("root", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            rootField.SetValue(menuMgr, rootVisual);
+
+            var bindMethod = typeof(MainMenuUIManager).GetMethod("BindElements", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            bindMethod.Invoke(menuMgr, null);
+
+            // Test English
+            LocalizationManager.SetLanguage(GameLanguage.English);
+            Assert.AreEqual("3D ARCADE RETRO-MODERN", menuSubtitle.text);
+            Assert.AreEqual("HIGH SCORES", modalTitleHighscores.text);
+            Assert.AreEqual("STARS", labelStarsSubtitle.text);
+            Assert.AreEqual("Developed by Ramin Rasulzade", creditAuthor.text);
+            Assert.AreEqual("LEVEL 1", menuLevelTag.text);
+
+            // Test Turkish
+            LocalizationManager.SetLanguage(GameLanguage.Turkish);
+            Assert.AreEqual("3D RETRO-MODERN ARKAD", menuSubtitle.text);
+            Assert.AreEqual("YÜKSEK SKORLAR", modalTitleHighscores.text);
+            Assert.AreEqual("YILDIZLAR", labelStarsSubtitle.text);
+            Assert.AreEqual("Geliştirici: Ramin Rasulzade", creditAuthor.text);
+            Assert.AreEqual("BÖLÜM 1", menuLevelTag.text);
+
+            Object.DestroyImmediate(menuObj);
         }
     }
 }
