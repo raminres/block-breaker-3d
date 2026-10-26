@@ -2027,20 +2027,9 @@ namespace Arcade.UI
             if (!string.IsNullOrEmpty(bonusTag))
             {
                 flyingLabel.text = $"+{points} {bonusTag}";
-                if (bonusTag.IndexOf("CLUTCH", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    bonusTag.IndexOf("KRİTİK", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.IsClutchModeActive))
-                {
-                    flyingLabel.AddToClassList("flying-score-clutch");
-                }
-                else if (bonusTag.IndexOf("BOMB", System.StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    flyingLabel.AddToClassList("flying-score-bomb");
-                }
-                else
-                {
-                    flyingLabel.AddToClassList("flying-score-combo");
-                }
+                flyingLabel.AddToClassList(ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.IsClutchModeActive
+                    ? "flying-score-clutch"
+                    : "flying-score-combo");
             }
             else if (multiplier > 1)
             {
