@@ -2185,6 +2185,19 @@ namespace Arcade.UI
                 panelPos = new Vector2(root.resolvedStyle.width * 0.5f, root.resolvedStyle.height * 0.5f);
             }
 
+            if (string.IsNullOrEmpty(text))
+            {
+                text = type switch
+                {
+                    SpeedPopupType.ActiveStrike => LocalizationManager.Get("popup_strike", "STRIKE! +8%"),
+                    SpeedPopupType.Dampen => LocalizationManager.Get("popup_dampen", "-1.2 DAMPEN"),
+                    SpeedPopupType.Slowed => LocalizationManager.Get("popup_ball_slowed", "BALL SLOWED!"),
+                    SpeedPopupType.Turbo => LocalizationManager.Get("popup_turbo", "TURBO +10%"),
+                    SpeedPopupType.VolleyRamp => LocalizationManager.Get("popup_speed_up", "SPEED UP! +8%"),
+                    _ => string.Empty
+                };
+            }
+
             Label popup = new Label(text);
             popup.AddToClassList("speed-popup");
 

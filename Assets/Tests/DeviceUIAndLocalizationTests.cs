@@ -1138,7 +1138,9 @@ namespace Arcade.Tests
                 "scorecard_flawless_bonus", "scorecard_flawless_val", "scorecard_total_score",
                 "btn_replay", "btn_next_level_n", "btn_play_again_loop", "btn_menu",
                 "gameover_final_score", "gameover_high_score", "btn_try_again",
-                "level_stars", "level_tag_format", "level_settings_title"
+                "level_stars", "level_tag_format", "level_settings_title",
+                "popup_strike", "popup_dampen", "popup_ball_slowed", "popup_turbo", "popup_speed_up",
+                "popup_clutch", "popup_chain", "popup_combo", "popup_multiball", "popup_bomb_chain"
             };
 
             foreach (var key in requiredKeys)
@@ -1291,6 +1293,36 @@ namespace Arcade.Tests
             Assert.AreEqual("BÖLÜM 1", menuLevelTag.text);
 
             Object.DestroyImmediate(menuObj);
+        }
+
+        [Test]
+        public void Test_SpeedPopupsAndFlyingTags_LocalizeCorrectly()
+        {
+            // Test English
+            LocalizationManager.SetLanguage(GameLanguage.English);
+            Assert.AreEqual("STRIKE! +8%", LocalizationManager.Get("popup_strike"));
+            Assert.AreEqual("-1.2 DAMPEN", LocalizationManager.Get("popup_dampen"));
+            Assert.AreEqual("BALL SLOWED!", LocalizationManager.Get("popup_ball_slowed"));
+            Assert.AreEqual("TURBO +10%", LocalizationManager.Get("popup_turbo"));
+            Assert.AreEqual("SPEED UP! +8%", LocalizationManager.Get("popup_speed_up"));
+            Assert.AreEqual("CLUTCH 10X!", string.Format(LocalizationManager.Get("popup_clutch"), 10));
+            Assert.AreEqual("CHAIN x2!", string.Format(LocalizationManager.Get("popup_chain"), 2));
+            Assert.AreEqual("COMBO x3!", string.Format(LocalizationManager.Get("popup_combo"), 3));
+            Assert.AreEqual("x2 MULTI-BALL!", string.Format(LocalizationManager.Get("popup_multiball"), 2));
+            Assert.AreEqual("BOMB CHAIN!", LocalizationManager.Get("popup_bomb_chain"));
+
+            // Test Turkish
+            LocalizationManager.SetLanguage(GameLanguage.Turkish);
+            Assert.AreEqual("VURUŞ! +%8", LocalizationManager.Get("popup_strike"));
+            Assert.AreEqual("-1.2 SÖNÜMLEME", LocalizationManager.Get("popup_dampen"));
+            Assert.AreEqual("TOP YAVAŞLADI!", LocalizationManager.Get("popup_ball_slowed"));
+            Assert.AreEqual("TURBO +%10", LocalizationManager.Get("popup_turbo"));
+            Assert.AreEqual("HIZLANMA! +%8", LocalizationManager.Get("popup_speed_up"));
+            Assert.AreEqual("KRİTİK 10X!", string.Format(LocalizationManager.Get("popup_clutch"), 10));
+            Assert.AreEqual("ZİNCİR x2!", string.Format(LocalizationManager.Get("popup_chain"), 2));
+            Assert.AreEqual("KOMBO x3!", string.Format(LocalizationManager.Get("popup_combo"), 3));
+            Assert.AreEqual("x2 ÇOKLU TOP!", string.Format(LocalizationManager.Get("popup_multiball"), 2));
+            Assert.AreEqual("BOMBA ZİNCİRİ!", LocalizationManager.Get("popup_bomb_chain"));
         }
     }
 }

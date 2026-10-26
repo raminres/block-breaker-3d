@@ -208,7 +208,7 @@ namespace Arcade.BlockBreaker
                     rb.linearVelocity = rb.linearVelocity.normalized * currentSpeed;
                 }
                 UpdateDynamicSpeedVisuals();
-                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, "BALL SLOWED!", UI.ArcadeUIManager.SpeedPopupType.Slowed);
+                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, LocalizationManager.Get("popup_ball_slowed", "BALL SLOWED!"), UI.ArcadeUIManager.SpeedPopupType.Slowed);
             }
             else
             {
@@ -534,7 +534,7 @@ namespace Arcade.BlockBreaker
                 currentSpeed = Mathf.Min(currentSpeed + speedBoost, maxSpeed);
                 nextSpeedRampTime += speedRampInterval;
                 UpdateDynamicSpeedVisuals();
-                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, "SPEED UP! +8%", UI.ArcadeUIManager.SpeedPopupType.VolleyRamp);
+                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, LocalizationManager.Get("popup_speed_up", "SPEED UP! +8%"), UI.ArcadeUIManager.SpeedPopupType.VolleyRamp);
             }
         }
 
@@ -931,7 +931,7 @@ namespace Arcade.BlockBreaker
                     if (currentSpeed < prevRedSpeed)
                     {
                         Vector3 popupPos = collision != null && collision.contacts.Length > 0 ? collision.contacts[0].point : transform.position;
-                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, "-1.2 DAMPEN", UI.ArcadeUIManager.SpeedPopupType.Dampen);
+                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, LocalizationManager.Get("popup_dampen", "-1.2 DAMPEN"), UI.ArcadeUIManager.SpeedPopupType.Dampen);
                     }
                     break;
 
@@ -946,7 +946,7 @@ namespace Arcade.BlockBreaker
                     if (currentSpeed > prevGreenSpeed)
                     {
                         Vector3 popupPos = collision != null && collision.contacts.Length > 0 ? collision.contacts[0].point : transform.position;
-                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, "TURBO +10%", UI.ArcadeUIManager.SpeedPopupType.Turbo);
+                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, LocalizationManager.Get("popup_turbo", "TURBO +10%"), UI.ArcadeUIManager.SpeedPopupType.Turbo);
                     }
                     break;
 
@@ -1073,7 +1073,7 @@ namespace Arcade.BlockBreaker
             {
                 currentSpeed = Mathf.Min(currentSpeed * activeSmashSpeedMultiplier, maxSpeed);
                 UpdateDynamicSpeedVisuals();
-                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, "STRIKE! +8%", UI.ArcadeUIManager.SpeedPopupType.ActiveStrike);
+                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, LocalizationManager.Get("popup_strike", "STRIKE! +8%"), UI.ArcadeUIManager.SpeedPopupType.ActiveStrike);
             }
 
             if (rb != null)

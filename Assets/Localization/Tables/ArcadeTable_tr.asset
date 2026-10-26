@@ -167,7 +167,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1013338148
-    m_Localized: 'Geliştirici: Ramin Rasulzade'
+    m_Localized: "Geli\u015Ftirici: Ramin Rasulzade"
     m_Metadata:
       m_Items: []
   - m_Id: 1013338149
@@ -304,6 +304,46 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 12263776902860819
     m_Localized: "B\xD6L\xDCM AYARLARI"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807181316096
+    m_Localized: "VURU\u015E! +%8"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259136
+    m_Localized: "-1.2 S\xD6N\xDCMLEME"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259137
+    m_Localized: "TOP YAVA\u015ELADI!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259138
+    m_Localized: TURBO +%10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259139
+    m_Localized: HIZLANMA! +%8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259140
+    m_Localized: "KR\u0130T\u0130K {0}X!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259141
+    m_Localized: "Z\u0130NC\u0130R x{0}!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259142
+    m_Localized: KOMBO x{0}!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259143
+    m_Localized: "x{0} \xC7OKLU TOP!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12270807223259144
+    m_Localized: "BOMBA Z\u0130NC\u0130R\u0130!"
     m_Metadata:
       m_Items: []
   references:

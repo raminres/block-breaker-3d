@@ -1174,10 +1174,10 @@ namespace Arcade.Core
             string displayTag = bonusTag;
             if (string.IsNullOrEmpty(displayTag))
             {
-                if (isClutchModeActive) displayTag = $"CLUTCH {clutchMultiplier}X!";
-                else if (chainMultiplier > 1) displayTag = $"CHAIN x{chainMultiplier}!";
-                else if (volleyMultiplier > 1) displayTag = $"COMBO x{volleyMultiplier}!";
-                else if (multiBallMult > 1) displayTag = $"x{multiBallMult} MULTI-BALL!";
+                if (isClutchModeActive) displayTag = string.Format(LocalizationManager.Get("popup_clutch", "CLUTCH {0}X!"), clutchMultiplier);
+                else if (chainMultiplier > 1) displayTag = string.Format(LocalizationManager.Get("popup_chain", "CHAIN x{0}!"), chainMultiplier);
+                else if (volleyMultiplier > 1) displayTag = string.Format(LocalizationManager.Get("popup_combo", "COMBO x{0}!"), volleyMultiplier);
+                else if (multiBallMult > 1) displayTag = string.Format(LocalizationManager.Get("popup_multiball", "x{0} MULTI-BALL!"), multiBallMult);
             }
 
             if (awardedPoints > 0)
