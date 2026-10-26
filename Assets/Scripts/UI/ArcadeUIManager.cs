@@ -2024,13 +2024,23 @@ namespace Arcade.UI
             flyingLabel.AddToClassList("flying-score");
 
             // Format label text and apply visual hierarchy classes
-            if (!string.IsNullOrEmpty(bonusTag) && (bonusTag.Contains("BOMB") || bonusTag.Contains("CLUTCH")))
+            if (!string.IsNullOrEmpty(bonusTag))
             {
                 flyingLabel.text = $"+{points} {bonusTag}";
-                if (bonusTag.Contains("CLUTCH"))
+                if (bonusTag.IndexOf("CLUTCH", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    bonusTag.IndexOf("KRİTİK", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.IsClutchModeActive))
+                {
                     flyingLabel.AddToClassList("flying-score-clutch");
-                else
+                }
+                else if (bonusTag.IndexOf("BOMB", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
                     flyingLabel.AddToClassList("flying-score-bomb");
+                }
+                else
+                {
+                    flyingLabel.AddToClassList("flying-score-combo");
+                }
             }
             else if (multiplier > 1)
             {
