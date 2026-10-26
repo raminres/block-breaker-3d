@@ -19,7 +19,7 @@ High-density technical context, architectural rules, and subsystem specification
   - Level Settings: `Assets/Settings/` (`SO_Level_01` to `SO_Level_30`, `SO_PowerupIcons.asset`, URP Profiles)
   - Localization: `Assets/Localization/` (`Locales/`, `Tables/ArcadeTable.asset`, `LocalizationSettings.asset`)
   - UI Assets: `Assets/UI/` (UXML, USS, Fonts, Icons, procedural gradients under `Textures/Gradients/`)
-  - Automated Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 312 EditMode NUnit tests)
+  - Automated Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 317 EditMode NUnit tests)
 
 ---
 

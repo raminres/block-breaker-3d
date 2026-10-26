@@ -2,7 +2,7 @@
 
 [![Unity Version](https://img.shields.io/badge/Unity-6%20(6000.6.0f1)-black.svg?style=flat&logo=unity)](https://unity.com/)
 [![Render Pipeline](https://img.shields.io/badge/Render%20Pipeline-URP-blue.svg)](https://unity.com/srp/universal-render-pipeline)
-[![Automated Tests](https://img.shields.io/badge/Tests-312%2F312%20Passing%20(100%25)-brightgreen.svg)]()
+[![Automated Tests](https://img.shields.io/badge/Tests-317%2F317%20Passing%20(100%25)-brightgreen.svg)]()
 [![Platforms](https://img.shields.io/badge/Platforms-iOS%20%7C%20WebGPU%20%7C%20PC-purple.svg)]()
 [![Git LFS](https://img.shields.io/badge/Git-LFS%20Enabled-orange.svg)](https://git-lfs.github.com/)
 
@@ -48,7 +48,7 @@ Also serves as a production testbed for **Google Antigravity**, **Unity MCP (Mod
 - **Audio**: Custom audio clips (`AU_*`) with procedural synthesis fallback
 - **Localization**: Unity Localization Tables (`com.unity.localization` 1.5.13)
 - **Architecture**: 100% modular prefabs under `Assets/Prefabs/` with normalized 1.0 root parent scales
-- **Tests**: 312 EditMode NUnit unit and integration tests
+- **Tests**: 317 EditMode NUnit unit and integration tests
 
 ---
 
