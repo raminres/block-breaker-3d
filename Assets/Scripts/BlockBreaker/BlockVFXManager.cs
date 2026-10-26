@@ -36,9 +36,7 @@ namespace Arcade.BlockBreaker
 
         [Header("Pool Configuration")]
         [SerializeField] private int poolSize = 10;
-        [SerializeField] private bool spawnPhysicalSubBoxes = true; // Kept for inspector compatibility
         [SerializeField] private int debrisPiecesPerBlock = 8;
-        [SerializeField] private float debrisExplosionForce = 7f;
 
         public Material DebrisMaterial => debrisMaterial;
         public Material ParticleMaterial => particleMaterial;
