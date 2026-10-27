@@ -50,3 +50,4 @@ MonoBehaviour:
   parTime: 65
   timeBonusMax: 10000
   starThresholds: f0550000e0ab0000e8fd0000i
+  previewSprite: {fileID: 21300000, guid: e04fb5cad37c3734fafc73cb1bed61a2, type: 3}

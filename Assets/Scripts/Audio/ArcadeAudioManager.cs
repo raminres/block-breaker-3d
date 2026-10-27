@@ -40,7 +40,11 @@ namespace Arcade.Audio
         [SerializeField] private AudioClip clipLifeLost;
         [SerializeField] private AudioClip clipLevelClear;
 
+        [Header("Music Clips")]
+        [SerializeField] private AudioClip clipBackgroundMusic; // AU_Music_Background.wav
+
         private AudioSource audioSource;
+        private AudioSource musicSource;
 
         // Public accessors for testing & verification
         public AudioClip ClipPop => clipPop != null ? clipPop : clipPaddleBounce;
@@ -55,7 +59,29 @@ namespace Arcade.Audio
         public AudioClip ClipShieldDeflect => clipShieldDeflect;
         public AudioClip ClipMultiBall => clipMultiBall;
         public AudioClip ClipLaserShoot => clipLaserShoot;
-        public void SetClipLaserShootForTesting(AudioClip clip) => clipLaserShoot = clip;
+        public AudioClip ClipBackgroundMusic
+        {
+            get
+            {
+                if (clipBackgroundMusic == null) LoadClipsIfEmpty();
+                return clipBackgroundMusic;
+            }
+        }
+
+        public AudioSource MusicSource
+        {
+            get
+            {
+                if (musicSource == null) EnsureInitialized();
+                return musicSource;
+            }
+        }
+
+        public void SetClipBackgroundMusicForTesting(AudioClip clip)
+        {
+            clipBackgroundMusic = clip;
+            UpdateMusicPlayback();
+        }
 
         public float Volume
         {
@@ -89,6 +115,7 @@ namespace Arcade.Audio
                 musicVolume = Mathf.Clamp01(value);
                 PlayerPrefs.SetFloat("Arcade_Music_Volume", musicVolume);
                 PlayerPrefs.Save();
+                UpdateMusicPlayback();
                 OnMusicVolumeChanged?.Invoke(musicVolume);
             }
         }
@@ -101,6 +128,7 @@ namespace Arcade.Audio
                 isMusicMuted = value;
                 PlayerPrefs.SetInt("Arcade_Music_Muted", isMusicMuted ? 1 : 0);
                 PlayerPrefs.Save();
+                UpdateMusicPlayback();
                 OnMusicMuteToggled?.Invoke(isMusicMuted);
             }
         }
@@ -110,28 +138,85 @@ namespace Arcade.Audio
         public event Action<bool> OnMusicMuteToggled;
         public event Action<float> OnMusicVolumeChanged;
 
+        public static void SetInstanceForTesting(ArcadeAudioManager inst) => Instance = inst;
+
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (Application.isPlaying && Instance != null && Instance != this)
             {
                 Destroy(gameObject);
                 return;
             }
 
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            if (Application.isPlaying)
+            {
+                DontDestroyOnLoad(gameObject);
+            }
 
-            audioSource = GetComponent<AudioSource>();
-            if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.playOnAwake = false;
-            audioSource.spatialBlend = 0f; // 2D flat stereo sound for crisp arcade feel
+            EnsureInitialized();
 
             sfxVolume = PlayerPrefs.GetFloat("Arcade_SFX_Volume", 0.8f);
             isMuted = PlayerPrefs.GetInt("Arcade_SFX_Muted", 0) == 1;
             musicVolume = PlayerPrefs.GetFloat("Arcade_Music_Volume", 0.7f);
             isMusicMuted = PlayerPrefs.GetInt("Arcade_Music_Muted", 0) == 1;
+        }
+
+        public void EnsureInitialized()
+        {
+            if (audioSource == null)
+            {
+                audioSource = GetComponent<AudioSource>();
+                if (audioSource == null)
+                {
+                    audioSource = gameObject.AddComponent<AudioSource>();
+                }
+                audioSource.playOnAwake = false;
+                audioSource.spatialBlend = 0f; // 2D flat stereo sound for crisp arcade feel
+            }
+
+            if (musicSource == null)
+            {
+                var musicChild = transform.Find("_MusicSource");
+                if (musicChild == null)
+                {
+                    var childObj = new GameObject("_MusicSource");
+                    childObj.transform.SetParent(transform, false);
+                    musicChild = childObj.transform;
+                }
+
+                musicSource = musicChild.GetComponent<AudioSource>();
+                if (musicSource == null)
+                {
+                    musicSource = musicChild.gameObject.AddComponent<AudioSource>();
+                }
+                musicSource.playOnAwake = false;
+                musicSource.loop = true;
+                musicSource.spatialBlend = 0f; // 2D flat stereo sound
+            }
 
             LoadClipsIfEmpty();
+        }
+
+        private void Start()
+        {
+            UpdateMusicPlayback();
+        }
+
+        private void OnEnable()
+        {
+            if (Application.isPlaying)
+            {
+                UpdateMusicPlayback();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
         }
 
         public void LoadClipsIfEmpty()
@@ -172,6 +257,11 @@ namespace Arcade.Audio
                 clipLaserShoot = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/AU_Powerup_Laser.mp3");
                 if (clipLaserShoot == null) clipLaserShoot = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/AU_Powerup_Laser.wav");
             }
+            if (clipBackgroundMusic == null)
+            {
+                clipBackgroundMusic = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/AU_Music_Background.wav");
+                if (clipBackgroundMusic == null) clipBackgroundMusic = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/AU_Music_Background.mp3");
+            }
 #endif
 
             if (clipPaddleBounce == null) clipPaddleBounce = clipPop;
@@ -190,10 +280,79 @@ namespace Arcade.Audio
             OnMuteToggled?.Invoke(IsMuted);
         }
 
+        public void ToggleMusicMute()
+        {
+            IsMusicMuted = !IsMusicMuted;
+        }
+
         public void SetVolume(float newVolume)
         {
             Volume = newVolume;
             OnVolumeChanged?.Invoke(Volume);
+        }
+
+        public void SetMusicVolume(float newVolume)
+        {
+            MusicVolume = newVolume;
+        }
+
+        public void UpdateMusicPlayback()
+        {
+            if (musicSource == null)
+            {
+                EnsureInitialized();
+            }
+
+            float effectiveVolume = isMusicMuted ? 0f : musicVolume;
+            musicSource.volume = effectiveVolume;
+
+            if (clipBackgroundMusic != null)
+            {
+                if (musicSource.clip != clipBackgroundMusic)
+                {
+                    musicSource.clip = clipBackgroundMusic;
+                }
+
+                if (!musicSource.isPlaying && Application.isPlaying)
+                {
+                    musicSource.loop = true;
+                    musicSource.Play();
+                }
+            }
+        }
+
+        public void PlayMusic()
+        {
+            UpdateMusicPlayback();
+        }
+
+        public void PauseMusic()
+        {
+            if (musicSource != null && musicSource.isPlaying)
+            {
+                musicSource.Pause();
+            }
+        }
+
+        public void ResumeMusic()
+        {
+            if (musicSource != null)
+            {
+                musicSource.volume = isMusicMuted ? 0f : musicVolume;
+                if (!musicSource.isPlaying && Application.isPlaying)
+                {
+                    musicSource.UnPause();
+                    if (!musicSource.isPlaying) musicSource.Play();
+                }
+            }
+        }
+
+        public void StopMusic()
+        {
+            if (musicSource != null)
+            {
+                musicSource.Stop();
+            }
         }
 
         /// <summary>

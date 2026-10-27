@@ -15,7 +15,7 @@ MonoBehaviour:
   levelNumber: 3
   levelName: 'Level 3: Twin Pillars'
   levelDescription: Vertical block columns with open alleyways. Sneak the ball up the corridors for high-velocity top-row cascades, but watch out for Paddle and Ball Slower hazards.
-  layoutType: 7
+  layoutType: 4
   colorPattern: 2
   columns: 13
   rowsPerTier: 2
@@ -50,3 +50,4 @@ MonoBehaviour:
   parTime: 45
   timeBonusMax: 3000
   starThresholds: b0040000280a000068100000i
+  previewSprite: {fileID: 21300000, guid: eae0184d5d43f0f46b0751bcb5c58741, type: 3}

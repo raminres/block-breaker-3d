@@ -28,12 +28,12 @@ MonoBehaviour:
   customLayoutRows: []
   ballSpeedMultiplier: 0.92
   initialPaddleWidth: 5
-  multiplier2xCount: 0
+  multiplier2xCount: 1
   multiplier3xCount: 0
   multiplier4xCount: 0
   multiplier5xCount: 0
   paddleExpanderCount: 1
-  bombCount: 0
+  bombCount: 1
   glassEnclosedCount: 0
   extraHeartCount: 0
   shieldCount: 0
@@ -41,7 +41,7 @@ MonoBehaviour:
   shieldDuration: 10
   laserCount: 0
   laserDuration: 10
-  paddleShortenerCount: 0
+  paddleShortenerCount: 1
   paddleSlowerCount: 0
   brickFreezerCount: 0
   ballSizeDecreaserCount: 0
@@ -50,3 +50,4 @@ MonoBehaviour:
   parTime: 35
   timeBonusMax: 2500
   starThresholds: f4010000b004000098080000i
+  previewSprite: {fileID: 21300000, guid: 99a2b16880b16774296b81e19fe1f6cd, type: 3}

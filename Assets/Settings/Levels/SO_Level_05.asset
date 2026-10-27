@@ -15,7 +15,7 @@ MonoBehaviour:
   levelNumber: 5
   levelName: 'Level 5: Multi-Ball Ring'
   levelDescription: A perimeter fortress framing a hollow bouncing chamber. Juggling 3 balls gets intense when Brick Freezers, Paddle Slowers, and sudden Paddle Freezers hit the arena!
-  layoutType: 6
+  layoutType: 16
   colorPattern: 2
   columns: 13
   rowsPerTier: 2
@@ -24,7 +24,13 @@ MonoBehaviour:
   verticalSpacing: 1.3
   startCenterY: 15.5
   includeSideFlanks: 1
-  customLayout: 
+  customLayout: 'X.XXXXXXXXX.X
+
+    XXXXXXXXXXXXX
+
+    XXXXXXXXXXXXX
+
+    X.XXXXXXXXX.X'
   customLayoutRows: []
   ballSpeedMultiplier: 1.08
   initialPaddleWidth: 5
@@ -50,3 +56,4 @@ MonoBehaviour:
   parTime: 45
   timeBonusMax: 3500
   starThresholds: d007000030110000901a0000i
+  previewSprite: {fileID: 21300000, guid: f1887ffe7bf3b4d47b5b60f0916ea7ed, type: 3}

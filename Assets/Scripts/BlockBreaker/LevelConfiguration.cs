@@ -140,6 +140,10 @@ namespace Arcade.BlockBreaker
         [Tooltip("Cumulative score thresholds required to earn 1, 2, and 3 stars.")]
         [SerializeField] private int[] starThresholds = new int[] { 800, 1500, 2500 };
 
+        [Header("Level Visual Preview")]
+        [Tooltip("Preview thumbnail sprite shown in level selection modals.")]
+        [SerializeField] private Sprite previewSprite;
+
         // Cached custom layout parsed lines
         private string[] cachedCustomLines;
         private string cachedCustomRaw;
@@ -148,6 +152,8 @@ namespace Arcade.BlockBreaker
         public int LevelNumber => levelNumber;
         public string LevelName => levelName;
         public string Description => levelDescription;
+        public Sprite PreviewSprite => previewSprite;
+        public void SetPreviewSprite(Sprite sprite) => previewSprite = sprite;
         public LevelLayoutType LayoutType => layoutType;
         public BlockColorPattern ColorPattern => colorPattern;
         public int Columns => columns;
@@ -517,6 +523,7 @@ namespace Arcade.BlockBreaker
             {
                 clone.starThresholds = (int[])starThresholds.Clone();
             }
+            clone.previewSprite = previewSprite;
             return clone;
         }
 

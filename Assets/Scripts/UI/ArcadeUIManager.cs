@@ -3307,6 +3307,11 @@ namespace Arcade.UI
 
         public Sprite GetLevelPreviewSprite(int levelNumber)
         {
+            var lg = levelGenerator ?? LevelGenerator.Instance ?? FindAnyObjectByType<LevelGenerator>();
+            var config = lg != null ? lg.GetLevelConfig(levelNumber) : null;
+            if (config != null && config.PreviewSprite != null)
+                return config.PreviewSprite;
+
             if (levelPreviewSprites != null && levelNumber >= 1 && levelNumber <= levelPreviewSprites.Length)
             {
                 var s = levelPreviewSprites[levelNumber - 1];

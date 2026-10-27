@@ -7,7 +7,7 @@ High-density technical context, architectural rules, and subsystem specification
 ## 1. Project Specifications & Key Paths
 - **Product Name / Bundle ID**: `BlockBreaker` / `com.RaminRasulzade.BlockBreaker`
 - **Unity Version**: Unity 6 (`6000.6.0f1`), Universal Render Pipeline (`URP 17.6.0`)
-- **Active Branch**: `feature/bugfixes-and-visual-improvements-01` (Git LFS enabled)
+- **Active Branch**: `feature/bugfixes-and-visual-improvements-02` (Git LFS enabled)
 - **Scenes**:
   1. `Assets/Scenes/LV_BlockBreaker_MainMenu.unity` (Build Index 0, Start Scene configured via [PlayModeSceneSetup.cs](Assets/Editor/PlayModeSceneSetup.cs))
   2. `Assets/Scenes/LV_BlockBreaker.unity` (Build Index 1, Primary Gameplay Arena)
@@ -19,7 +19,7 @@ High-density technical context, architectural rules, and subsystem specification
   - Level Settings: `Assets/Settings/` (`SO_Level_01` to `SO_Level_30`, `SO_PowerupIcons.asset`, URP Profiles)
   - Localization: `Assets/Localization/` (`Locales/`, `Tables/ArcadeTable.asset`, `LocalizationSettings.asset`)
   - UI Assets: `Assets/UI/` (UXML, USS, Fonts, Icons, procedural gradients under `Textures/Gradients/`, Level Previews under `LevelPreviews/`)
-  - Automated Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 326 EditMode NUnit tests)
+  - Automated Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 331 EditMode NUnit tests)
 
 ---
 
@@ -140,7 +140,7 @@ High-density technical context, architectural rules, and subsystem specification
   - **30-Stage Level Previews**: Pixel-perfect 128x256 rendered thumbnails under `Assets/UI/LevelPreviews/TX_LevelPreview_*.png` with `scale-and-crop` and `overflow: hidden`.
   - **Zero Invalid USS Web Properties**: No `box-shadow`, `pointer-events`, `color: inherit`, or multi-shadow CSS syntax in `.uss` stylesheets.
 - **Localization**: Multi-language StringTableCollection [ArcadeTable.asset](Assets/Localization/Tables/ArcadeTable.asset) (`com.unity.localization` 1.5.13) under `Assets/Localization/Tables/` for English (`en`) and Turkish (`tr`).
-- **Audio Engine**: [ArcadeAudioManager.cs](Assets/Scripts/Audio/ArcadeAudioManager.cs) with custom clips (`AU_*`) and algorithmic synthesis fallback.
+- **Audio Engine**: [ArcadeAudioManager.cs](Assets/Scripts/Audio/ArcadeAudioManager.cs) with custom clips (`AU_*`), algorithmic synthesis fallback, and looping background music (`AU_Music_Background.wav`) on dedicated `_MusicSource` child transform. Mobile import configuration: 2D flat stereo (`m_3D = false`), `CompressedInMemory` (Vorbis quality 0.7 for Android/Standalone, hardware MP3/AAC for iOS), `loadInBackground = true`, `preloadAudioData = true`.
 
 ---
 
@@ -157,7 +157,7 @@ High-density technical context, architectural rules, and subsystem specification
 | **Drops & Buffs** | [PowerupCapsule.cs](Assets/Scripts/BlockBreaker/PowerupCapsule.cs) | `PF_Drop_*.prefab` | Tumbling capsule/diamond falls, pickup triggers, duration timers, HUD badge updates. |
 | **Game Coordinator** | [ArcadeGameManager.cs](Assets/Scripts/Core/ArcadeGameManager.cs) | Scene Coordinator | Lives, score multipliers, clutch countdown, hyper-beam sequence, victory freeze, scorecard popup. |
 | **Responsive Camera**| [ResponsiveCameraController.cs](Assets/Scripts/Core/ResponsiveCameraController.cs) | Main Camera | Calculates distance to fit $23 \times 32.5$ arena across any device aspect ratio (16:9, 9:16, 19.5:9). |
-| **Audio Engine** | [ArcadeAudioManager.cs](Assets/Scripts/Audio/ArcadeAudioManager.cs) | `AudioManager` | Custom SFX (`AU_*`) with algorithmic fallback synthesis (pops, cracks, chimes, sirens). |
+| **Audio Engine** | [ArcadeAudioManager.cs](Assets/Scripts/Audio/ArcadeAudioManager.cs) | `AudioManager` | Custom SFX (`AU_*`) with algorithmic fallback synthesis, looping BGM (`AU_Music_Background`), dedicated `_MusicSource` child, two-way options mute & volume synchronization. |
 | **Localization** | [LocalizationManager.cs](Assets/Scripts/Core/LocalizationManager.cs) | `ArcadeTable.asset` | Unity Localization Tables runtime queries, two-way `SelectedLocale` sync. |
 | **UI HUD & Menus** | [ArcadeUIManager.cs](Assets/Scripts/UI/ArcadeUIManager.cs), [MainMenuUIManager.cs](Assets/Scripts/UI/MainMenuUIManager.cs) | `BlockBreakerHUD.uxml`, `MainMenuUI.uxml` | PanelRenderer HUD dashboard pods, transparent main menu overlay, menu options parity, mute toggles, 128x256 level preview thumbs, icon-only modals. |
 | **VFX Manager** | [BlockVFXManager.cs](Assets/Scripts/BlockBreaker/BlockVFXManager.cs) | `PF_VFX_*.prefab` | Pooled Shuriken particle bursts, 3D mesh particle debris, block material inheritance. |
@@ -173,19 +173,23 @@ High-density technical context, architectural rules, and subsystem specification
   ```bash
   unity cmd recompile
   ```
-- **Total EditMode Tests**: 326 / 326 passing (100%).
+- **Total EditMode Tests**: 331 / 331 passing (100%).
 
 ---
 
 ## 11. Engineering Milestones & Session Changelog
-- **Ball Speed Display Null Safety**: Added null guards in `BallController.cs` and `ArcadeUIManager.cs` preventing NREs during early launch initialization.
-- **Level End Modal Icon Modernization**: Replaced text buttons with `TX_Icon_Arrow_Next`, `TX_Icon_Menu`, `TX_Icon_Replay` icons, eliminating localization label wrapping.
-- **Main Menu 3D Logo Header**: Replaced header text with `TX_Block_Breaker_3D_Logo.png`.
-- **Star Rating Sprite Integration**: Replaced ASCII stars with `TX_Star_Filled.png` and `TX_Star_Empty.png` sprites across HUD and Main Menu.
-- **Scorecard Gold Medal**: Restored `TX_Medal_Gold.png` icon on level completion modal. Cleaned leaderboard date display.
-- **USS Stylesheet Warning Cleanup**: Removed invalid web CSS (`box-shadow`, `pointer-events`, `color: inherit`) across all `.uss` files.
+- **Background Music Integration & Mobile Import Optimization**: Integrated `AU_Music_Background.wav` looping soundtrack across Main Menu and Gameplay scenes via persistent `ArcadeAudioManager.cs`. Hosted `musicSource` on a dedicated `_MusicSource` child transform to prevent FMOD root voice-channel contention. Optimized audio import for mobile (`m_3D = false`, `loadType = CompressedInMemory`, `loadInBackground = true`, `preloadAudioData = true`, Vorbis 0.7 for Android/Standalone, MP3/AAC for iOS). Synchronized with Main Menu and in-game UI options (mute toggle and volume sliders). Added 2 new NUnit tests (331 total passing EditMode tests).
+- **Level Visualizer & Inspector EditorWindow**: Created [LevelVisualizerWindow.cs](Assets/Editor/LevelVisualizerWindow.cs) (`Tools > Arcade > Level Visualizer` / `Window > Arcade > Level Visualizer`) featuring interactive 2D grid matrix rendering, block tier & powerup/hazard distribution preview, real-time Scene View preview toggle, and full level configuration inspection and tuning.
+- **Level Preview Thumbnail Generator Tool**: Created [LevelPreviewGenerator.cs](Assets/Editor/LevelPreviewGenerator.cs) (`Tools > Arcade > Generate All Level Previews` & `Sync All Level Previews to Assets and Scenes`) automating 128x256 rendering, sprite import configuration, and two-way synchronization.
+- **iOS Build Inclusion & Asset Serialization**: Added serialized `previewSprite` field to [LevelConfiguration.cs](Assets/Scripts/BlockBreaker/LevelConfiguration.cs) directly referencing `TX_LevelPreview_{XX}.png` on all 30 `SO_Level_*.asset` files, and serialized `levelPreviewSprites` arrays in [LV_BlockBreaker_MainMenu.unity](Assets/Scenes/LV_BlockBreaker_MainMenu.unity) and [LV_BlockBreaker.unity](Assets/Scenes/LV_BlockBreaker.unity). Guarantees sprites are bundled into standalone and iOS player builds.
 - **Bomb Placement Sanitization**: Enforced orthogonal connectivity ($\ge 1$ neighbor) and Chebyshev separation ($> 1$) in `LevelGenerator.cs`. Zeroed bombs in sparse checkerboard levels (`SO_Level_13`, `SO_Level_26`).
-- **Privacy Audit**: Scrubbed absolute local PC file paths from public `.md` files in favor of repository relative paths.
 - **Level Preview Thumbnails**: Captured and integrated 30 rendered 128x256 (1:2 ratio) preview sprites under `Assets/UI/LevelPreviews/`.
-- **Test Suite Expansion**: Added 6 new unit tests (326 total passing EditMode tests).
+
+---
+
+## 12. Next Session Priorities & Backlog
+- **Anti-Aliasing & SSAO Optimization (Desktop & Pipeline)**:
+  - **Resolution Baseline**: Desktop target configured to windowed $1080 \times 1920$ portrait. Camera stack and cosmic gradient textures remain intact as authored.
+  - **FXAA vs SMAA Evaluation**: Evaluate switching anti-aliasing from SMAA to FXAA to eliminate intermediate SMAA render textures (`_EdgeTexture`, `_BlendTexture`, `CameraColorSMAA`).
+  - **SSAO Downsample Tuning**: Inspect URP SSAO settings (evaluate Downsample / Half-Resolution SSAO or radius/sample count tuning) to streamline occlusion passes and depth normals overhead while maintaining arcade visual depth.
 
