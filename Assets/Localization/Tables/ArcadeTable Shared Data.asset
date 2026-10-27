@@ -43,10 +43,6 @@ MonoBehaviour:
     m_Key: menu_credits
     m_Metadata:
       m_Items: []
-  - m_Id: 1013338118
-    m_Key: menu_subtitle
-    m_Metadata:
-      m_Items: []
   - m_Id: 1013338119
     m_Key: level_select_title
     m_Metadata:
@@ -265,22 +261,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 12263776902860809
     m_Key: scorecard_total_score
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12263776902860810
-    m_Key: btn_replay
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12263776902860811
-    m_Key: btn_next_level_n
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12263776902860812
-    m_Key: btn_play_again_loop
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12263776902860813
-    m_Key: btn_menu
     m_Metadata:
       m_Items: []
   - m_Id: 12263776902860814

@@ -7,9 +7,9 @@ High-density technical context, architectural rules, and subsystem specification
 ## 1. Project Specifications & Key Paths
 - **Product Name / Bundle ID**: `BlockBreaker` / `com.RaminRasulzade.BlockBreaker`
 - **Unity Version**: Unity 6 (`6000.6.0f1`), Universal Render Pipeline (`URP 17.6.0`)
-- **Active Branch**: `feature/visual-and-object-refinements` (Git LFS enabled)
+- **Active Branch**: `feature/bugfixes-and-visual-improvements-01` (Git LFS enabled)
 - **Scenes**:
-  1. `Assets/Scenes/LV_BlockBreaker_MainMenu.unity` (Build Index 0, Start Scene configured via [PlayModeSceneSetup.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Editor/PlayModeSceneSetup.cs))
+  1. `Assets/Scenes/LV_BlockBreaker_MainMenu.unity` (Build Index 0, Start Scene configured via [PlayModeSceneSetup.cs](Assets/Editor/PlayModeSceneSetup.cs))
   2. `Assets/Scenes/LV_BlockBreaker.unity` (Build Index 1, Primary Gameplay Arena)
 - **Key Directories & Assemblies**:
   - Gameplay Scripts: `Assets/Scripts/` (Assembly: `Arcade.Gameplay.asmdef`)
@@ -18,8 +18,8 @@ High-density technical context, architectural rules, and subsystem specification
   - Materials: `Assets/Materials/BlockBreaker/` (`MT_Master_PBR_URP.mat` master, `MI_*` instances)
   - Level Settings: `Assets/Settings/` (`SO_Level_01` to `SO_Level_30`, `SO_PowerupIcons.asset`, URP Profiles)
   - Localization: `Assets/Localization/` (`Locales/`, `Tables/ArcadeTable.asset`, `LocalizationSettings.asset`)
-  - UI Assets: `Assets/UI/` (UXML, USS, Fonts, Icons, procedural gradients under `Textures/Gradients/`)
-  - Automated Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 317 EditMode NUnit tests)
+  - UI Assets: `Assets/UI/` (UXML, USS, Fonts, Icons, procedural gradients under `Textures/Gradients/`, Level Previews under `LevelPreviews/`)
+  - Automated Tests: `Assets/Tests/` (Assembly: `Arcade.Tests.asmdef`, 326 EditMode NUnit tests)
 
 ---
 
@@ -59,9 +59,9 @@ High-density technical context, architectural rules, and subsystem specification
 
 ## 4. Physics, Deflection Math & Safeguards
 - **3-Tier Inverted Stepped Pyramid Paddle**:
-  - **Tier 1 (Strike Deck)**: $W = 5.0, H = 0.24, Z = 1.0$ at $Y = -6.0$ with [MI_Paddle_Deck.mat](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Materials/BlockBreaker/MI_Paddle_Deck.mat). Holds main `BoxCollider` ($H = 0.24$, center $Y = +0.38$).
-  - **Tier 2 (Mid Chassis)**: $W = 3.6, H = 0.20, Z = 0.88$ with [MI_Paddle.mat](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Materials/BlockBreaker/MI_Paddle.mat).
-  - **Tier 3 (Keel / Thrusters)**: $W = 2.2, H = 0.16, Z = 0.72$ with [MI_Paddle_Core.mat](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Materials/BlockBreaker/MI_Paddle_Core.mat).
+  - **Tier 1 (Strike Deck)**: $W = 5.0, H = 0.24, Z = 1.0$ at $Y = -6.0$ with [MI_Paddle_Deck.mat](Assets/Materials/BlockBreaker/MI_Paddle_Deck.mat). Holds main `BoxCollider` ($H = 0.24$, center $Y = +0.38$).
+  - **Tier 2 (Mid Chassis)**: $W = 3.6, H = 0.20, Z = 0.88$ with [MI_Paddle.mat](Assets/Materials/BlockBreaker/MI_Paddle.mat).
+  - **Tier 3 (Keel / Thrusters)**: $W = 2.2, H = 0.16, Z = 0.72$ with [MI_Paddle_Core.mat](Assets/Materials/BlockBreaker/MI_Paddle_Core.mat).
   - Total vertical profile $0.60$ with inward stepping ($\le 1.4\text{u}$/side) eliminates side catches.
   - Normal Validation: `BallController.IsValidPaddleBounceNormal(normal)` requires `normal.y >= 0.25f`. Brushing balls fall cleanly to the killzone.
 - **Deflection & Active Kinetic Strike**:
@@ -111,6 +111,10 @@ High-density technical context, architectural rules, and subsystem specification
 - **30-Level Campaign**: High-density grids (11–14 columns, $13.75\text{u}–17.5\text{u}$ span) with outer flank bumper blocks preventing wall bypass.
 - **Pacing Progression**: Speed scales from $0.92\times$ (Level 1) to $1.80\times$ (Level 30). Paddle narrows from $5.0\text{u}$ to $4.2\text{u}$. Hazards escalate from 0 to 20.
 - **Onboarding Block Scale (+20% on Levels 1–3)**: Levels 1, 2, and 3 (`SO_Level_01`, `SO_Level_02`, `SO_Level_03`) feature enlarged blocks (`blockSize = 1.20f`) with adjusted horizontal spacing ($1.50\text{u}, 1.45\text{u}, 1.40\text{u}$) to maximize readability and touch comfort while strictly preserving $> 1.0\text{u}$ clearance to arena walls ($X = \pm 10.25$). Levels 4–30 retain standard $1.00\text{u}$ scale.
+- **Bomb Placement Sanitization (`SanitizeBombPlacements`)**:
+  - **No Isolated Bombs**: Enforces that every bomb has $\ge 1$ orthogonal neighbor; isolated tips (e.g. antenna tips in Invader layouts) are relocated to connected blocks with $\ge 2$ neighbors.
+  - **No Clustered/Adjacent Bombs**: Enforces Chebyshev distance $> 1$ ($\max(|x_1-x_2|, |y_1-y_2|) > 1$) between any two bombs, relocating colliding bombs across valid grid spaces.
+  - **CheckerboardEmpty Exemption**: In sparse checkerboard designs (`SO_Level_13`, `SO_Level_26`) where blocks inherently lack orthogonal neighbors, `bombCount` is set to 0 and reallocated to glass-reinforced and score multiplier blocks.
 - **Lone Block Countdown**: Exactly 1 brick remaining activates 12s countdown ($10\times \to 1\times$ decaying multiplier).
 - **Railgun Hyper-Beam**: On countdown expiration, fires vertical beam ($W \approx 3.2$, duration $0.65\text{s}$, shader `Arcade/VFX_LaserHyperBeam`) destroying remaining blocks.
 - **Victory Freeze**: When level clears, freeze ball velocities (`FreezeBall()`), lock paddle input, freeze falling capsules, wait $1.0\text{s}$ ($1.5\text{s}$ for Hyper-Beam) before showing scorecard.
@@ -119,17 +123,24 @@ High-density technical context, architectural rules, and subsystem specification
 
 ## 8. Camera, Graphics, UI & Audio
 - **Perspective Camera & URP Post-Processing**:
-  - Perspective camera: $38^\circ$ FOV at $Z = -32\text{f}$, centered at $Y = 8.5\text{f}$. [ResponsiveCameraController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/Core/ResponsiveCameraController.cs) dynamically adjusts distance to keep arena 100% visible across 16:9, 9:16, and 19.5:9 aspect ratios.
+  - Perspective camera: $38^\circ$ FOV at $Z = -32\text{f}$, centered at $Y = 8.5\text{f}$. [ResponsiveCameraController.cs](Assets/Scripts/Core/ResponsiveCameraController.cs) dynamically adjusts distance to keep arena 100% visible across 16:9, 9:16, and 19.5:9 aspect ratios.
   - `Main Camera` requires `UniversalAdditionalCameraData` with `renderPostProcessing = true` and `volumeLayerMask = ~0` for Game view bloom.
   - `RenderSettings.skybox = null` and `defaultReflectionMode = Custom` eliminates default Unity skybox reflections.
 - **UI Toolkit Architecture & Motion**:
   - Unity 6 `PanelRenderer` on `UI_HUD` and `UI_MainMenu` (iPhone portrait reference $1170 \times 2532$).
-  - Safe area insets calculated by [SafeAreaController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/UI/SafeAreaController.cs) using Yoga width-relative percentages (`CalculateYogaInsets`).
-  - [UIAnimationHelper.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/UI/UIAnimationHelper.cs) drives modal springs (`0.82 \to 1.0`), cascading button entrances ($0.035\text{s}$ stagger), and tactile click depressions.
+  - Safe area insets calculated by [SafeAreaController.cs](Assets/Scripts/UI/SafeAreaController.cs) using Yoga width-relative percentages (`CalculateYogaInsets`).
+  - [UIAnimationHelper.cs](Assets/Scripts/UI/UIAnimationHelper.cs) drives modal springs (`0.82 \to 1.0`), cascading button entrances ($0.035\text{s}$ stagger), and tactile click depressions.
   - Stacked `TAP TO LAUNCH` prompt features enlarged icons ($96\text{px}$ finger, $80\text{px}$ arrows) with continuous animated horizontal swipe (`StartHorizontalSwipe`) projected at $Y = -0.5\text{f}$.
   - Compact tablet powerup badges ($60\text{px}$ height, $36\text{px}$ icons) eliminate block occlusion on squarer aspect ratios (iPad Mini).
-- **Localization**: Multi-language StringTableCollection [ArcadeTable.asset](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Localization/Tables/ArcadeTable.asset) (`com.unity.localization` 1.5.13) under `Assets/Localization/Tables/` for English (`en`) and Turkish (`tr`).
-- **Audio Engine**: [ArcadeAudioManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/Audio/ArcadeAudioManager.cs) with custom clips (`AU_*`) and algorithmic synthesis fallback.
+  - **Level End Modal Actions**: Icon-only circular buttons (`TX_Icon_Arrow_Next.png`, `TX_Icon_Menu.png`, `TX_Icon_Replay.png`) prevent text truncation across languages.
+  - **Logo & Header Branding**: Main Menu header text replaced with `TX_Block_Breaker_3D_Logo.png`.
+  - **Star Rating Sprites**: Main Menu and HUD use `TX_Star_Filled.png` and `TX_Star_Empty.png` sprites.
+  - **Accolade Medal**: Preserved gold medal badge (`TX_Medal_Gold.png`) on `scorecard-star`.
+  - **Highscores Date Cleanliness**: Removed redundant `L{level}` prefix from leaderboard dates.
+  - **30-Stage Level Previews**: Pixel-perfect 128x256 rendered thumbnails under `Assets/UI/LevelPreviews/TX_LevelPreview_*.png` with `scale-and-crop` and `overflow: hidden`.
+  - **Zero Invalid USS Web Properties**: No `box-shadow`, `pointer-events`, `color: inherit`, or multi-shadow CSS syntax in `.uss` stylesheets.
+- **Localization**: Multi-language StringTableCollection [ArcadeTable.asset](Assets/Localization/Tables/ArcadeTable.asset) (`com.unity.localization` 1.5.13) under `Assets/Localization/Tables/` for English (`en`) and Turkish (`tr`).
+- **Audio Engine**: [ArcadeAudioManager.cs](Assets/Scripts/Audio/ArcadeAudioManager.cs) with custom clips (`AU_*`) and algorithmic synthesis fallback.
 
 ---
 
@@ -137,19 +148,19 @@ High-density technical context, architectural rules, and subsystem specification
 
 | Subsystem | Script(s) | Primary Prefab / Asset | Responsibility |
 | :--- | :--- | :--- | :--- |
-| **Ball Physics** | [BallController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/BallController.cs) | `PF_Ball_Standard.prefab` | Deflection math, anti-trap floor, wall steepener, speed capping, active strike recoil, color interactions. |
-| **Paddle Control** | [PaddleController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/PaddleController.cs), [PaddleLaserController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/PaddleLaserController.cs) | `PF_Paddle.prefab` | Tracking, twin ruby blasters, hyper-beam aperture, freeze tremor, dock point, width expansion. |
-| **Arena Boundaries** | [ArenaWalls.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/ArenaWalls.cs), [KillZone.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/KillZone.cs) | `PF_Walls.prefab` | Side/top boundaries, 45° corner chamfers, kill zone trigger at $Y = -9.0$. |
-| **Shield Defense** | [ShieldWall.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/ShieldWall.cs) | `PF_ShieldWall.prefab` | Defensive energy wall, tween scale overshoot, anti-trap upward passthrough, impact burst. |
-| **Level Generation** | [LevelGenerator.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/LevelGenerator.cs), [Block.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/Block.cs) | `PF_Block_*.prefab` | Spawns modular block prefabs from ScriptableObjects, special badges/frost shells, bomb cascade. |
-| **Background Plane** | [LevelBackgroundController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/LevelBackgroundController.cs) | `PF_Background.prefab` | Cosmic gradient quad at $Z = 6.0\text{f}$ ($40 \times 80$), randomizes textures on level transitions. |
-| **Drops & Buffs** | [PowerupCapsule.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/PowerupCapsule.cs) | `PF_Drop_*.prefab` | Tumbling capsule/diamond falls, pickup triggers, duration timers, HUD badge updates. |
-| **Game Coordinator** | [ArcadeGameManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/Core/ArcadeGameManager.cs) | Scene Coordinator | Lives, score multipliers, clutch countdown, hyper-beam sequence, victory freeze, scorecard popup. |
-| **Responsive Camera**| [ResponsiveCameraController.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/Core/ResponsiveCameraController.cs) | Main Camera | Calculates distance to fit $23 \times 32.5$ arena across any device aspect ratio (16:9, 9:16, 19.5:9). |
-| **Audio Engine** | [ArcadeAudioManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/Audio/ArcadeAudioManager.cs) | `AudioManager` | Custom SFX (`AU_*`) with algorithmic fallback synthesis (pops, cracks, chimes, sirens). |
-| **Localization** | [LocalizationManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/Core/LocalizationManager.cs) | `ArcadeTable.asset` | Unity Localization Tables runtime queries, two-way `SelectedLocale` sync. |
-| **UI HUD & Menus** | [ArcadeUIManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/UI/ArcadeUIManager.cs), [MainMenuUIManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/UI/MainMenuUIManager.cs) | `BlockBreakerHUD.uxml` | PanelRenderer HUD dashboard pods, transparent main menu overlay, menu options parity, mute toggles. |
-| **VFX Manager** | [BlockVFXManager.cs](file:///c:/Users/ramin/Desktop/Repos/unity-cli-mcp-test/Assets/Scripts/BlockBreaker/BlockVFXManager.cs) | `PF_VFX_*.prefab` | Pooled Shuriken particle bursts, 3D mesh particle debris, block material inheritance. |
+| **Ball Physics** | [BallController.cs](Assets/Scripts/BlockBreaker/BallController.cs) | `PF_Ball_Standard.prefab` | Deflection math, anti-trap floor, wall steepener, speed capping, active strike recoil, color interactions, speed label null guards. |
+| **Paddle Control** | [PaddleController.cs](Assets/Scripts/BlockBreaker/PaddleController.cs), [PaddleLaserController.cs](Assets/Scripts/BlockBreaker/PaddleLaserController.cs) | `PF_Paddle.prefab` | Tracking, twin ruby blasters, hyper-beam aperture, freeze tremor, dock point, width expansion. |
+| **Arena Boundaries** | [ArenaWalls.cs](Assets/Scripts/BlockBreaker/ArenaWalls.cs), [KillZone.cs](Assets/Scripts/BlockBreaker/KillZone.cs) | `PF_Walls.prefab` | Side/top boundaries, 45° corner chamfers, kill zone trigger at $Y = -9.0$. |
+| **Shield Defense** | [ShieldWall.cs](Assets/Scripts/BlockBreaker/ShieldWall.cs) | `PF_ShieldWall.prefab` | Defensive energy wall, tween scale overshoot, anti-trap upward passthrough, impact burst. |
+| **Level Generation** | [LevelGenerator.cs](Assets/Scripts/BlockBreaker/LevelGenerator.cs), [Block.cs](Assets/Scripts/BlockBreaker/Block.cs) | `PF_Block_*.prefab` | Spawns modular block prefabs from ScriptableObjects, special badges/frost shells, bomb cascade, `SanitizeBombPlacements` algorithm. |
+| **Background Plane** | [LevelBackgroundController.cs](Assets/Scripts/BlockBreaker/LevelBackgroundController.cs) | `PF_Background.prefab` | Cosmic gradient quad at $Z = 6.0\text{f}$ ($40 \times 80$), randomizes textures on level transitions. |
+| **Drops & Buffs** | [PowerupCapsule.cs](Assets/Scripts/BlockBreaker/PowerupCapsule.cs) | `PF_Drop_*.prefab` | Tumbling capsule/diamond falls, pickup triggers, duration timers, HUD badge updates. |
+| **Game Coordinator** | [ArcadeGameManager.cs](Assets/Scripts/Core/ArcadeGameManager.cs) | Scene Coordinator | Lives, score multipliers, clutch countdown, hyper-beam sequence, victory freeze, scorecard popup. |
+| **Responsive Camera**| [ResponsiveCameraController.cs](Assets/Scripts/Core/ResponsiveCameraController.cs) | Main Camera | Calculates distance to fit $23 \times 32.5$ arena across any device aspect ratio (16:9, 9:16, 19.5:9). |
+| **Audio Engine** | [ArcadeAudioManager.cs](Assets/Scripts/Audio/ArcadeAudioManager.cs) | `AudioManager` | Custom SFX (`AU_*`) with algorithmic fallback synthesis (pops, cracks, chimes, sirens). |
+| **Localization** | [LocalizationManager.cs](Assets/Scripts/Core/LocalizationManager.cs) | `ArcadeTable.asset` | Unity Localization Tables runtime queries, two-way `SelectedLocale` sync. |
+| **UI HUD & Menus** | [ArcadeUIManager.cs](Assets/Scripts/UI/ArcadeUIManager.cs), [MainMenuUIManager.cs](Assets/Scripts/UI/MainMenuUIManager.cs) | `BlockBreakerHUD.uxml`, `MainMenuUI.uxml` | PanelRenderer HUD dashboard pods, transparent main menu overlay, menu options parity, mute toggles, 128x256 level preview thumbs, icon-only modals. |
+| **VFX Manager** | [BlockVFXManager.cs](Assets/Scripts/BlockBreaker/BlockVFXManager.cs) | `PF_VFX_*.prefab` | Pooled Shuriken particle bursts, 3D mesh particle debris, block material inheritance. |
 
 ---
 
@@ -162,3 +173,19 @@ High-density technical context, architectural rules, and subsystem specification
   ```bash
   unity cmd recompile
   ```
+- **Total EditMode Tests**: 326 / 326 passing (100%).
+
+---
+
+## 11. Engineering Milestones & Session Changelog
+- **Ball Speed Display Null Safety**: Added null guards in `BallController.cs` and `ArcadeUIManager.cs` preventing NREs during early launch initialization.
+- **Level End Modal Icon Modernization**: Replaced text buttons with `TX_Icon_Arrow_Next`, `TX_Icon_Menu`, `TX_Icon_Replay` icons, eliminating localization label wrapping.
+- **Main Menu 3D Logo Header**: Replaced header text with `TX_Block_Breaker_3D_Logo.png`.
+- **Star Rating Sprite Integration**: Replaced ASCII stars with `TX_Star_Filled.png` and `TX_Star_Empty.png` sprites across HUD and Main Menu.
+- **Scorecard Gold Medal**: Restored `TX_Medal_Gold.png` icon on level completion modal. Cleaned leaderboard date display.
+- **USS Stylesheet Warning Cleanup**: Removed invalid web CSS (`box-shadow`, `pointer-events`, `color: inherit`) across all `.uss` files.
+- **Bomb Placement Sanitization**: Enforced orthogonal connectivity ($\ge 1$ neighbor) and Chebyshev separation ($> 1$) in `LevelGenerator.cs`. Zeroed bombs in sparse checkerboard levels (`SO_Level_13`, `SO_Level_26`).
+- **Privacy Audit**: Scrubbed absolute local PC file paths from public `.md` files in favor of repository relative paths.
+- **Level Preview Thumbnails**: Captured and integrated 30 rendered 128x256 (1:2 ratio) preview sprites under `Assets/UI/LevelPreviews/`.
+- **Test Suite Expansion**: Added 6 new unit tests (326 total passing EditMode tests).
+

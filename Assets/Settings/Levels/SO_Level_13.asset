@@ -28,13 +28,13 @@ MonoBehaviour:
   customLayoutRows: []
   ballSpeedMultiplier: 1.4
   initialPaddleWidth: 4.6
-  multiplier2xCount: 2
+  multiplier2xCount: 3
   multiplier3xCount: 2
   multiplier4xCount: 2
   multiplier5xCount: 1
   paddleExpanderCount: 2
-  bombCount: 3
-  glassEnclosedCount: 4
+  bombCount: 0
+  glassEnclosedCount: 6
   extraHeartCount: 1
   shieldCount: 2
   multiBallCount: 2

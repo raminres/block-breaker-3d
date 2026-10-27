@@ -5929,6 +5929,206 @@ namespace Arcade.Tests
             Object.DestroyImmediate(blockGo);
         }
 
+        #region Bomb Placement Sanitization Tests
+
+        [Test]
+        public void LevelGenerator_SanitizeBombPlacements_MovesBombAwayFromIsolatedBlock()
+        {
+            var genObj = new GameObject("Gen");
+            var gen = genObj.AddComponent<LevelGenerator>();
+
+            // Setup a grid:
+            // (0, 0) is isolated (no orthogonal neighbors)
+            // (2, 0), (2, 1), (2, 2) form a connected line with neighbors
+            var coords = new System.Collections.Generic.List<Vector2Int>
+            {
+                new Vector2Int(0, 0), // index 0: isolated
+                new Vector2Int(2, 0), // index 1: neighbor at (2, 1)
+                new Vector2Int(2, 1), // index 2: neighbors at (2, 0) and (2, 2)
+                new Vector2Int(2, 2)  // index 3: neighbor at (2, 1)
+            };
+
+            var specialMap = new System.Collections.Generic.Dictionary<int, BlockSpecialType>
+            {
+                [0] = BlockSpecialType.Bomb // Placed on isolated block
+            };
+
+            gen.SanitizeBombPlacements(specialMap, coords);
+
+            // Bomb must have been moved away from index 0
+            Assert.IsFalse(specialMap.ContainsKey(0) && specialMap[0] == BlockSpecialType.Bomb, "Bomb must NOT remain on isolated block (0, 0).");
+
+            // Bomb must now be on one of the connected blocks (index 1, 2, or 3)
+            bool foundBombOnConnected = (specialMap.TryGetValue(1, out var s1) && s1 == BlockSpecialType.Bomb) ||
+                                       (specialMap.TryGetValue(2, out var s2) && s2 == BlockSpecialType.Bomb) ||
+                                       (specialMap.TryGetValue(3, out var s3) && s3 == BlockSpecialType.Bomb);
+            Assert.IsTrue(foundBombOnConnected, "Bomb must be relocated to a block with neighboring blocks.");
+
+            Object.DestroyImmediate(genObj);
+        }
+
+        [Test]
+        public void LevelGenerator_SanitizeBombPlacements_SeparatesAdjacentBombs()
+        {
+            var genObj = new GameObject("Gen");
+            var gen = genObj.AddComponent<LevelGenerator>();
+
+            // Setup a 4x4 grid where (0, 0) and (0, 1) are adjacent
+            var coords = new System.Collections.Generic.List<Vector2Int>();
+            for (int r = 0; r < 4; r++)
+            {
+                for (int c = 0; c < 4; c++)
+                {
+                    coords.Add(new Vector2Int(r, c));
+                }
+            }
+
+            // Index 0 is (0, 0), index 1 is (0, 1) - directly adjacent
+            var specialMap = new System.Collections.Generic.Dictionary<int, BlockSpecialType>
+            {
+                [0] = BlockSpecialType.Bomb,
+                [1] = BlockSpecialType.Bomb
+            };
+
+            gen.SanitizeBombPlacements(specialMap, coords);
+
+            // Find final bomb coordinates
+            var bombCoords = new System.Collections.Generic.List<Vector2Int>();
+            foreach (var kvp in specialMap)
+            {
+                if (kvp.Value == BlockSpecialType.Bomb)
+                {
+                    bombCoords.Add(coords[kvp.Key]);
+                }
+            }
+
+            Assert.AreEqual(2, bombCoords.Count, "Must maintain both bombs when valid separated positions exist.");
+            int dx = Mathf.Abs(bombCoords[0].x - bombCoords[1].x);
+            int dy = Mathf.Abs(bombCoords[0].y - bombCoords[1].y);
+            Assert.IsTrue(dx > 1 || dy > 1, $"Bombs must not be adjacent (dx={dx}, dy={dy} must satisfy dx > 1 || dy > 1).");
+
+            Object.DestroyImmediate(genObj);
+        }
+
+        [Test]
+        public void LevelGenerator_SanitizeBombPlacements_RemovesBombWhenNoValidNeighboringBlockExists()
+        {
+            var genObj = new GameObject("Gen");
+            var gen = genObj.AddComponent<LevelGenerator>();
+
+            // Single isolated block at (0, 0)
+            var coords = new System.Collections.Generic.List<Vector2Int>
+            {
+                new Vector2Int(0, 0)
+            };
+
+            var specialMap = new System.Collections.Generic.Dictionary<int, BlockSpecialType>
+            {
+                [0] = BlockSpecialType.Bomb
+            };
+
+            gen.SanitizeBombPlacements(specialMap, coords);
+
+            // Bomb must be removed since no candidate with neighbors exists
+            Assert.IsFalse(specialMap.ContainsKey(0) && specialMap[0] == BlockSpecialType.Bomb, "Bomb must be removed when block has no neighboring blocks and no candidates exist.");
+
+            Object.DestroyImmediate(genObj);
+        }
+
+        [Test]
+        public void LevelGenerator_AllThirtyLevels_HaveZeroIsolatedOrAdjacentBombs()
+        {
+            var genObj = new GameObject("Gen");
+            var gen = genObj.AddComponent<LevelGenerator>();
+
+            for (int lvl = 1; lvl <= 30; lvl++)
+            {
+                string path = $"Assets/Settings/Levels/SO_Level_{lvl:D2}.asset";
+                var config = UnityEditor.AssetDatabase.LoadAssetAtPath<LevelConfiguration>(path);
+                Assert.IsNotNull(config, $"Config for Level {lvl} must exist.");
+
+                if (config.BombCount == 0) continue;
+
+                // Build active coordinates
+                var activeCoords = new System.Collections.Generic.List<Vector2Int>();
+                int rows = config.TotalRows;
+                int cols = config.Columns;
+                for (int r = 0; r < rows; r++)
+                {
+                    for (int c = 0; c < cols; c++)
+                    {
+                        if (config.HasBlockAt(r, c))
+                        {
+                            activeCoords.Add(new Vector2Int(r, c));
+                        }
+                    }
+                }
+
+                var activeSet = new System.Collections.Generic.HashSet<Vector2Int>(activeCoords);
+
+                // Run 20 iterations per level to test randomization stability
+                for (int iter = 0; iter < 20; iter++)
+                {
+                    var map = gen.DistributeSpecialBlocks(
+                        activeCoords.Count,
+                        config.Multiplier2xCount,
+                        config.Multiplier3xCount,
+                        config.Multiplier4xCount,
+                        config.Multiplier5xCount,
+                        config.PaddleExpanderCount,
+                        config.BombCount,
+                        config.GlassEnclosedCount,
+                        config.ExtraHeartCount,
+                        config.ShieldCount,
+                        config.MultiBallCount,
+                        config.LaserCount,
+                        config.PaddleShortenerCount,
+                        config.PaddleSlowerCount,
+                        config.BrickFreezerCount,
+                        config.BallSizeDecreaserCount,
+                        config.BallSlowerCount,
+                        config.PaddleFreezerCount);
+
+                    gen.SanitizeBombPlacements(map, activeCoords);
+
+                    var finalBombs = new System.Collections.Generic.List<Vector2Int>();
+                    foreach (var kvp in map)
+                    {
+                        if (kvp.Value == BlockSpecialType.Bomb)
+                        {
+                            finalBombs.Add(activeCoords[kvp.Key]);
+                        }
+                    }
+
+                    // Verify: every bomb must have at least 1 orthogonal neighbor
+                    foreach (var bombPt in finalBombs)
+                    {
+                        int ortho = 0;
+                        if (activeSet.Contains(new Vector2Int(bombPt.x - 1, bombPt.y))) ortho++;
+                        if (activeSet.Contains(new Vector2Int(bombPt.x + 1, bombPt.y))) ortho++;
+                        if (activeSet.Contains(new Vector2Int(bombPt.x, bombPt.y - 1))) ortho++;
+                        if (activeSet.Contains(new Vector2Int(bombPt.x, bombPt.y + 1))) ortho++;
+
+                        Assert.GreaterOrEqual(ortho, 1, $"Level {lvl} bomb at ({bombPt.x}, {bombPt.y}) must have at least 1 neighboring block.");
+                    }
+
+                    // Verify: no two bombs can be adjacent (Chebyshev distance > 1)
+                    for (int a = 0; a < finalBombs.Count; a++)
+                    {
+                        for (int b = a + 1; b < finalBombs.Count; b++)
+                        {
+                            int dist = Mathf.Max(Mathf.Abs(finalBombs[a].x - finalBombs[b].x), Mathf.Abs(finalBombs[a].y - finalBombs[b].y));
+                            Assert.Greater(dist, 1, $"Level {lvl} bombs at ({finalBombs[a].x}, {finalBombs[a].y}) and ({finalBombs[b].x}, {finalBombs[b].y}) must not be adjacent.");
+                        }
+                    }
+                }
+            }
+
+            Object.DestroyImmediate(genObj);
+        }
+
+        #endregion
+
         #endregion
 
         #endregion

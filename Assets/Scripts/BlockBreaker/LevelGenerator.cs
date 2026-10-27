@@ -274,6 +274,7 @@ namespace Arcade.BlockBreaker
             float topY = centerY + (totalHeight * 0.5f);
 
             int totalActiveBlocks = 0;
+            var activeCoords = new List<Vector2Int>();
             for (int r = 0; r < totalRows; r++)
             {
                 for (int c = 0; c < cols; c++)
@@ -281,6 +282,7 @@ namespace Arcade.BlockBreaker
                     if (currentLevelConfig == null || currentLevelConfig.HasBlockAt(r, c))
                     {
                         totalActiveBlocks++;
+                        activeCoords.Add(new Vector2Int(r, c));
                     }
                 }
             }
@@ -305,6 +307,8 @@ namespace Arcade.BlockBreaker
             int paddleFreezeCount = currentLevelConfig != null ? currentLevelConfig.PaddleFreezerCount : 0;
 
             var specialMap = DistributeSpecialBlocks(totalActiveBlocks, mult2x, mult3x, mult4x, mult5x, expCount, bombCount, glassCount, heartCount, shieldCount, multiBallCount, laserCount, shortenCount, slowCount, freezeCount, ballShrinkCount, ballSlowCount, paddleFreezeCount);
+
+            SanitizeBombPlacements(specialMap, activeCoords);
 
             int blockIndex = 0;
             for (int r = 0; r < totalRows; r++)
@@ -581,6 +585,143 @@ namespace Arcade.BlockBreaker
             }
 
             return map;
+        }
+
+        /// <summary>
+        /// Sanitizes bomb placements across the active 2D grid coordinates:
+        /// 1. Ensures no bomb is isolated (must have at least one orthogonal neighboring block).
+        /// 2. Ensures no two bombs are adjacent to each other (Chebyshev distance > 1).
+        /// If a bomb violates these rules, it is moved to the best valid candidate block with neighboring blocks;
+        /// if no valid position exists, the bomb is removed.
+        /// </summary>
+        public void SanitizeBombPlacements(Dictionary<int, BlockSpecialType> specialMap, List<Vector2Int> activeCoords)
+        {
+            if (specialMap == null || specialMap.Count == 0 || activeCoords == null || activeCoords.Count == 0)
+                return;
+
+            var activeSet = new HashSet<Vector2Int>(activeCoords);
+
+            int CountOrthogonalNeighbors(Vector2Int pt)
+            {
+                int n = 0;
+                if (activeSet.Contains(new Vector2Int(pt.x - 1, pt.y))) n++;
+                if (activeSet.Contains(new Vector2Int(pt.x + 1, pt.y))) n++;
+                if (activeSet.Contains(new Vector2Int(pt.x, pt.y - 1))) n++;
+                if (activeSet.Contains(new Vector2Int(pt.x, pt.y + 1))) n++;
+                return n;
+            }
+
+            bool IsAdjacentToAnyConfirmed(Vector2Int pt, List<int> confirmed)
+            {
+                for (int i = 0; i < confirmed.Count; i++)
+                {
+                    var other = activeCoords[confirmed[i]];
+                    if (Mathf.Abs(pt.x - other.x) <= 1 && Mathf.Abs(pt.y - other.y) <= 1)
+                        return true;
+                }
+                return false;
+            }
+
+            var initialBombs = new List<int>();
+            foreach (var kvp in specialMap)
+            {
+                if (kvp.Value == BlockSpecialType.Bomb && kvp.Key >= 0 && kvp.Key < activeCoords.Count)
+                {
+                    initialBombs.Add(kvp.Key);
+                }
+            }
+
+            if (initialBombs.Count == 0) return;
+
+            var confirmedBombs = new List<int>();
+
+            for (int i = 0; i < initialBombs.Count; i++)
+            {
+                int bIdx = initialBombs[i];
+                var coord = activeCoords[bIdx];
+                int neighborCount = CountOrthogonalNeighbors(coord);
+
+                // Valid if it has at least 1 orthogonal neighbor and is not adjacent to any already-confirmed bomb
+                if (neighborCount >= 1 && !IsAdjacentToAnyConfirmed(coord, confirmedBombs))
+                {
+                    confirmedBombs.Add(bIdx);
+                }
+                else
+                {
+                    // Find all candidate indices that:
+                    // 1. Are not this bomb
+                    // 2. Are not in confirmedBombs
+                    // 3. Are not in initialBombs (to avoid placing on another bomb)
+                    // 4. Have at least 1 orthogonal neighbor
+                    // 5. Are not adjacent to any confirmedBombs
+                    var candidates = new List<int>();
+                    for (int c = 0; c < activeCoords.Count; c++)
+                    {
+                        if (c == bIdx || confirmedBombs.Contains(c) || initialBombs.Contains(c))
+                            continue;
+
+                        var cCoord = activeCoords[c];
+                        if (CountOrthogonalNeighbors(cCoord) >= 1 && !IsAdjacentToAnyConfirmed(cCoord, confirmedBombs))
+                        {
+                            candidates.Add(c);
+                        }
+                    }
+
+                    if (candidates.Count > 0)
+                    {
+                        // Score candidates: prioritize highest neighbor count, and prioritize not adjacent to remaining unprocessed initial bombs
+                        int bestIdx = candidates[0];
+                        int bestScore = -1;
+
+                        for (int k = 0; k < candidates.Count; k++)
+                        {
+                            int candIdx = candidates[k];
+                            var candCoord = activeCoords[candIdx];
+                            int cn = CountOrthogonalNeighbors(candCoord);
+                            int score = cn * 10;
+
+                            // Bonus if not adjacent to remaining unprocessed initial bombs
+                            bool touchesUnprocessed = false;
+                            for (int u = i + 1; u < initialBombs.Count; u++)
+                            {
+                                var unprocCoord = activeCoords[initialBombs[u]];
+                                if (Mathf.Abs(candCoord.x - unprocCoord.x) <= 1 && Mathf.Abs(candCoord.y - unprocCoord.y) <= 1)
+                                {
+                                    touchesUnprocessed = true;
+                                    break;
+                                }
+                            }
+
+                            if (!touchesUnprocessed) score += 5;
+
+                            if (score > bestScore)
+                            {
+                                bestScore = score;
+                                bestIdx = candIdx;
+                            }
+                        }
+
+                        // Relocate bomb to bestIdx (swap with candidate's existing special if any)
+                        if (specialMap.TryGetValue(bestIdx, out var existingSpecial))
+                        {
+                            specialMap[bIdx] = existingSpecial;
+                        }
+                        else
+                        {
+                            specialMap.Remove(bIdx);
+                        }
+
+                        specialMap[bestIdx] = BlockSpecialType.Bomb;
+                        confirmedBombs.Add(bestIdx);
+                    }
+                    else
+                    {
+                        // No valid separated candidate block with neighbors exists in the level.
+                        // Remove the bomb to prevent isolated or clustered bombs.
+                        specialMap.Remove(bIdx);
+                    }
+                }
+            }
         }
 
         private void CreateGlassShellForBlock(GameObject blockObj, Block blockComp)

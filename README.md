@@ -2,7 +2,7 @@
 
 [![Unity Version](https://img.shields.io/badge/Unity-6%20(6000.6.0f1)-black.svg?style=flat&logo=unity)](https://unity.com/)
 [![Render Pipeline](https://img.shields.io/badge/Render%20Pipeline-URP-blue.svg)](https://unity.com/srp/universal-render-pipeline)
-[![Automated Tests](https://img.shields.io/badge/Tests-317%2F317%20Passing%20(100%25)-brightgreen.svg)]()
+[![Automated Tests](https://img.shields.io/badge/Tests-326%2F326%20Passing%20(100%25)-brightgreen.svg)]()
 [![Platforms](https://img.shields.io/badge/Platforms-iOS%20%7C%20WebGPU%20%7C%20PC-purple.svg)]()
 [![Git LFS](https://img.shields.io/badge/Git-LFS%20Enabled-orange.svg)](https://git-lfs.github.com/)
 
@@ -21,10 +21,10 @@ Also serves as a production testbed for **Google Antigravity**, **Unity MCP (Mod
   - 🟢 **Green**: Kinetic turbo ($+10\%$ speed impulse, pitch $1.10\times$)
   - 🔵 **Blue**: Optical scatter ($\pm 18^\circ$ to $\pm 28^\circ$ refraction)
   - 🛡️ **Glass**: 2-hit reinforced brick (shell shatter $\to$ break)
-  - 💣 **Bomb**: Radial explosion cascade ($2.5\text{u}$ radius)
+  - 💣 **Bomb**: Radial explosion cascade ($2.5\text{u}$ radius) with sanitized layout algorithms (no isolated or adjacent bombs)
 - **Powerups & Hazards**: Tumbling drops including Paddle Expander/Shortener, Multi-Ball, Physical Shield Wall, Laser Blaster, Brick Freezer, Ball Shrinker, and Slowers.
-- **30-Level Campaign**: High-density layouts scaling from $0.92\times$ to $1.80\times$ ball speed, with onboarding scale comfort on early stages and clutch Railgun Hyper-Beam clears.
-- **Modern UI & Multi-Platform Ergonomics**: Responsive camera framing, mobile Safe Area / Dynamic Island insets, 3D extruded buttons, and bilingual localization (English / Turkish).
+- **30-Level Campaign**: High-density layouts scaling from $0.92\times$ to $1.80\times$ ball speed, onboarding scale comfort on early stages, clutch Railgun Hyper-Beam clears, and 30 rendered level preview thumbnails ($128 \times 256$).
+- **Modern UI & Multi-Platform Ergonomics**: Responsive camera framing, mobile Safe Area / Dynamic Island insets, 3D logo branding, icon-driven modals, sprite-based star ratings, 3D extruded buttons, and bilingual localization (English / Turkish).
 
 ---
 
@@ -48,7 +48,7 @@ Also serves as a production testbed for **Google Antigravity**, **Unity MCP (Mod
 - **Audio**: Custom audio clips (`AU_*`) with procedural synthesis fallback
 - **Localization**: Unity Localization Tables (`com.unity.localization` 1.5.13)
 - **Architecture**: 100% modular prefabs under `Assets/Prefabs/` with normalized 1.0 root parent scales
-- **Tests**: 317 EditMode NUnit unit and integration tests
+- **Tests**: 326 EditMode NUnit unit and integration tests
 
 ---
 

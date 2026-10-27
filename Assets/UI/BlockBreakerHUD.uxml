@@ -3,80 +3,80 @@
     <ui:VisualElement name="hud-root" class="hud-root">
         <ui:VisualElement name="safe-area-content" picking-mode="Ignore" class="safe-area-content">
             <ui:VisualElement name="top-bar" picking-mode="Ignore" class="top-bar">
-            <ui:VisualElement name="lives-container" picking-mode="Ignore" class="lives-container hud-pod lives-compact-pod">
-                <ui:VisualElement name="life-heart-icon" picking-mode="Ignore" class="life-compact-heart"/>
-                <ui:Label name="lives-count-label" text="x3" picking-mode="Ignore" class="lives-compact-text"/>
+                <ui:VisualElement name="lives-container" picking-mode="Ignore" class="lives-container hud-pod lives-compact-pod">
+                    <ui:VisualElement name="life-heart-icon" picking-mode="Ignore" class="life-compact-heart"/>
+                    <ui:Label name="lives-count-label" text="x3" picking-mode="Ignore" class="lives-compact-text"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="score-container" picking-mode="Ignore" class="score-container hud-pod score-pod">
+                    <ui:Label name="score-label" text="SCORE: 0" picking-mode="Ignore" class="score-main"/>
+                    <ui:Label name="score-delta-label" text="" picking-mode="Ignore" class="score-delta delta-hidden"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="speed-container" picking-mode="Ignore" class="speed-container hud-pod speed-pod">
+                    <ui:VisualElement name="icon-speed" picking-mode="Ignore" class="speed-icon"/>
+                    <ui:Label name="speed-label" text="1.0x" picking-mode="Ignore" class="speed-main"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="timer-container" picking-mode="Ignore" class="timer-container hud-pod timer-pod">
+                    <ui:VisualElement name="icon-timer" picking-mode="Ignore" class="timer-icon"/>
+                    <ui:Label name="timer-label" text="00:00" picking-mode="Ignore" class="timer-main"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="quick-controls" picking-mode="Ignore" class="quick-controls">
+                    <ui:Button name="btn-quick-pause" text="" tooltip="Pause Game" class="quick-btn pause-quick-btn">
+                        <ui:VisualElement name="icon-quick-pause" picking-mode="Ignore" class="quick-btn-icon icon-pause"/>
+                    </ui:Button>
+                </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="score-container" picking-mode="Ignore" class="score-container hud-pod score-pod">
-                <ui:Label name="score-label" text="SCORE: 0" picking-mode="Ignore" class="score-main"/>
-                <ui:Label name="score-delta-label" text="" picking-mode="Ignore" class="score-delta delta-hidden"/>
+            <ui:VisualElement name="powerup-status-container" picking-mode="Ignore" class="powerup-status-container">
+                <ui:VisualElement name="shield-status-badge" class="powerup-badge shield-badge powerup-hidden">
+                    <ui:VisualElement name="shield-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-shield"/>
+                    <ui:Label name="shield-timer-label" text="10s" class="powerup-timer-label"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="multiball-status-badge" class="powerup-badge multiball-badge powerup-hidden">
+                    <ui:VisualElement name="multiball-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-multiball"/>
+                    <ui:Label name="multiball-count-label" text="3 BALLS" class="powerup-timer-label"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="paddle-status-badge" class="powerup-badge paddle-badge powerup-hidden">
+                    <ui:VisualElement name="paddle-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-paddle-expand"/>
+                    <ui:Label name="paddle-timer-label" text="10s" class="powerup-timer-label"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="multiplier-status-badge" class="powerup-badge multiplier-badge mult-tier-2x powerup-hidden">
+                    <ui:VisualElement name="multiplier-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-multiplier"/>
+                    <ui:Label name="multiplier-value-label" text="2X" class="powerup-timer-label multiplier-val-text"/>
+                    <ui:Label name="multiplier-timer-label" text="10s" class="powerup-timer-label"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="laser-status-badge" class="powerup-badge laser-badge powerup-hidden">
+                    <ui:VisualElement name="laser-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-laser"/>
+                    <ui:Label name="laser-timer-label" text="10s" class="powerup-timer-label"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="clutch-status-badge" class="powerup-badge clutch-badge powerup-hidden">
+                    <ui:VisualElement name="clutch-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-laser"/>
+                    <ui:Label name="clutch-multiplier-label" text="10X" class="powerup-timer-label clutch-val-text"/>
+                    <ui:Label name="clutch-timer-label" text="12s" class="powerup-timer-label"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="combo-status-badge" class="powerup-badge combo-badge powerup-hidden">
+                    <ui:VisualElement name="combo-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-multiplier"/>
+                    <ui:Label name="combo-label" text="x2 COMBO" class="powerup-timer-label combo-val-text"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="paddle-shrink-status-badge" class="powerup-badge powerdown-badge paddle-shrink-badge powerup-hidden">
+                    <ui:VisualElement name="paddle-shrink-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-paddle-shrink"/>
+                    <ui:Label name="paddle-shrink-timer-label" text="10s" class="powerup-timer-label powerdown-timer-label"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="paddle-slow-status-badge" class="powerup-badge powerdown-badge paddle-slow-badge powerup-hidden">
+                    <ui:VisualElement name="paddle-slow-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-paddle-slow"/>
+                    <ui:Label name="paddle-slow-timer-label" text="8s" class="powerup-timer-label powerdown-timer-label"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="ball-shrink-status-badge" class="powerup-badge powerdown-badge ball-shrink-badge powerup-hidden">
+                    <ui:VisualElement name="ball-shrink-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-ball-shrink"/>
+                    <ui:Label name="ball-shrink-timer-label" text="10s" class="powerup-timer-label powerdown-timer-label"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="ball-slow-status-badge" class="powerup-badge powerdown-badge ball-slow-badge powerup-hidden">
+                    <ui:VisualElement name="ball-slow-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-ball-slow"/>
+                    <ui:Label name="ball-slow-timer-label" text="8s" class="powerup-timer-label powerdown-timer-label"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="paddle-freeze-status-badge" class="powerup-badge powerdown-badge paddle-freeze-badge powerup-hidden">
+                    <ui:VisualElement name="paddle-freeze-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-paddle-freeze"/>
+                    <ui:Label name="paddle-freeze-timer-label" text="1s" class="powerup-timer-label powerdown-timer-label"/>
+                </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="speed-container" picking-mode="Ignore" class="speed-container hud-pod speed-pod">
-                <ui:VisualElement name="icon-speed" picking-mode="Ignore" class="speed-icon"/>
-                <ui:Label name="speed-label" text="1.0x" picking-mode="Ignore" class="speed-main"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="timer-container" picking-mode="Ignore" class="timer-container hud-pod timer-pod">
-                <ui:VisualElement name="icon-timer" picking-mode="Ignore" class="timer-icon"/>
-                <ui:Label name="timer-label" text="00:00" picking-mode="Ignore" class="timer-main"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="quick-controls" picking-mode="Ignore" class="quick-controls">
-                <ui:Button name="btn-quick-pause" text="" tooltip="Pause Game" class="quick-btn pause-quick-btn">
-                    <ui:VisualElement name="icon-quick-pause" picking-mode="Ignore" class="quick-btn-icon icon-pause"/>
-                </ui:Button>
-            </ui:VisualElement>
-        </ui:VisualElement>
-        <ui:VisualElement name="powerup-status-container" picking-mode="Ignore" class="powerup-status-container">
-            <ui:VisualElement name="shield-status-badge" class="powerup-badge shield-badge powerup-hidden">
-                <ui:VisualElement name="shield-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-shield"/>
-                <ui:Label name="shield-timer-label" text="10s" class="powerup-timer-label"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="multiball-status-badge" class="powerup-badge multiball-badge powerup-hidden">
-                <ui:VisualElement name="multiball-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-multiball"/>
-                <ui:Label name="multiball-count-label" text="3 BALLS" class="powerup-timer-label"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="paddle-status-badge" class="powerup-badge paddle-badge powerup-hidden">
-                <ui:VisualElement name="paddle-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-paddle-expand"/>
-                <ui:Label name="paddle-timer-label" text="10s" class="powerup-timer-label"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="multiplier-status-badge" class="powerup-badge multiplier-badge mult-tier-2x powerup-hidden">
-                <ui:VisualElement name="multiplier-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-multiplier"/>
-                <ui:Label name="multiplier-value-label" text="2X" class="powerup-timer-label multiplier-val-text"/>
-                <ui:Label name="multiplier-timer-label" text="10s" class="powerup-timer-label"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="laser-status-badge" class="powerup-badge laser-badge powerup-hidden">
-                <ui:VisualElement name="laser-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-laser"/>
-                <ui:Label name="laser-timer-label" text="10s" class="powerup-timer-label"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="clutch-status-badge" class="powerup-badge clutch-badge powerup-hidden">
-                <ui:VisualElement name="clutch-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-laser"/>
-                <ui:Label name="clutch-multiplier-label" text="10X" class="powerup-timer-label clutch-val-text"/>
-                <ui:Label name="clutch-timer-label" text="12s" class="powerup-timer-label"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="combo-status-badge" class="powerup-badge combo-badge powerup-hidden">
-                <ui:VisualElement name="combo-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-multiplier"/>
-                <ui:Label name="combo-label" text="x2 COMBO" class="powerup-timer-label combo-val-text"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="paddle-shrink-status-badge" class="powerup-badge powerdown-badge paddle-shrink-badge powerup-hidden">
-                <ui:VisualElement name="paddle-shrink-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-paddle-shrink"/>
-                <ui:Label name="paddle-shrink-timer-label" text="10s" class="powerup-timer-label powerdown-timer-label"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="paddle-slow-status-badge" class="powerup-badge powerdown-badge paddle-slow-badge powerup-hidden">
-                <ui:VisualElement name="paddle-slow-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-paddle-slow"/>
-                <ui:Label name="paddle-slow-timer-label" text="8s" class="powerup-timer-label powerdown-timer-label"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="ball-shrink-status-badge" class="powerup-badge powerdown-badge ball-shrink-badge powerup-hidden">
-                <ui:VisualElement name="ball-shrink-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-ball-shrink"/>
-                <ui:Label name="ball-shrink-timer-label" text="10s" class="powerup-timer-label powerdown-timer-label"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="ball-slow-status-badge" class="powerup-badge powerdown-badge ball-slow-badge powerup-hidden">
-                <ui:VisualElement name="ball-slow-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-ball-slow"/>
-                <ui:Label name="ball-slow-timer-label" text="8s" class="powerup-timer-label powerdown-timer-label"/>
-            </ui:VisualElement>
-            <ui:VisualElement name="paddle-freeze-status-badge" class="powerup-badge powerdown-badge paddle-freeze-badge powerup-hidden">
-                <ui:VisualElement name="paddle-freeze-status-icon" picking-mode="Ignore" class="powerup-status-icon icon-paddle-freeze"/>
-                <ui:Label name="paddle-freeze-timer-label" text="1s" class="powerup-timer-label powerdown-timer-label"/>
-            </ui:VisualElement>
-        </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="launch-banner" picking-mode="Ignore" class="launch-banner" style="bottom: 35%;">
             <ui:VisualElement name="launch-motion-cue" picking-mode="Ignore" class="launch-motion-cue">
@@ -243,7 +243,11 @@
                                 <ui:Label name="label-diff-subtitle" text="DIFFICULTY" class="chip-label"/>
                             </ui:VisualElement>
                             <ui:VisualElement class="preview-chip chip-stars">
-                                <ui:Label name="menu-level-stars" text="★★★" class="chip-val val-stars"/>
+                                <ui:VisualElement name="menu-level-stars" class="preview-stars-row">
+                                    <ui:VisualElement class="preview-star star-filled"/>
+                                    <ui:VisualElement class="preview-star star-filled"/>
+                                    <ui:VisualElement class="preview-star star-filled"/>
+                                </ui:VisualElement>
                                 <ui:Label name="label-stars-subtitle" text="STARS" class="chip-label"/>
                             </ui:VisualElement>
                             <ui:VisualElement class="preview-chip chip-time">
@@ -368,7 +372,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="level-clear-modal" class="modal-backdrop modal-hidden">
             <ui:VisualElement class="modal-card scorecard-card">
-                <ui:Label name="scorecard-title" text="LEVEL CLEARED!" class="modal-title victory-title"/>
+                <ui:Label name="scorecard-title" text="LEVEL CLEARED!" class="modal-title victory-title" style="-unity-text-outline-width: 0; -unity-font-style: bold; text-shadow: 0 0 0 rgba(38, 232, 133, 0.75); backdrop-filter: none; letter-spacing: 0; filter: none;"/>
                 <ui:VisualElement name="scorecard-stars" class="scorecard-stars-row">
                     <ui:VisualElement name="scorecard-star-1" class="scorecard-star star-empty"/>
                     <ui:VisualElement name="scorecard-star-2" class="scorecard-star star-empty"/>
@@ -401,13 +405,19 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement class="scorecard-btn-row">
-                    <ui:Button name="btn-replay-level" text="REPLAY" class="arcade-btn btn-secondary scorecard-action-btn"/>
-                    <ui:Button name="btn-next-level" text="NEXT LEVEL" class="arcade-btn btn-primary scorecard-action-btn"/>
-                    <ui:Button name="btn-clear-menu" text="MENU" class="arcade-btn btn-default scorecard-action-btn"/>
+                    <ui:Button name="btn-replay-level" class="arcade-btn scorecard-action-btn primary-btn">
+                        <ui:VisualElement name="icon-scorecard-replay" picking-mode="Ignore" class="scorecard-btn-icon icon-scorecard-replay"/>
+                    </ui:Button>
+                    <ui:Button name="btn-next-level" class="arcade-btn scorecard-action-btn btn-secondary">
+                        <ui:VisualElement name="icon-scorecard-next" picking-mode="Ignore" class="scorecard-btn-icon icon-scorecard-next"/>
+                    </ui:Button>
+                    <ui:Button name="btn-clear-menu" class="arcade-btn btn-default scorecard-action-btn">
+                        <ui:VisualElement name="icon-scorecard-menu" picking-mode="Ignore" class="scorecard-btn-icon icon-scorecard-menu"/>
+                    </ui:Button>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="game-over-modal" class="modal-backdrop modal-hidden">
+        <ui:VisualElement name="game-over-modal" class="modal-backdrop modal-hidden" style="display: none;">
             <ui:VisualElement class="modal-card gameover-card">
                 <ui:Label name="modal-title-gameover" text="GAME OVER" class="modal-title gameover-title"/>
                 <ui:Label name="over-score-label" text="FINAL SCORE: 240" class="modal-score"/>

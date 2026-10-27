@@ -46,10 +46,6 @@ MonoBehaviour:
     m_Localized: "JENER\u0130K"
     m_Metadata:
       m_Items: []
-  - m_Id: 1013338118
-    m_Localized: 3D RETRO-MODERN ARKAD
-    m_Metadata:
-      m_Items: []
   - m_Id: 1013338119
     m_Localized: "B\xD6L\xDCM SE\xC7"
     m_Metadata:
@@ -264,22 +260,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 12263776902860809
     m_Localized: TOPLAM PUAN
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12263776902860810
-    m_Localized: TEKRAR OYNA
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12263776902860811
-    m_Localized: "SONRAK\u0130 B\xD6L\xDCM ({0})"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12263776902860812
-    m_Localized: "TEKRAR OYNA (D\xD6NG\xDC)"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12263776902860813
-    m_Localized: "MEN\xDC"
     m_Metadata:
       m_Items: []
   - m_Id: 12263776902860814

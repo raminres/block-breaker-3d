@@ -25,7 +25,7 @@ Use this skill when:
 - Implementing dual-layer stacked tapering trails and multi-ball dynamic VFX (`BallTrail`).
 - Binding Unity 6 UI Toolkit `PanelRenderer` components safely at runtime with fallback reflection and execution order coordination.
 - Managing persistent high score leaderboards (`HighScoreManager`), card guides, and interactive credits.
-- Writing and executing automated EditMode/PlayMode tests via Unity Test Framework (312 tests passing).
+- Writing and executing automated EditMode/PlayMode tests via Unity Test Framework (326 tests passing).
 
 ## Reference Documentation
 For complete workflow recipes, code examples, and MCP tool patterns, refer to [skills.md](skills.md) and [AGENTS.md](AGENTS.md).

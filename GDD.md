@@ -146,6 +146,10 @@ Collectible drops fall downward at $4.5\text{ u/s}$ ($Z = -1.0\text{f}$). All ac
 ### 4.4 Environmental Blocks
 - **Glass Bricks**: 2-hit reinforced blocks (Hit 1: shatters glass shell; Hit 2: breaks brick for $2\times$ points).
 - **Bomb Bricks**: Explosive triggers detonating all blocks within a $2.5\text{u}$ radius.
+  - **Sanitized Placement Rules**:
+    - **Orthogonal Connectivity**: Every bomb must possess $\ge 1$ orthogonal neighbor; isolated layout tips (e.g. antenna blocks in Invader) are relocated to well-connected blocks ($\ge 2$ neighbors).
+    - **Chebyshev Distance Separation**: Clustered bombs are separated such that no two bombs are adjacent horizontally, vertically, or diagonally ($\max(|x_1-x_2|, |y_1-y_2|) > 1$).
+    - **Sparse Checkerboard Exemption**: In layouts with 0 orthogonal neighbors for internal bricks (`SO_Level_13`, `SO_Level_26`), bomb count is set to 0 and reallocated to glass and score multiplier blocks.
 
 ---
 
@@ -209,6 +213,12 @@ The campaign features 30 hand-tuned layouts with outer flank bumper blocks elimi
   - Insets protect top dashboard pods from camera cutouts, notches, and home indicator bars across mobile displays.
   - Compact powerup and hazard badges ($60\text{px}$ height, $36\text{px}$ icons) prevent block occlusion on squarer tablet displays (iPad Mini, 3:2 ratios).
   - Main Menu and Pause Menu sub-screens (How to Play, Credits, Level Select, Options) share 1:1 design and proportion parity.
+- **Icon-Driven Modern UI & Visual Branding**:
+  - **Level End Actions**: Modal buttons utilize dedicated action icons (`TX_Icon_Arrow_Next`, `TX_Icon_Menu`, `TX_Icon_Replay`) instead of text labels, preventing localization string overflow and wrapping.
+  - **Header Branding**: Main Menu features high-resolution 3D game logo (`TX_Block_Breaker_3D_Logo.png`).
+  - **Star Rating Sprites**: Both Main Menu stage selector and HUD display crisp sprite stars (`TX_Star_Filled.png`, `TX_Star_Empty.png`).
+  - **Scorecard Accolade**: Gold medal sprite (`TX_Medal_Gold.png`) featured on level-end scorecard star anchor.
+  - **30-Stage Level Previews**: 30 dedicated $128 \times 256$ rendered stage previews in `Assets/UI/LevelPreviews/` rendered directly into `level-preview-thumb` with smooth rounded borders and aspect-preserving crop.
 - **Bilingual Localization**:
   - English and Turkish supported with instant runtime switching.
   - Custom animated checkmark mute toggles with glowing cyan/crimson audio feedback.
