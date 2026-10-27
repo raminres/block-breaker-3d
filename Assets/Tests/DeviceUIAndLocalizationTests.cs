@@ -336,6 +336,55 @@ namespace Arcade.Tests
         }
 
         [Test]
+        public void ArcadeAudioManager_BackgroundMusic_ImportSettings_AreOptimizedForMobile()
+        {
+            string path = "Assets/Audio/AU_Music_Background.wav";
+            var importer = AssetImporter.GetAtPath(path) as AudioImporter;
+            Assert.IsNotNull(importer, $"AudioImporter for {path} must exist.");
+
+            // Verify 2D audio (not 3D) so distance attenuation does not affect BGM
+            var so = new SerializedObject(importer);
+            var threeDProp = so.FindProperty("m_3D");
+            Assert.IsFalse(threeDProp.boolValue, "Background music must be 2D (m_3D = false) so camera/listener movement does not attenuate BGM.");
+
+            // Verify mobile loading optimizations
+            Assert.IsTrue(importer.loadInBackground, "loadInBackground must be true to prevent main-thread hitching.");
+            Assert.AreEqual(AudioClipLoadType.CompressedInMemory, importer.defaultSampleSettings.loadType, "LoadType must be CompressedInMemory to optimize RAM for 34s looping track.");
+            Assert.AreEqual(AudioCompressionFormat.Vorbis, importer.defaultSampleSettings.compressionFormat, "Default compression must be Vorbis.");
+
+            var ios = importer.GetOverrideSampleSettings("iPhone");
+            Assert.IsTrue(ios.compressionFormat == AudioCompressionFormat.AAC || ios.compressionFormat == AudioCompressionFormat.MP3,
+                $"iOS override must use hardware-accelerated mobile compression (AAC or MP3), but was {ios.compressionFormat}.");
+        }
+
+        [Test]
+        public void ArcadeAudioManager_BackgroundMusic_PlaysLooping_AndRespondsToVolumeAndMute()
+        {
+            var go = new GameObject("TestAudioManager_Music", typeof(ArcadeAudioManager));
+            var audioMgr = go.GetComponent<ArcadeAudioManager>();
+
+            Assert.IsNotNull(audioMgr.ClipBackgroundMusic, "ClipBackgroundMusic must load AU_Music_Background.");
+            Assert.IsNotNull(audioMgr.MusicSource, "MusicSource must be initialized.");
+            Assert.IsTrue(audioMgr.MusicSource.loop, "MusicSource must be configured to loop.");
+            Assert.AreEqual(0f, audioMgr.MusicSource.spatialBlend, "MusicSource must have spatialBlend = 0 for 2D flat stereo playback.");
+
+            // Verify volume sync
+            audioMgr.MusicVolume = 0.42f;
+            audioMgr.IsMusicMuted = false;
+            Assert.AreEqual(0.42f, audioMgr.MusicSource.volume, 0.001f, "MusicSource volume must match MusicVolume when unmuted.");
+
+            // Verify mute zeroing
+            audioMgr.IsMusicMuted = true;
+            Assert.AreEqual(0f, audioMgr.MusicSource.volume, 0.001f, "MusicSource volume must be 0 when muted.");
+
+            // Verify unmute restoration
+            audioMgr.IsMusicMuted = false;
+            Assert.AreEqual(0.42f, audioMgr.MusicSource.volume, 0.001f, "MusicSource volume must restore upon unmute.");
+
+            Object.DestroyImmediate(go);
+        }
+
+        [Test]
         public void SafeAreaController_ProvidesDynamicIslandExtraTopPadding()
         {
             var go = new GameObject("TestSafeArea", typeof(PanelRenderer), typeof(SafeAreaController));
@@ -1471,6 +1520,65 @@ namespace Arcade.Tests
 
             hudMgr.UpdateLevelPreview(30);
             Assert.AreEqual("TX_LevelPreview_30", hudThumb.style.backgroundImage.value.sprite.name);
+
+            Object.DestroyImmediate(menuObj);
+            Object.DestroyImmediate(hudObj);
+        }
+
+        [Test]
+        public void LevelConfiguration_AllThirtyLevels_HavePreviewSpriteAssigned_AndSpriteMatchesLevelNumber()
+        {
+            for (int lvl = 1; lvl <= 30; lvl++)
+            {
+                string configPath = $"Assets/Settings/Levels/SO_Level_{lvl:D2}.asset";
+                var config = AssetDatabase.LoadAssetAtPath<LevelConfiguration>(configPath);
+                Assert.IsNotNull(config, $"SO_Level_{lvl:D2}.asset must exist at {configPath}");
+                Assert.IsNotNull(config.PreviewSprite, $"Level {lvl} config must have a serialized PreviewSprite assigned to guarantee iOS build bundling.");
+                Assert.AreEqual($"TX_LevelPreview_{lvl:D2}", config.PreviewSprite.name, $"Level {lvl} preview sprite name must match TX_LevelPreview_{lvl:D2}");
+            }
+        }
+
+        [Test]
+        public void LevelConfiguration_Clone_PreservesPreviewSprite()
+        {
+            var config = ScriptableObject.CreateInstance<LevelConfiguration>();
+            var testSprite = Sprite.Create(Texture2D.blackTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+            config.SetPreviewSprite(testSprite);
+
+            var clone = config.Clone();
+            Assert.IsNotNull(clone.PreviewSprite, "Cloned LevelConfiguration must preserve PreviewSprite reference.");
+            Assert.AreEqual(testSprite, clone.PreviewSprite);
+
+            Object.DestroyImmediate(testSprite);
+            Object.DestroyImmediate(config);
+            Object.DestroyImmediate(clone);
+        }
+
+        [Test]
+        public void MainMenuUIManager_And_ArcadeUIManager_FallbackToLevelConfigurationPreviewSprite()
+        {
+            // Verify MainMenuUIManager uses config.PreviewSprite even when its internal levelPreviewSprites array is empty
+            var menuObj = new GameObject("TestMainMenuMgr_Fallback", typeof(PanelRenderer), typeof(MainMenuUIManager));
+            var menuMgr = menuObj.GetComponent<MainMenuUIManager>();
+
+            // Clear internal array
+            typeof(MainMenuUIManager).GetField("levelPreviewSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.SetValue(menuMgr, new Sprite[30]);
+
+            var spriteFromMenu = menuMgr.GetLevelPreviewSprite(5);
+            Assert.IsNotNull(spriteFromMenu, "MainMenuUIManager must fallback to LevelConfiguration.PreviewSprite when array element is null.");
+            Assert.AreEqual("TX_LevelPreview_05", spriteFromMenu.name);
+
+            // Verify ArcadeUIManager uses config.PreviewSprite
+            var hudObj = new GameObject("TestArcadeUIMgr_Fallback", typeof(PanelRenderer), typeof(ArcadeUIManager));
+            var hudMgr = hudObj.GetComponent<ArcadeUIManager>();
+
+            typeof(ArcadeUIManager).GetField("levelPreviewSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.SetValue(hudMgr, new Sprite[30]);
+
+            var spriteFromHud = hudMgr.GetLevelPreviewSprite(7);
+            Assert.IsNotNull(spriteFromHud, "ArcadeUIManager must fallback to LevelConfiguration.PreviewSprite when array element is null.");
+            Assert.AreEqual("TX_LevelPreview_07", spriteFromHud.name);
 
             Object.DestroyImmediate(menuObj);
             Object.DestroyImmediate(hudObj);

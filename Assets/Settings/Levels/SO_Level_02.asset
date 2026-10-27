@@ -16,7 +16,7 @@ MonoBehaviour:
   levelName: 'Level 2: Glass & Gold'
   levelDescription: A sparkling diamond gem formation. Introduces durable glass-encased bricks, score multipliers, and hazard awareness with the inward Paddle Shortener.
   layoutType: 1
-  colorPattern: 0
+  colorPattern: 1
   columns: 12
   rowsPerTier: 2
   blockSize: 1.2
@@ -50,3 +50,4 @@ MonoBehaviour:
   parTime: 40
   timeBonusMax: 3000
   starThresholds: 2003000008070000800c0000i
+  previewSprite: {fileID: 21300000, guid: bb930887fb703ef4188eeeec404aabb1, type: 3}

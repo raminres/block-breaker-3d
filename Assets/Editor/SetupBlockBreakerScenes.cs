@@ -346,6 +346,16 @@ namespace Arcade.Editor
                         var lvl = AssetDatabase.LoadAssetAtPath<LevelConfiguration>($"Assets/Settings/Levels/SO_Level_{i + 1:D2}.asset");
                         presetsProp.GetArrayElementAtIndex(i).objectReferenceValue = lvl;
                     }
+                    var previewArrayProp = so.FindProperty("levelPreviewSprites");
+                    if (previewArrayProp != null)
+                    {
+                        previewArrayProp.arraySize = 30;
+                        for (int i = 0; i < 30; i++)
+                        {
+                            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/UI/LevelPreviews/TX_LevelPreview_{i + 1:D2}.png");
+                            previewArrayProp.GetArrayElementAtIndex(i).objectReferenceValue = sprite;
+                        }
+                    }
                     so.ApplyModifiedProperties();
                     EditorSceneManager.MarkSceneDirty(scene);
                     EditorSceneManager.SaveScene(scene);
@@ -370,6 +380,24 @@ namespace Arcade.Editor
                         presetsProp.GetArrayElementAtIndex(i).objectReferenceValue = lvl;
                     }
                     so.ApplyModifiedProperties();
+
+                    var hudMgr = Object.FindAnyObjectByType<ArcadeUIManager>();
+                    if (hudMgr != null)
+                    {
+                        var hudSo = new SerializedObject(hudMgr);
+                        var previewArrayProp = hudSo.FindProperty("levelPreviewSprites");
+                        if (previewArrayProp != null)
+                        {
+                            previewArrayProp.arraySize = 30;
+                            for (int i = 0; i < 30; i++)
+                            {
+                                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/UI/LevelPreviews/TX_LevelPreview_{i + 1:D2}.png");
+                                previewArrayProp.GetArrayElementAtIndex(i).objectReferenceValue = sprite;
+                            }
+                        }
+                        hudSo.ApplyModifiedProperties();
+                    }
+
                     EditorSceneManager.MarkSceneDirty(scene);
                     EditorSceneManager.SaveScene(scene);
                     Debug.Log("<color=green>Updated LevelGenerator levelPresets to 30 levels.</color>");
@@ -452,6 +480,14 @@ namespace Arcade.Editor
                         starsProp.GetArrayElementAtIndex(s).intValue = starThresholds[s];
                     }
                 }
+            }
+
+            var previewProp = so.FindProperty("previewSprite");
+            if (previewProp != null && previewProp.objectReferenceValue == null)
+            {
+                string previewPath = $"Assets/UI/LevelPreviews/TX_LevelPreview_{levelNumber:D2}.png";
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(previewPath);
+                if (sprite != null) previewProp.objectReferenceValue = sprite;
             }
 
             so.ApplyModifiedProperties();
@@ -841,6 +877,10 @@ namespace Arcade.Editor
                 audioSo.FindProperty("clipBlockHitBlue").objectReferenceValue = breakClip;
             }
             if (levelSuccessClip != null) audioSo.FindProperty("clipLevelClear").objectReferenceValue = levelSuccessClip;
+
+            var musicClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/AU_Music_Background.wav");
+            if (musicClip == null) musicClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/AU_Music_Background.mp3");
+            if (musicClip != null) audioSo.FindProperty("clipBackgroundMusic").objectReferenceValue = musicClip;
 
             audioSo.ApplyModifiedProperties();
         }

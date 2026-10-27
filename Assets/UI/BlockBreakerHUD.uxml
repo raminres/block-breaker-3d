@@ -417,7 +417,7 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="game-over-modal" class="modal-backdrop modal-hidden" style="display: none;">
+        <ui:VisualElement name="game-over-modal" class="modal-backdrop modal-hidden">
             <ui:VisualElement class="modal-card gameover-card">
                 <ui:Label name="modal-title-gameover" text="GAME OVER" class="modal-title gameover-title"/>
                 <ui:Label name="over-score-label" text="FINAL SCORE: 240" class="modal-score"/>
