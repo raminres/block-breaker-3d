@@ -94,8 +94,9 @@ Studio naming conventions:
    - Use `EnsureInitialized()` guard querying `panelRenderer.rootVisualElement` before binding buttons or setting state.
 2. **Script Execution Order**:
    - Apply `[DefaultExecutionOrder(-100)]` on `ArcadeGameManager` and `[-90]` on `ArcadeInputHandler` so managers initialize before entity `Awake()`/`Start()`.
-3. **Pointer Event Pass-Through**:
-   - Layout containers overlays must specify `picking-mode="Ignore"` in UXML and `pointer-events: none;` in USS so they do not block gameplay input.
+3. **Pointer Event Pass-Through & USS Standards**:
+   - Layout container overlays must specify `picking-mode="Ignore"` in UXML or `element.pickingMode = PickingMode.Ignore;` in C# so they do not block gameplay input.
+   - **Never** use invalid web CSS in USS stylesheets (such as `pointer-events: none;`, `box-shadow`, `color: inherit;`, or multi-layer drop shadows), as these trigger compiler warnings in Unity 6. Use single `text-shadow`, native borders/backgrounds, and UXML picking modes instead.
 4. **Touch Target Dimensions**: Minimum 54px–64px height for mobile/touch ergonomic targets.
 
 ---

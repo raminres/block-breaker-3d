@@ -70,6 +70,14 @@ namespace Arcade.UI
             {
                 panelRenderer.UnregisterUIReloadCallback(OnUIReload);
             }
+            root = null;
+            targetElement = null;
+        }
+
+        private void OnDestroy()
+        {
+            root = null;
+            targetElement = null;
         }
 
         private void OnUIReload(PanelRenderer renderer, VisualElement newRoot, int version)
@@ -114,89 +122,96 @@ namespace Arcade.UI
 
             if (root == null) return;
 
-            // Target the actual content container (prefer dedicated safe-area-content or main-menu-content)
-            // to allow full-screen root containers and modal backdrops to remain edge-to-edge
-            targetElement = !string.IsNullOrEmpty(targetContainerName)
-                ? root.Q(targetContainerName) ?? root
-                : (root.Q("safe-area-content") ?? root.Q("main-menu-content") ?? root.Q("top-bar") ?? root.Q("hud-root") ?? root.Q("root-container") ?? (root.childCount > 0 ? root[0] : root));
+            try
+            {
+                // Target the actual content container (prefer dedicated safe-area-content or main-menu-content)
+                // to allow full-screen root containers and modal backdrops to remain edge-to-edge
+                targetElement = !string.IsNullOrEmpty(targetContainerName)
+                    ? root.Q(targetContainerName) ?? root
+                    : (root.Q("safe-area-content") ?? root.Q("main-menu-content") ?? root.Q("top-bar") ?? root.Q("hud-root") ?? root.Q("root-container") ?? (root.childCount > 0 ? root[0] : root));
 
-            if (targetElement == null) targetElement = root;
+                if (targetElement == null) targetElement = root;
 
-            Rect safeArea = Screen.safeArea;
-            float screenW = Screen.width > 0 ? Screen.width : 1920f;
-            float screenH = Screen.height > 0 ? Screen.height : 1080f;
+                Rect safeArea = Screen.safeArea;
+                float screenW = Screen.width > 0 ? Screen.width : 1920f;
+                float screenH = Screen.height > 0 ? Screen.height : 1080f;
 
-            // Detect whether Unity (Device Simulator or physical device) provides a genuine hardware safe area
-            bool hasGenuineSafeArea = safeArea.x > 0.5f || safeArea.y > 0.5f ||
-                                      (screenW - (safeArea.x + safeArea.width)) > 0.5f ||
-                                      (screenH - (safeArea.y + safeArea.height)) > 0.5f;
+                // Detect whether Unity (Device Simulator or physical device) provides a genuine hardware safe area
+                bool hasGenuineSafeArea = safeArea.x > 0.5f || safeArea.y > 0.5f ||
+                                          (screenW - (safeArea.x + safeArea.width)) > 0.5f ||
+                                          (screenH - (safeArea.y + safeArea.height)) > 0.5f;
 
 #if UNITY_EDITOR
-            if (forceEditorSimulation || (!hasGenuineSafeArea && simulateInEditor))
-            {
-                safeArea = new Rect(
-                    simulatedSideInsetPixels,
-                    simulatedBottomInsetPixels,
-                    screenW - (simulatedSideInsetPixels * 2f),
-                    screenH - (simulatedTopInsetPixels + simulatedBottomInsetPixels)
-                );
-            }
+                if (forceEditorSimulation || (!hasGenuineSafeArea && simulateInEditor))
+                {
+                    safeArea = new Rect(
+                        simulatedSideInsetPixels,
+                        simulatedBottomInsetPixels,
+                        screenW - (simulatedSideInsetPixels * 2f),
+                        screenH - (simulatedTopInsetPixels + simulatedBottomInsetPixels)
+                    );
+                }
 #endif
 
-            lastSafeArea = safeArea;
-            lastOrientation = Screen.orientation;
-            lastResolution = new Vector2Int(Screen.width, Screen.height);
+                lastSafeArea = safeArea;
+                lastOrientation = Screen.orientation;
+                lastResolution = new Vector2Int(Screen.width, Screen.height);
 
-            if (screenW <= 0 || screenH <= 0) return;
+                if (screenW <= 0 || screenH <= 0) return;
 
-            // Calculate insets using Yoga width-relative CSS percentages:
-            // In CSS / Yoga Flexbox, all padding percentages (including top and bottom) are calculated relative to the containing element's WIDTH.
-            // Dividing by screenW guarantees the rendered pixel inset is mathematically 100% exact.
-            var (leftPct, rightPct, topPct, bottomPct) = CalculateYogaInsets(safeArea, screenW, screenH, extraSidePercent, extraTopPercent, extraBottomPercent);
+                // Calculate insets using Yoga width-relative CSS percentages:
+                // In CSS / Yoga Flexbox, all padding percentages (including top and bottom) are calculated relative to the containing element's WIDTH.
+                // Dividing by screenW guarantees the rendered pixel inset is mathematically 100% exact.
+                var (leftPct, rightPct, topPct, bottomPct) = CalculateYogaInsets(safeArea, screenW, screenH, extraSidePercent, extraTopPercent, extraBottomPercent);
 
-            // Apply padding to target container element (e.g. safe-area-content)
-            targetElement.style.paddingLeft = Length.Percent(leftPct);
-            targetElement.style.paddingRight = Length.Percent(rightPct);
-            targetElement.style.paddingTop = Length.Percent(topPct);
-            targetElement.style.paddingBottom = Length.Percent(bottomPct);
+                // Apply padding to target container element (e.g. safe-area-content)
+                targetElement.style.paddingLeft = Length.Percent(leftPct);
+                targetElement.style.paddingRight = Length.Percent(rightPct);
+                targetElement.style.paddingTop = Length.Percent(topPct);
+                targetElement.style.paddingBottom = Length.Percent(bottomPct);
 
-            // If targetElement is a child of root, reset root's padding so layout isn't duplicated
-            // and root remains 100% full bleed for edge-to-edge modal backdrops
-            if (targetElement != root)
-            {
-                root.style.paddingLeft = Length.Percent(0);
-                root.style.paddingRight = Length.Percent(0);
-                root.style.paddingTop = Length.Percent(0);
-                root.style.paddingBottom = Length.Percent(0);
+                // If targetElement is a child of root, reset root's padding so layout isn't duplicated
+                // and root remains 100% full bleed for edge-to-edge modal backdrops
+                if (targetElement != root)
+                {
+                    root.style.paddingLeft = Length.Percent(0);
+                    root.style.paddingRight = Length.Percent(0);
+                    root.style.paddingTop = Length.Percent(0);
+                    root.style.paddingBottom = Length.Percent(0);
+                }
+
+                var fullBleedRoot = root.Q("hud-root") ?? root.Q("root-container");
+                if (fullBleedRoot != null && targetElement != fullBleedRoot)
+                {
+                    fullBleedRoot.style.paddingLeft = Length.Percent(0);
+                    fullBleedRoot.style.paddingRight = Length.Percent(0);
+                    fullBleedRoot.style.paddingTop = Length.Percent(0);
+                    fullBleedRoot.style.paddingBottom = Length.Percent(0);
+                }
+
+                // Fullscreen modals (e.g. How To Play) expand edge-to-edge but protect their content
+                // from phone/tablet notches, camera cutouts, rounded corners, and home indicator bars
+                var fullscreenSafeAreaElements = root.Query<VisualElement>(className: "safe-area-fullscreen").ToList();
+                foreach (var elem in fullscreenSafeAreaElements)
+                {
+                    elem.style.paddingLeft = Length.Percent(leftPct);
+                    elem.style.paddingRight = Length.Percent(rightPct);
+                    elem.style.paddingTop = Length.Percent(topPct);
+                    elem.style.paddingBottom = Length.Percent(bottomPct);
+                }
+
+                var howToPlayCard = root.Q<VisualElement>("how-to-play-card") ?? root.Q<VisualElement>(className: "how-to-play-card");
+                if (howToPlayCard != null && !fullscreenSafeAreaElements.Contains(howToPlayCard))
+                {
+                    howToPlayCard.style.paddingLeft = Length.Percent(leftPct);
+                    howToPlayCard.style.paddingRight = Length.Percent(rightPct);
+                    howToPlayCard.style.paddingTop = Length.Percent(topPct);
+                    howToPlayCard.style.paddingBottom = Length.Percent(bottomPct);
+                }
             }
-
-            var fullBleedRoot = root.Q("hud-root") ?? root.Q("root-container");
-            if (fullBleedRoot != null && targetElement != fullBleedRoot)
+            catch (System.Exception)
             {
-                fullBleedRoot.style.paddingLeft = Length.Percent(0);
-                fullBleedRoot.style.paddingRight = Length.Percent(0);
-                fullBleedRoot.style.paddingTop = Length.Percent(0);
-                fullBleedRoot.style.paddingBottom = Length.Percent(0);
-            }
-
-            // Fullscreen modals (e.g. How To Play) expand edge-to-edge but protect their content
-            // from phone/tablet notches, camera cutouts, rounded corners, and home indicator bars
-            var fullscreenSafeAreaElements = root.Query<VisualElement>(className: "safe-area-fullscreen").ToList();
-            foreach (var elem in fullscreenSafeAreaElements)
-            {
-                elem.style.paddingLeft = Length.Percent(leftPct);
-                elem.style.paddingRight = Length.Percent(rightPct);
-                elem.style.paddingTop = Length.Percent(topPct);
-                elem.style.paddingBottom = Length.Percent(bottomPct);
-            }
-
-            var howToPlayCard = root.Q<VisualElement>("how-to-play-card") ?? root.Q<VisualElement>(className: "how-to-play-card");
-            if (howToPlayCard != null && !fullscreenSafeAreaElements.Contains(howToPlayCard))
-            {
-                howToPlayCard.style.paddingLeft = Length.Percent(leftPct);
-                howToPlayCard.style.paddingRight = Length.Percent(rightPct);
-                howToPlayCard.style.paddingTop = Length.Percent(topPct);
-                howToPlayCard.style.paddingBottom = Length.Percent(bottomPct);
+                // VisualElement released during panel reload/teardown
             }
         }
 

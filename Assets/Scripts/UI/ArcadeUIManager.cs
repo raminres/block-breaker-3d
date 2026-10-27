@@ -115,7 +115,7 @@ namespace Arcade.UI
         private Label menuLevelDiff;
         private Label menuLevelName;
         private Label menuLevelDesc;
-        private Label menuLevelStars;
+        private VisualElement menuLevelStars;
         private Label menuLevelBestTime;
         private VisualElement levelPreviewThumb;
         private int selectedLevelNumber = 1;
@@ -265,6 +265,9 @@ namespace Arcade.UI
         [SerializeField] private Sprite pauseSprite;
         [SerializeField] private Sprite playSprite;
 
+        [Header("Level Preview Sprites")]
+        [SerializeField] private Sprite[] levelPreviewSprites = new Sprite[30];
+
         // Public accessors for testing & verification
         public VisualElement LaunchBanner => launchBanner;
         public VisualElement LaunchFingerIcon => launchFingerIcon;
@@ -367,6 +370,8 @@ namespace Arcade.UI
 
         private void OnDestroy()
         {
+            UnsubscribeEvents();
+            UnbindElements();
             if (Instance == this)
             {
                 Instance = null;
@@ -426,7 +431,6 @@ namespace Arcade.UI
 
             if (root != null && btnQuickPause == null)
             {
-                UnbindElements();
                 BindElements();
                 InitializeDisplay();
             }
@@ -488,8 +492,8 @@ namespace Arcade.UI
         private void OnUIReload(PanelRenderer renderer, VisualElement newRoot, int version)
         {
             if (newRoot == null) return;
-            root = newRoot;
             UnbindElements();
+            root = newRoot;
             BindElements();
             InitializeDisplay();
         }
@@ -554,9 +558,51 @@ namespace Arcade.UI
             LocalizationManager.OnLanguageChanged -= UpdateLocalizedTexts;
             hudLevelTabButtons.Clear();
 
-            if (btnApplyLevel != null) btnApplyLevel.clicked -= ApplyLevelSettingsAndRestart;
-            if (btnCloseLevelSettings != null) btnCloseLevelSettings.clicked -= HideLevelSettings;
+            btnQuickLevels = null;
+            btnQuickMute = null;
+            btnQuickOptions = null;
+            btnQuickPause = null;
+            btnResume = null;
+            btnLevelSelectPause = null;
+            btnHighscoresPause = null;
+            btnHowToPlayPause = null;
+            btnLevelSettingsPause = null;
+            btnCreditsPause = null;
+            btnRestartPause = null;
+            btnMenuPause = null;
+            btnCloseCredits = null;
+            btnCloseLevelModal = null;
+            btnStartSelectedLevel = null;
+            btnCreditEmail = null;
+            btnCreditWebsite = null;
+            btnCreditLinkedin = null;
+            btnCreditGithub = null;
+            btnNextLevel = null;
+            btnClearMenu = null;
+            btnReplayLevel = null;
+            btnRetry = null;
+            btnOverMenu = null;
+            btnCloseOptions = null;
+            btnCloseHighscores = null;
+            btnResetHighscores = null;
+            btnCloseHowToPlay = null;
+            btnFps = null;
+            btnOptionsPause = null;
+            btnApplyLevel = null;
+            btnCloseLevelSettings = null;
 
+            root = null;
+            scoreLabel = null;
+            scoreContainer = null;
+            highscoreLabel = null;
+            speedContainer = null;
+            speedLabel = null;
+            speedIcon = null;
+            timerLabel = null;
+            scoreDeltaLabel = null;
+            comboStatusBadge = null;
+            comboStatusIcon = null;
+            comboLabel = null;
             levelClearBanner = null;
             levelClearBannerText = null;
             levelClearBannerSubtext = null;
@@ -689,6 +735,7 @@ namespace Arcade.UI
                 }
                 laserSprite = gunSp;
             }
+            EnsurePreviewSprites();
 #endif
 
             shieldStatusBadge = root.Q<VisualElement>("shield-status-badge");
@@ -860,7 +907,7 @@ namespace Arcade.UI
                     starsRow.pickingMode = PickingMode.Ignore;
                     for (int s = 0; s < 3; s++)
                     {
-                        var star = new Label("★");
+                        var star = new VisualElement();
                         star.AddToClassList("card-star");
                         star.AddToClassList(s < stars ? "star-active" : "star-inactive");
                         star.pickingMode = PickingMode.Ignore;
@@ -888,7 +935,7 @@ namespace Arcade.UI
             menuLevelDiff = root.Q<Label>("menu-level-diff");
             menuLevelName = root.Q<Label>("menu-level-name");
             menuLevelDesc = root.Q<Label>("menu-level-desc");
-            menuLevelStars = root.Q<Label>("menu-level-stars");
+            menuLevelStars = root.Q<VisualElement>("menu-level-stars");
             menuLevelBestTime = root.Q<Label>("menu-level-best-time");
             levelPreviewThumb = root.Q<VisualElement>("level-preview-thumb");
 
@@ -1194,6 +1241,9 @@ namespace Arcade.UI
         {
             UnsubscribeEvents();
 
+            BallController.OnAnyBallSpeedChanged -= HandleBallSpeedChanged;
+            BallController.OnAnyBallSpeedChanged += HandleBallSpeedChanged;
+
             if (ArcadeGameManager.Instance != null)
             {
                 ArcadeGameManager.Instance.OnScoreChanged += UpdateScoreDisplay;
@@ -1217,13 +1267,13 @@ namespace Arcade.UI
                 ArcadeGameManager.Instance.OnLevelClearPending += HandleLevelClearPending;
                 ArcadeGameManager.Instance.OnPowerdownStateChanged += HandlePowerdownStateChanged;
                 ArcadeGameManager.Instance.OnPowerdownTick += HandlePowerdownTick;
-                BallController.OnAnyBallSpeedChanged -= HandleBallSpeedChanged;
-                BallController.OnAnyBallSpeedChanged += HandleBallSpeedChanged;
             }
         }
 
         private void UnsubscribeEvents()
         {
+            BallController.OnAnyBallSpeedChanged -= HandleBallSpeedChanged;
+
             if (ArcadeGameManager.Instance != null)
             {
                 ArcadeGameManager.Instance.OnScoreChanged -= UpdateScoreDisplay;
@@ -1247,7 +1297,6 @@ namespace Arcade.UI
                 ArcadeGameManager.Instance.OnLevelClearPending -= HandleLevelClearPending;
                 ArcadeGameManager.Instance.OnPowerdownStateChanged -= HandlePowerdownStateChanged;
                 ArcadeGameManager.Instance.OnPowerdownTick -= HandlePowerdownTick;
-                BallController.OnAnyBallSpeedChanged -= HandleBallSpeedChanged;
             }
         }
 
@@ -1356,8 +1405,6 @@ namespace Arcade.UI
             if (labelStarsSubtitle != null) labelStarsSubtitle.text = LocalizationManager.Get("level_stars", "STARS");
             if (labelTimeSubtitle != null) labelTimeSubtitle.text = LocalizationManager.Get("level_best_time", "BEST TIME");
             if (btnStartSelectedLevel != null) btnStartSelectedLevel.text = LocalizationManager.Get("level_play_btn", "PLAY LEVEL");
-            if (btnReplayLevel != null) btnReplayLevel.text = LocalizationManager.Get("btn_replay", "REPLAY");
-            if (btnClearMenu != null) btnClearMenu.text = LocalizationManager.Get("btn_menu", "MENU");
             if (btnRetry != null) btnRetry.text = LocalizationManager.Get("btn_try_again", "TRY AGAIN");
             if (btnOverMenu != null) btnOverMenu.text = LocalizationManager.Get("btn_main_menu", "MAIN MENU");
             if (btnApplyLevel != null) btnApplyLevel.text = LocalizationManager.Get("btn_apply_restart", "APPLY & RESTART");
@@ -1613,17 +1660,6 @@ namespace Arcade.UI
                 {
                     if (clearScoreLabel != null && ArcadeGameManager.Instance != null)
                         clearScoreLabel.text = ArcadeGameManager.Instance.Score.ToString("#,##0");
-
-                    if (btnNextLevel != null)
-                    {
-                        if (levelGenerator == null) levelGenerator = FindAnyObjectByType<LevelGenerator>();
-                        int currentLvl = levelGenerator != null && levelGenerator.CurrentConfig != null ? levelGenerator.CurrentConfig.LevelNumber : 1;
-                        int nextLvl = currentLvl + 1;
-                        int total = levelGenerator != null ? levelGenerator.TotalLevels : 30;
-                        btnNextLevel.text = nextLvl > total 
-                            ? LocalizationManager.Get("btn_play_again_loop", "PLAY AGAIN (LOOP)") 
-                            : string.Format(LocalizationManager.Get("btn_next_level_n", "NEXT LEVEL ({0})"), nextLvl);
-                    }
 
                     if (ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.CurrentLevelSummary.levelNumber > 0)
                     {
@@ -2123,36 +2159,50 @@ namespace Arcade.UI
         {
             if (speedLabel != null)
             {
-                speedLabel.text = $"{speedMultiplier.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}x";
+                try
+                {
+                    speedLabel.text = $"{speedMultiplier.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}x";
+                }
+                catch (System.Exception)
+                {
+                    // UI element released during panel teardown/reload
+                }
             }
 
             if (speedContainer != null)
             {
-                speedContainer.RemoveFromClassList("speed-tier-slow");
-                speedContainer.RemoveFromClassList("speed-tier-normal");
-                speedContainer.RemoveFromClassList("speed-tier-boost");
-                speedContainer.RemoveFromClassList("speed-tier-turbo");
+                try
+                {
+                    speedContainer.RemoveFromClassList("speed-tier-slow");
+                    speedContainer.RemoveFromClassList("speed-tier-normal");
+                    speedContainer.RemoveFromClassList("speed-tier-boost");
+                    speedContainer.RemoveFromClassList("speed-tier-turbo");
 
-                if (currentSpeed < 12f)
-                {
-                    speedContainer.AddToClassList("speed-tier-slow");
-                }
-                else if (currentSpeed < 17f)
-                {
-                    speedContainer.AddToClassList("speed-tier-normal");
-                }
-                else if (currentSpeed < 20f)
-                {
-                    speedContainer.AddToClassList("speed-tier-boost");
-                }
-                else
-                {
-                    speedContainer.AddToClassList("speed-tier-turbo");
-                }
+                    if (currentSpeed < 12f)
+                    {
+                        speedContainer.AddToClassList("speed-tier-slow");
+                    }
+                    else if (currentSpeed < 17f)
+                    {
+                        speedContainer.AddToClassList("speed-tier-normal");
+                    }
+                    else if (currentSpeed < 20f)
+                    {
+                        speedContainer.AddToClassList("speed-tier-boost");
+                    }
+                    else
+                    {
+                        speedContainer.AddToClassList("speed-tier-turbo");
+                    }
 
-                if (gameObject.activeInHierarchy)
+                    if (gameObject.activeInHierarchy)
+                    {
+                        UIAnimationHelper.PunchElement(this, speedContainer, "ui-punch-pop", 0.12f);
+                    }
+                }
+                catch (System.Exception)
                 {
-                    UIAnimationHelper.PunchElement(this, speedContainer, "ui-punch-pop", 0.12f);
+                    // UI element released during panel teardown/reload
                 }
             }
         }
@@ -2978,9 +3028,8 @@ namespace Arcade.UI
                 {
                     if (i < scores.Count && scores[i].score > 0)
                     {
-                        string timeStr = scores[i].time > 0f ? $" • {HighScoreManager.FormatTime(scores[i].time)}" : "";
                         string shortDate = HighScoreManager.FormatShortDate(scores[i].date);
-                        dateLabel.text = $"L{scores[i].level}{timeStr} • {shortDate}";
+                        dateLabel.text = shortDate;
                     }
                     else
                         dateLabel.text = "---";
@@ -3220,15 +3269,74 @@ namespace Arcade.UI
             float bestTime = HighScoreManager.GetLevelBestTime(levelNumber);
             if (menuLevelStars != null)
             {
-                string starStr = "";
-                for (int s = 0; s < 3; s++) starStr += s < levelStars ? "★" : "☆";
-                menuLevelStars.text = starStr;
-                menuLevelStars.style.color = levelStars > 0 ? new StyleColor(new Color(1f, 0.843f, 0f, 1f)) : new StyleColor(new Color(0.6f, 0.65f, 0.75f, 0.4f));
+                for (int s = 0; s < menuLevelStars.childCount; s++)
+                {
+                    var star = menuLevelStars[s];
+                    if (s < levelStars)
+                    {
+                        star.RemoveFromClassList("star-empty");
+                        star.AddToClassList("star-filled");
+                    }
+                    else
+                    {
+                        star.RemoveFromClassList("star-filled");
+                        star.AddToClassList("star-empty");
+                    }
+                }
             }
             if (menuLevelBestTime != null)
             {
                 menuLevelBestTime.text = bestTime > 0 ? HighScoreManager.FormatTime(bestTime) : "--:--";
             }
+            UpdateLevelPreview(levelNumber);
+        }
+
+        public void UpdateLevelPreview(int levelNumber)
+        {
+            if (levelPreviewThumb == null) return;
+            var sprite = GetLevelPreviewSprite(levelNumber);
+            if (sprite != null)
+            {
+                levelPreviewThumb.style.backgroundImage = new StyleBackground(sprite);
+            }
+            else
+            {
+                levelPreviewThumb.style.backgroundImage = StyleKeyword.Null;
+            }
+        }
+
+        public Sprite GetLevelPreviewSprite(int levelNumber)
+        {
+            if (levelPreviewSprites != null && levelNumber >= 1 && levelNumber <= levelPreviewSprites.Length)
+            {
+                var s = levelPreviewSprites[levelNumber - 1];
+                if (s != null) return s;
+            }
+
+#if UNITY_EDITOR
+            string path = $"Assets/UI/LevelPreviews/TX_LevelPreview_{levelNumber:D2}.png";
+            return UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
+#else
+            return null;
+#endif
+        }
+
+        public void EnsurePreviewSprites()
+        {
+#if UNITY_EDITOR
+            if (levelPreviewSprites == null || levelPreviewSprites.Length < 30)
+            {
+                levelPreviewSprites = new Sprite[30];
+            }
+            for (int i = 0; i < 30; i++)
+            {
+                if (levelPreviewSprites[i] == null)
+                {
+                    string path = $"Assets/UI/LevelPreviews/TX_LevelPreview_{i + 1:D2}.png";
+                    levelPreviewSprites[i] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                }
+            }
+#endif
         }
 
         private void HandleStartSelectedLevel()

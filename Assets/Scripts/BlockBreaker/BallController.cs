@@ -92,6 +92,17 @@ namespace Arcade.BlockBreaker
         private static readonly int BaseColorProp = Shader.PropertyToID("_BaseColor");
 
         public static event System.Action<BallController, float, float> OnAnyBallSpeedChanged;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            OnAnyBallSpeedChanged = null;
+        }
+
+        public static void ClearSubscribersForTesting()
+        {
+            OnAnyBallSpeedChanged = null;
+        }
         public event System.Action<float, float> OnSpeedChanged;
 
         public static readonly Color ColorSpeedSlow = new Color(0.35f, 0.85f, 0.95f, 1f); // Frosted Ice Blue (<12 u/s)

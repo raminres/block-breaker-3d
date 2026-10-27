@@ -33,13 +33,13 @@ MonoBehaviour:
   multiplier4xCount: 3
   multiplier5xCount: 3
   paddleExpanderCount: 2
-  bombCount: 4
-  glassEnclosedCount: 5
+  bombCount: 0
+  glassEnclosedCount: 7
   extraHeartCount: 2
   shieldCount: 3
   multiBallCount: 3
   shieldDuration: 10
-  laserCount: 2
+  laserCount: 4
   laserDuration: 10
   paddleShortenerCount: 3
   paddleSlowerCount: 3

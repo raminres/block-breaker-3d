@@ -23,52 +23,42 @@
 
 .badge-plate-x2 {
     border-color: #ffd700;
-    box-shadow: 0 0 12px rgba(255, 215, 0, 0.75);
 }
 
 .badge-plate-x3 {
     border-color: #ff4757;
-    box-shadow: 0 0 12px rgba(255, 71, 87, 0.85);
 }
 
 .badge-plate-x4 {
     border-color: #ff1744;
-    box-shadow: 0 0 14px rgba(255, 23, 68, 0.9);
 }
 
 .badge-plate-x5 {
     border-color: #d500f9;
-    box-shadow: 0 0 14px rgba(213, 0, 249, 0.95);
 }
 
 .badge-plate-expander {
     border-color: #00f2fe;
-    box-shadow: 0 0 12px rgba(0, 242, 254, 0.8);
 }
 
 .badge-plate-bomb {
     border-color: #ff5722;
-    box-shadow: 0 0 14px rgba(255, 87, 34, 0.9);
 }
 
 .badge-plate-heart-plus {
     border-color: #ff2a6d;
-    box-shadow: 0 0 14px rgba(255, 42, 109, 0.9);
 }
 
 .badge-plate-shield {
     border-color: #00f2fe;
-    box-shadow: 0 0 14px rgba(0, 242, 254, 0.9);
 }
 
 .badge-plate-multiball {
     border-color: #e056fd;
-    box-shadow: 0 0 14px rgba(224, 86, 253, 0.9);
 }
 
 .badge-plate-laser {
     border-color: #ff2a47;
-    box-shadow: 0 0 14px rgba(255, 42, 71, 0.9);
 }
 
 .badge-plate-powerup {
@@ -76,7 +66,6 @@
 
 .badge-plate-powerdown {
     border-color: #ff1744;
-    box-shadow: 0 0 14px rgba(255, 23, 68, 0.95);
 }
 
 .badge-icon {

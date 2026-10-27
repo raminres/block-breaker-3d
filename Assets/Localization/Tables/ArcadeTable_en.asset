@@ -46,10 +46,6 @@ MonoBehaviour:
     m_Localized: CREDITS
     m_Metadata:
       m_Items: []
-  - m_Id: 1013338118
-    m_Localized: 3D ARCADE RETRO-MODERN
-    m_Metadata:
-      m_Items: []
   - m_Id: 1013338119
     m_Localized: SELECT LEVEL
     m_Metadata:
@@ -264,22 +260,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 12263776902860809
     m_Localized: TOTAL SCORE
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12263776902860810
-    m_Localized: REPLAY
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12263776902860811
-    m_Localized: NEXT LEVEL ({0})
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12263776902860812
-    m_Localized: PLAY AGAIN (LOOP)
-    m_Metadata:
-      m_Items: []
-  - m_Id: 12263776902860813
-    m_Localized: MENU
     m_Metadata:
       m_Items: []
   - m_Id: 12263776902860814

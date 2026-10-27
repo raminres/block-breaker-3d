@@ -132,7 +132,6 @@ namespace Arcade.Editor
                 ("menu_how_to_play", "HOW TO PLAY", "NASIL OYNANIR"),
                 ("menu_options", "OPTIONS", "AYARLAR"),
                 ("menu_credits", "CREDITS", "YAPIMCILAR"),
-                ("menu_subtitle", "3D ARCADE RETRO-MODERN", "3D RETRO-MODERN ATARİ"),
 
                 // Level Select
                 ("level_select_title", "SELECT LEVEL", "BÖLÜM SEÇ"),

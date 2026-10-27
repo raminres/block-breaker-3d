@@ -1138,7 +1138,6 @@ namespace Arcade.Tests
                 "banner_clutch", "banner_flawless", "banner_complete",
                 "scorecard_title", "scorecard_blocks", "scorecard_combo", "scorecard_time_par", "scorecard_time_bonus",
                 "scorecard_flawless_bonus", "scorecard_flawless_val", "scorecard_total_score",
-                "btn_replay", "btn_next_level_n", "btn_play_again_loop", "btn_menu",
                 "gameover_final_score", "gameover_high_score", "btn_try_again",
                 "level_stars", "level_tag_format", "level_settings_title",
                 "popup_strike", "popup_dampen", "popup_ball_slowed", "popup_turbo", "popup_speed_up",
@@ -1223,8 +1222,8 @@ namespace Arcade.Tests
             Assert.AreEqual(LocalizationManager.Get("scorecard_time_bonus"), uiMgr.LabelScorecardTimeBonus.text);
             Assert.AreEqual(LocalizationManager.Get("scorecard_flawless_bonus"), uiMgr.LabelScorecardFlawless.text);
             Assert.AreEqual(LocalizationManager.Get("scorecard_total_score"), uiMgr.LabelScorecardTotal.text);
-            Assert.AreEqual(LocalizationManager.Get("btn_replay"), uiMgr.BtnReplayLevel.text);
-            Assert.AreEqual(LocalizationManager.Get("btn_menu"), uiMgr.BtnClearMenu.text);
+            Assert.IsTrue(string.IsNullOrEmpty(uiMgr.BtnReplayLevel.text), "BtnReplayLevel must be icon-only with no text.");
+            Assert.IsTrue(string.IsNullOrEmpty(uiMgr.BtnClearMenu.text), "BtnClearMenu must be icon-only with no text.");
             Assert.AreEqual(LocalizationManager.Get("btn_try_again"), uiMgr.BtnRetry.text);
 
             uiMgr.UpdateScoreDisplay(120, 0);
@@ -1243,8 +1242,8 @@ namespace Arcade.Tests
             Assert.AreEqual(LocalizationManager.Get("scorecard_time_bonus"), uiMgr.LabelScorecardTimeBonus.text);
             Assert.AreEqual(LocalizationManager.Get("scorecard_flawless_bonus"), uiMgr.LabelScorecardFlawless.text);
             Assert.AreEqual(LocalizationManager.Get("scorecard_total_score"), uiMgr.LabelScorecardTotal.text);
-            Assert.AreEqual(LocalizationManager.Get("btn_replay"), uiMgr.BtnReplayLevel.text);
-            Assert.AreEqual(LocalizationManager.Get("btn_menu"), uiMgr.BtnClearMenu.text);
+            Assert.IsTrue(string.IsNullOrEmpty(uiMgr.BtnReplayLevel.text), "BtnReplayLevel must be icon-only with no text.");
+            Assert.IsTrue(string.IsNullOrEmpty(uiMgr.BtnClearMenu.text), "BtnClearMenu must be icon-only with no text.");
             Assert.AreEqual(LocalizationManager.Get("btn_try_again"), uiMgr.BtnRetry.text);
 
             uiMgr.UpdateScoreDisplay(120, 0);
@@ -1254,20 +1253,59 @@ namespace Arcade.Tests
         }
 
         [Test]
+        public void BlockBreakerHUD_ScorecardButtons_UseIconsWithoutText()
+        {
+            var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/BlockBreakerHUD.uxml");
+            Assert.IsNotNull(uxml, "BlockBreakerHUD.uxml must exist.");
+
+            var root = uxml.CloneTree();
+            var btnReplay = root.Q<Button>("btn-replay-level");
+            var btnNext = root.Q<Button>("btn-next-level");
+            var btnMenu = root.Q<Button>("btn-clear-menu");
+
+            Assert.IsNotNull(btnReplay, "btn-replay-level must exist.");
+            Assert.IsNotNull(btnNext, "btn-next-level must exist.");
+            Assert.IsNotNull(btnMenu, "btn-clear-menu must exist.");
+
+            Assert.IsTrue(string.IsNullOrEmpty(btnReplay.text), "btn-replay-level must not have text.");
+            Assert.IsTrue(string.IsNullOrEmpty(btnNext.text), "btn-next-level must not have text.");
+            Assert.IsTrue(string.IsNullOrEmpty(btnMenu.text), "btn-clear-menu must not have text.");
+
+            var replayIcon = btnReplay.Q<VisualElement>("icon-scorecard-replay");
+            var nextIcon = btnNext.Q<VisualElement>("icon-scorecard-next");
+            var menuIcon = btnMenu.Q<VisualElement>("icon-scorecard-menu");
+
+            Assert.IsNotNull(replayIcon, "btn-replay-level must contain icon-scorecard-replay.");
+            Assert.IsNotNull(nextIcon, "btn-next-level must contain icon-scorecard-next.");
+            Assert.IsNotNull(menuIcon, "btn-clear-menu must contain icon-scorecard-menu.");
+
+            Assert.IsTrue(replayIcon.ClassListContains("icon-scorecard-replay"));
+            Assert.IsTrue(nextIcon.ClassListContains("icon-scorecard-next"));
+            Assert.IsTrue(menuIcon.ClassListContains("icon-scorecard-menu"));
+
+            var uss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(uss.Contains(".scorecard-btn-icon {"), "BlockBreakerHUD.uss must define .scorecard-btn-icon.");
+            Assert.IsTrue(uss.Contains(".icon-scorecard-replay {"), "BlockBreakerHUD.uss must define .icon-scorecard-replay.");
+            Assert.IsTrue(uss.Contains(".icon-scorecard-next {"), "BlockBreakerHUD.uss must define .icon-scorecard-next.");
+            Assert.IsTrue(uss.Contains(".icon-scorecard-menu {"), "BlockBreakerHUD.uss must define .icon-scorecard-menu.");
+            Assert.IsTrue(uss.Contains("TX_Icon_Replay.png"), "BlockBreakerHUD.uss must reference TX_Icon_Replay.png.");
+            Assert.IsTrue(uss.Contains("TX_Icon_Arrow_Next.png"), "BlockBreakerHUD.uss must reference TX_Icon_Arrow_Next.png.");
+            Assert.IsTrue(uss.Contains("TX_Icon_Menu.png"), "BlockBreakerHUD.uss must reference TX_Icon_Menu.png.");
+        }
+
+        [Test]
         public void Test_MainMenuUIManager_LocalizesAllElements()
         {
             var menuObj = new GameObject("TestMainMenuUIManager", typeof(PanelRenderer), typeof(MainMenuUIManager));
             var menuMgr = menuObj.GetComponent<MainMenuUIManager>();
 
             var rootVisual = new VisualElement();
-            var menuSubtitle = new Label { name = "menu-subtitle" };
             var modalTitleHighscores = new Label { name = "modal-title-highscores" };
             var labelStarsSubtitle = new Label { name = "label-stars-subtitle" };
             var creditAuthor = new Label { name = "credit-author" };
             var creditFootnote = new Label { name = "credit-footnote" };
             var menuLevelTag = new Label { name = "menu-level-tag" };
 
-            rootVisual.Add(menuSubtitle);
             rootVisual.Add(modalTitleHighscores);
             rootVisual.Add(labelStarsSubtitle);
             rootVisual.Add(creditAuthor);
@@ -1282,7 +1320,6 @@ namespace Arcade.Tests
 
             // Test English
             LocalizationManager.SetLanguage(GameLanguage.English);
-            Assert.AreEqual(LocalizationManager.Get("menu_subtitle"), menuSubtitle.text);
             Assert.AreEqual(LocalizationManager.Get("menu_high_scores"), modalTitleHighscores.text);
             Assert.AreEqual(LocalizationManager.Get("level_stars"), labelStarsSubtitle.text);
             Assert.AreEqual(LocalizationManager.Get("credits_dev_by"), creditAuthor.text);
@@ -1290,13 +1327,34 @@ namespace Arcade.Tests
 
             // Test Turkish
             LocalizationManager.SetLanguage(GameLanguage.Turkish);
-            Assert.AreEqual(LocalizationManager.Get("menu_subtitle"), menuSubtitle.text);
             Assert.AreEqual(LocalizationManager.Get("menu_high_scores"), modalTitleHighscores.text);
             Assert.AreEqual(LocalizationManager.Get("level_stars"), labelStarsSubtitle.text);
             Assert.AreEqual(LocalizationManager.Get("credits_dev_by"), creditAuthor.text);
             Assert.IsTrue(menuLevelTag.text.Contains("1"));
 
             Object.DestroyImmediate(menuObj);
+        }
+
+        [Test]
+        public void MainMenuUI_HeaderContainer_ContainsGameLogoAndNoTextLabels()
+        {
+            var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MainMenuUI.uxml");
+            Assert.IsNotNull(uxml, "MainMenuUI.uxml must exist.");
+
+            var root = uxml.CloneTree();
+            var headerContainer = root.Q<VisualElement>("header-container");
+            Assert.IsNotNull(headerContainer, "header-container must exist.");
+
+            var gameLogo = headerContainer.Q<VisualElement>("game-logo");
+            Assert.IsNotNull(gameLogo, "header-container must contain game-logo element.");
+            Assert.IsTrue(gameLogo.ClassListContains("game-logo"), "game-logo must have .game-logo class.");
+
+            var labels = headerContainer.Query<Label>().ToList();
+            Assert.AreEqual(0, labels.Count, "header-container must not contain any Label text elements.");
+
+            var uss = System.IO.File.ReadAllText("Assets/UI/MainMenuUI.uss");
+            Assert.IsTrue(uss.Contains(".game-logo {"), "MainMenuUI.uss must define .game-logo.");
+            Assert.IsTrue(uss.Contains("TX_Block_Breaker_3D_Logo.png"), "MainMenuUI.uss must reference TX_Block_Breaker_3D_Logo.png.");
         }
 
         [Test]
@@ -1331,6 +1389,91 @@ namespace Arcade.Tests
             Assert.IsTrue(string.Format(LocalizationManager.Get("popup_chain"), 2).Contains("2"));
             Assert.IsTrue(string.Format(LocalizationManager.Get("popup_combo"), 3).Contains("3"));
             Assert.IsTrue(string.Format(LocalizationManager.Get("popup_multiball"), 2).Contains("2"));
+        }
+
+        [Test]
+        public void Test_Stars_UseSpriteVisualElementsAndTextures_InMainMenuAndHUD()
+        {
+            // Verify MainMenuUI UXML
+            var menuUxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MainMenuUI.uxml");
+            Assert.IsNotNull(menuUxml);
+            var menuRoot = menuUxml.CloneTree();
+            var menuStars = menuRoot.Q<VisualElement>("menu-level-stars");
+            Assert.IsNotNull(menuStars, "MainMenuUI must contain menu-level-stars.");
+            Assert.AreEqual(3, menuStars.childCount, "menu-level-stars in MainMenuUI must contain 3 star visual elements.");
+
+            // Verify BlockBreakerHUD UXML
+            var hudUxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/BlockBreakerHUD.uxml");
+            Assert.IsNotNull(hudUxml);
+            var hudRoot = hudUxml.CloneTree();
+            var hudStars = hudRoot.Q<VisualElement>("menu-level-stars");
+            Assert.IsNotNull(hudStars, "BlockBreakerHUD must contain menu-level-stars.");
+            Assert.AreEqual(3, hudStars.childCount, "menu-level-stars in BlockBreakerHUD must contain 3 star visual elements.");
+
+            // Verify MainMenuUI USS
+            var menuUss = System.IO.File.ReadAllText("Assets/UI/MainMenuUI.uss");
+            Assert.IsTrue(menuUss.Contains(".card-star {"), "MainMenuUI.uss must define .card-star.");
+            Assert.IsTrue(menuUss.Contains(".preview-star {"), "MainMenuUI.uss must define .preview-star.");
+            Assert.IsTrue(menuUss.Contains("TX_Star_Filled.png"), "MainMenuUI.uss must reference TX_Star_Filled.png.");
+            Assert.IsTrue(menuUss.Contains("TX_Star_Empty.png"), "MainMenuUI.uss must reference TX_Star_Empty.png.");
+
+            // Verify BlockBreakerHUD USS
+            var hudUss = System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss");
+            Assert.IsTrue(hudUss.Contains(".card-star {"), "BlockBreakerHUD.uss must define .card-star.");
+            Assert.IsTrue(hudUss.Contains(".preview-star {"), "BlockBreakerHUD.uss must define .preview-star.");
+            Assert.IsTrue(hudUss.Contains(".scorecard-star {"), "BlockBreakerHUD.uss must define .scorecard-star.");
+            Assert.IsTrue(hudUss.Contains("TX_Star_Filled.png"), "BlockBreakerHUD.uss must reference TX_Star_Filled.png.");
+            Assert.IsTrue(hudUss.Contains("TX_Star_Empty.png"), "BlockBreakerHUD.uss must reference TX_Star_Empty.png.");
+        }
+
+        [Test]
+        public void LevelPreviews_AllThirtyScreenshotsExist_AndHaveCorrectDimensionsAndSpriteType()
+        {
+            for (int lvl = 1; lvl <= 30; lvl++)
+            {
+                string path = $"Assets/UI/LevelPreviews/TX_LevelPreview_{lvl:D2}.png";
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                Assert.IsNotNull(sprite, $"Level {lvl} preview sprite must exist at {path}");
+                Assert.AreEqual(128, sprite.rect.width, $"Level {lvl} preview width must be 128");
+                Assert.AreEqual(256, sprite.rect.height, $"Level {lvl} preview height must be 256");
+
+                var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                Assert.IsNotNull(importer, $"TextureImporter for Level {lvl} preview must exist.");
+                Assert.AreEqual(TextureImporterType.Sprite, importer.textureType, $"Level {lvl} preview must be imported as Sprite.");
+            }
+        }
+
+        [Test]
+        public void MainMenuUIManager_And_ArcadeUIManager_UpdateLevelPreviewThumbOnSelectLevel()
+        {
+            // Verify MainMenuUIManager updates levelPreviewThumb
+            var menuObj = new GameObject("TestMainMenuMgr", typeof(PanelRenderer), typeof(MainMenuUIManager));
+            var menuMgr = menuObj.GetComponent<MainMenuUIManager>();
+            var menuThumb = new VisualElement { name = "level-preview-thumb" };
+            typeof(MainMenuUIManager).GetField("levelPreviewThumb", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(menuMgr, menuThumb);
+
+            menuMgr.UpdateLevelPreview(1);
+            Assert.IsNotNull(menuThumb.style.backgroundImage.value.sprite, "MainMenuUIManager must set levelPreviewThumb background image to Level 1 preview sprite.");
+            Assert.AreEqual("TX_LevelPreview_01", menuThumb.style.backgroundImage.value.sprite.name);
+
+            menuMgr.UpdateLevelPreview(15);
+            Assert.AreEqual("TX_LevelPreview_15", menuThumb.style.backgroundImage.value.sprite.name);
+
+            // Verify ArcadeUIManager updates levelPreviewThumb
+            var hudObj = new GameObject("TestArcadeUIMgr", typeof(PanelRenderer), typeof(ArcadeUIManager));
+            var hudMgr = hudObj.GetComponent<ArcadeUIManager>();
+            var hudThumb = new VisualElement { name = "level-preview-thumb" };
+            typeof(ArcadeUIManager).GetField("levelPreviewThumb", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(hudMgr, hudThumb);
+
+            hudMgr.UpdateLevelPreview(2);
+            Assert.IsNotNull(hudThumb.style.backgroundImage.value.sprite, "ArcadeUIManager must set levelPreviewThumb background image to Level 2 preview sprite.");
+            Assert.AreEqual("TX_LevelPreview_02", hudThumb.style.backgroundImage.value.sprite.name);
+
+            hudMgr.UpdateLevelPreview(30);
+            Assert.AreEqual("TX_LevelPreview_30", hudThumb.style.backgroundImage.value.sprite.name);
+
+            Object.DestroyImmediate(menuObj);
+            Object.DestroyImmediate(hudObj);
         }
     }
 }

@@ -56,7 +56,7 @@ namespace Arcade.UI
         private Label menuLevelDiff;
         private Label menuLevelName;
         private Label menuLevelDesc;
-        private Label menuLevelStars;
+        private VisualElement menuLevelStars;
         private Label menuLevelBestTime;
         private VisualElement levelPreviewThumb;
         private int selectedLevelNumber = 1;
@@ -74,6 +74,9 @@ namespace Arcade.UI
         [SerializeField] private Sprite volumeUpSprite;
         [SerializeField] private Sprite volumeMuteSprite;
 
+        [Header("Level Preview Sprites")]
+        [SerializeField] private Sprite[] levelPreviewSprites = new Sprite[30];
+
         // Localized Labels
         private Label labelSettingLang;
         private Label labelSettingSfx;
@@ -88,7 +91,6 @@ namespace Arcade.UI
         private Label labelDiffSubtitle;
         private Label labelStarsSubtitle;
         private Label labelTimeSubtitle;
-        private Label menuSubtitle;
         private Label modalTitleHighscores;
         private Label creditAuthor;
         private Label creditFootnote;
@@ -112,6 +114,7 @@ namespace Arcade.UI
                 volumeUpSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/UI/Icons/TX_Volume_Up.png");
             if (volumeMuteSprite == null)
                 volumeMuteSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/UI/Icons/TX_Volume_Mute.png");
+            EnsurePreviewSprites();
 #endif
         }
 
@@ -137,7 +140,6 @@ namespace Arcade.UI
 
             if (root != null && btnNewGame == null)
             {
-                UnbindElements();
                 BindElements();
                 InitializeValues();
                 if (Application.isPlaying)
@@ -199,11 +201,16 @@ namespace Arcade.UI
             UnbindElements();
         }
 
+        private void OnDestroy()
+        {
+            UnbindElements();
+        }
+
         private void OnUIReload(PanelRenderer renderer, VisualElement newRoot, int version)
         {
             if (newRoot == null) return;
-            root = newRoot;
             UnbindElements();
+            root = newRoot;
             BindElements();
             InitializeValues();
             if (Application.isPlaying)
@@ -242,6 +249,29 @@ namespace Arcade.UI
             LocalizationManager.OnLanguageChanged -= UpdateLocalizedTexts;
 
             menuLevelTabButtons.Clear();
+
+            btnNewGame = null;
+            btnLevelSelect = null;
+            btnContinue = null;
+            btnHighscores = null;
+            btnHowToPlay = null;
+            btnOptions = null;
+            btnCredits = null;
+            btnCloseLevelModal = null;
+            btnStartSelectedLevel = null;
+            btnCloseOptions = null;
+            btnCloseCredits = null;
+            btnCloseHighscores = null;
+            btnResetHighscores = null;
+            btnCloseHowToPlay = null;
+            btnCreditEmail = null;
+            btnCreditWebsite = null;
+            btnCreditLinkedin = null;
+            btnCreditGithub = null;
+            btnToggleFps = null;
+            btnLangEn = null;
+            btnLangTr = null;
+            root = null;
         }
 
         private void BindElements()
@@ -301,7 +331,7 @@ namespace Arcade.UI
                     starsRow.pickingMode = PickingMode.Ignore;
                     for (int s = 0; s < 3; s++)
                     {
-                        var star = new Label("★");
+                        var star = new VisualElement();
                         star.AddToClassList("card-star");
                         star.AddToClassList(s < stars ? "star-active" : "star-inactive");
                         star.pickingMode = PickingMode.Ignore;
@@ -329,7 +359,7 @@ namespace Arcade.UI
             menuLevelDiff = root.Q<Label>("menu-level-diff");
             menuLevelName = root.Q<Label>("menu-level-name");
             menuLevelDesc = root.Q<Label>("menu-level-desc");
-            menuLevelStars = root.Q<Label>("menu-level-stars");
+            menuLevelStars = root.Q<VisualElement>("menu-level-stars");
             menuLevelBestTime = root.Q<Label>("menu-level-best-time");
             levelPreviewThumb = root.Q<VisualElement>("level-preview-thumb");
 
@@ -354,7 +384,6 @@ namespace Arcade.UI
             labelDiffSubtitle = root.Q<Label>("label-diff-subtitle");
             labelStarsSubtitle = root.Q<Label>("label-stars-subtitle");
             labelTimeSubtitle = root.Q<Label>("label-time-subtitle");
-            menuSubtitle = root.Q<Label>("menu-subtitle");
             modalTitleHighscores = root.Q<Label>("modal-title-highscores");
             creditAuthor = root.Q<Label>("credit-author");
             creditFootnote = root.Q<Label>("credit-footnote");
@@ -527,7 +556,6 @@ namespace Arcade.UI
             if (labelDiffSubtitle != null) labelDiffSubtitle.text = LocalizationManager.Get("level_difficulty", "DIFFICULTY");
             if (labelStarsSubtitle != null) labelStarsSubtitle.text = LocalizationManager.Get("level_stars", "STARS");
             if (labelTimeSubtitle != null) labelTimeSubtitle.text = LocalizationManager.Get("level_best_time", "BEST TIME");
-            if (menuSubtitle != null) menuSubtitle.text = LocalizationManager.Get("menu_subtitle", "3D ARCADE RETRO-MODERN");
             if (modalTitleHighscores != null) modalTitleHighscores.text = LocalizationManager.Get("menu_high_scores", "HIGH SCORES");
             if (creditAuthor != null) creditAuthor.text = LocalizationManager.Get("credits_dev_by", "Developed by Ramin Rasulzade");
             if (creditFootnote != null) creditFootnote.text = LocalizationManager.Get("credits_footnote", "Unity 6000.6 (URP) • Apple Metal • WebGPU");
@@ -604,15 +632,74 @@ namespace Arcade.UI
             float bestTime = HighScoreManager.GetLevelBestTime(levelNumber);
             if (menuLevelStars != null)
             {
-                string starStr = "";
-                for (int s = 0; s < 3; s++) starStr += s < levelStars ? "★" : "☆";
-                menuLevelStars.text = starStr;
-                menuLevelStars.style.color = levelStars > 0 ? new StyleColor(new Color(1f, 0.843f, 0f, 1f)) : new StyleColor(new Color(0.6f, 0.65f, 0.75f, 0.4f));
+                for (int s = 0; s < menuLevelStars.childCount; s++)
+                {
+                    var star = menuLevelStars[s];
+                    if (s < levelStars)
+                    {
+                        star.RemoveFromClassList("star-empty");
+                        star.AddToClassList("star-filled");
+                    }
+                    else
+                    {
+                        star.RemoveFromClassList("star-filled");
+                        star.AddToClassList("star-empty");
+                    }
+                }
             }
             if (menuLevelBestTime != null)
             {
                 menuLevelBestTime.text = bestTime > 0 ? HighScoreManager.FormatTime(bestTime) : "--:--";
             }
+            UpdateLevelPreview(levelNumber);
+        }
+
+        public void UpdateLevelPreview(int levelNumber)
+        {
+            if (levelPreviewThumb == null) return;
+            var sprite = GetLevelPreviewSprite(levelNumber);
+            if (sprite != null)
+            {
+                levelPreviewThumb.style.backgroundImage = new StyleBackground(sprite);
+            }
+            else
+            {
+                levelPreviewThumb.style.backgroundImage = StyleKeyword.Null;
+            }
+        }
+
+        public Sprite GetLevelPreviewSprite(int levelNumber)
+        {
+            if (levelPreviewSprites != null && levelNumber >= 1 && levelNumber <= levelPreviewSprites.Length)
+            {
+                var s = levelPreviewSprites[levelNumber - 1];
+                if (s != null) return s;
+            }
+
+#if UNITY_EDITOR
+            string path = $"Assets/UI/LevelPreviews/TX_LevelPreview_{levelNumber:D2}.png";
+            return UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
+#else
+            return null;
+#endif
+        }
+
+        public void EnsurePreviewSprites()
+        {
+#if UNITY_EDITOR
+            if (levelPreviewSprites == null || levelPreviewSprites.Length < 30)
+            {
+                levelPreviewSprites = new Sprite[30];
+            }
+            for (int i = 0; i < 30; i++)
+            {
+                if (levelPreviewSprites[i] == null)
+                {
+                    string path = $"Assets/UI/LevelPreviews/TX_LevelPreview_{i + 1:D2}.png";
+                    levelPreviewSprites[i] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                }
+            }
+#endif
         }
 
         public LevelConfiguration GetLevelConfig(int levelNumber)
@@ -791,9 +878,8 @@ namespace Arcade.UI
                 {
                     if (i < scores.Count && scores[i].score > 0)
                     {
-                        string timeStr = scores[i].time > 0f ? $" • {HighScoreManager.FormatTime(scores[i].time)}" : "";
                         string shortDate = HighScoreManager.FormatShortDate(scores[i].date);
-                        dateLabel.text = $"L{scores[i].level}{timeStr} • {shortDate}";
+                        dateLabel.text = shortDate;
                     }
                     else
                         dateLabel.text = "---";
