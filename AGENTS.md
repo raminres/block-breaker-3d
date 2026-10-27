@@ -185,3 +185,11 @@ High-density technical context, architectural rules, and subsystem specification
 - **Bomb Placement Sanitization**: Enforced orthogonal connectivity ($\ge 1$ neighbor) and Chebyshev separation ($> 1$) in `LevelGenerator.cs`. Zeroed bombs in sparse checkerboard levels (`SO_Level_13`, `SO_Level_26`).
 - **Level Preview Thumbnails**: Captured and integrated 30 rendered 128x256 (1:2 ratio) preview sprites under `Assets/UI/LevelPreviews/`.
 
+---
+
+## 12. Next Session Priorities & Backlog
+- **Anti-Aliasing & SSAO Optimization (Desktop & Pipeline)**:
+  - **Resolution Baseline**: Desktop target configured to windowed $1080 \times 1920$ portrait. Camera stack and cosmic gradient textures remain intact as authored.
+  - **FXAA vs SMAA Evaluation**: Evaluate switching anti-aliasing from SMAA to FXAA to eliminate intermediate SMAA render textures (`_EdgeTexture`, `_BlendTexture`, `CameraColorSMAA`).
+  - **SSAO Downsample Tuning**: Inspect URP SSAO settings (evaluate Downsample / Half-Resolution SSAO or radius/sample count tuning) to streamline occlusion passes and depth normals overhead while maintaining arcade visual depth.
+

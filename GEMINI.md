@@ -13,6 +13,7 @@
 6. **Standalone & Mobile Bundling Without Resources**: Every runtime prefab must be referenced by a Scene GameObject in `LV_BlockBreaker.unity` so Unity linker bundles it without a `Resources/` folder.
 7. **No Warning Suppression**: Never suppress compiler warnings, use hacks, or bypass type systems.
 8. **Humanized Localization Copy & Decoupled Tests**: The user refines and customizes English and Turkish strings in `ArcadeTable` for natural tone. **NEVER** overwrite existing table translations, and unit tests **MUST NEVER** assert hardcoded literal string values. Tests must verify key presence, non-emptiness, dynamic binding against `LocalizationManager.Get(key)`, and argument formatting, giving the user complete freedom over the actual copy.
+9. **Desktop Resolution & Post-Processing Guardrails**: Target desktop resolution is windowed $1080 \times 1920$. Retain dual camera stack and background gradient assets as authored. Next session priority: evaluate and tune FXAA and SSAO settings.
 
 ---
 
