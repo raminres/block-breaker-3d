@@ -1171,13 +1171,13 @@ namespace Arcade.Core
                 HighScoreManager.RecordScore(currentScore, currentLevel, totalRunElapsedTime, currentSessionId);
             }
 
-            string displayTag = bonusTag;
-            if (string.IsNullOrEmpty(displayTag))
+            string displayTag = bonusTag; // Option C: Flying scores display pure math (+40 (x2)) without wordy localized bonus tags
+            // Option C: Flying scores display pure math (+40 (x2)) without localized text tags
             {
-                if (isClutchModeActive) displayTag = string.Format(LocalizationManager.Get("popup_clutch", "CLUTCH {0}X!"), clutchMultiplier);
+                /* if (isClutchModeActive) displayTag = string.Format(LocalizationManager.Get("popup_clutch", "CLUTCH {0}X!"), clutchMultiplier);
                 else if (chainMultiplier > 1) displayTag = string.Format(LocalizationManager.Get("popup_chain", "CHAIN x{0}!"), chainMultiplier);
                 else if (volleyMultiplier > 1) displayTag = string.Format(LocalizationManager.Get("popup_combo", "COMBO x{0}!"), volleyMultiplier);
-                else if (multiBallMult > 1) displayTag = string.Format(LocalizationManager.Get("popup_multiball", "x{0} MULTI-BALL!"), multiBallMult);
+                else if (multiBallMult > 1) displayTag = string.Format(LocalizationManager.Get("popup_multiball", "x{0} MULTI-BALL!"), multiBallMult); */
             }
 
             if (awardedPoints > 0)

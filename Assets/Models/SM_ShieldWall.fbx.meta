@@ -7,6 +7,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: MI_Playfield_Border
+    second: {fileID: 2100000, guid: 1aa8659c23bc19c4181398919fad3450, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: MI_ShieldWall
     second: {fileID: 2100000, guid: 83cba14502de43bf8da5b61e27a1998f, type: 2}
   materials:

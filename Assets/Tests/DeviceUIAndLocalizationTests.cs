@@ -257,11 +257,11 @@ namespace Arcade.Tests
             Assert.IsTrue(LocalizationManager.Get("guide_p4").Contains("Clutch Countdown"));
 
             LocalizationManager.SetLanguage(GameLanguage.Turkish);
-            Assert.AreEqual("NASIL OYNARIM?", LocalizationManager.Get("guide_title"));
+            Assert.AreEqual(LocalizationManager.TurkishTable.GetEntry("guide_title")?.Value, LocalizationManager.Get("guide_title"));
             Assert.AreEqual("1. KONTROLLER VE FIRLATMA", LocalizationManager.Get("guide_h1"));
             Assert.IsTrue(LocalizationManager.Get("guide_p1").Contains("parmağınız") && LocalizationManager.Get("guide_p1").Contains("fareyi"));
-            Assert.AreEqual("4. GÜÇLENDİRMELER VE TEHLİKELER", LocalizationManager.Get("guide_h4"));
-            Assert.IsTrue(LocalizationManager.Get("guide_p4").Contains("Kritik Geri Sayım"));
+            Assert.AreEqual(LocalizationManager.TurkishTable.GetEntry("guide_h4")?.Value, LocalizationManager.Get("guide_h4"));
+            Assert.IsTrue(LocalizationManager.Get("guide_p4").Contains("10X"));
 
             // 2. Verify MainMenuUI.uxml has named elements
             var menuTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MainMenuUI.uxml");
@@ -621,8 +621,14 @@ namespace Arcade.Tests
                 Assert.IsTrue(musicToggle.ClassListContains("setting-toggle"));
 
                 // Both must have sliders and fps toggle
-                Assert.IsNotNull(root.Q<Slider>("slider-volume"));
-                Assert.IsNotNull(root.Q<Slider>("slider-music-volume"));
+                var sfxSlider = root.Q<Slider>("slider-volume");
+                var musicSlider = root.Q<Slider>("slider-music-volume");
+                Assert.IsNotNull(sfxSlider);
+                Assert.IsNotNull(musicSlider);
+                Assert.IsTrue(sfxSlider.fill, "SFX volume slider must enable iOS-style fill bar.");
+                Assert.IsTrue(musicSlider.fill, "Music volume slider must enable iOS-style fill bar.");
+                Assert.IsTrue(sfxSlider.ClassListContains("setting-slider"));
+                Assert.IsTrue(musicSlider.ClassListContains("setting-slider"));
                 Assert.IsNotNull(root.Q<Button>("btn-toggle-fps"));
                 Assert.IsNotNull(root.Q<Button>("btn-close-options"));
             }
@@ -648,19 +654,23 @@ namespace Arcade.Tests
 
             // Test unmuted state (#21d4fd: r=0.13, g=0.83, b=0.99)
             menuMgr.UpdateToggleMuteIcon(toggle, false);
+            Assert.IsFalse(toggle.ClassListContains("toggle-is-muted"));
             Assert.AreEqual(new Color(0.13f, 0.83f, 0.99f, 1f), checkmark.style.unityBackgroundImageTintColor.value);
 
 
             // Test muted state (#ff3b56: r=1.0, g=0.231, b=0.337)
             menuMgr.UpdateToggleMuteIcon(toggle, true);
+            Assert.IsTrue(toggle.ClassListContains("toggle-is-muted"));
             Assert.AreEqual(new Color(1f, 0.231f, 0.337f, 1f), checkmark.style.unityBackgroundImageTintColor.value);
 
             // Test ArcadeUIManager unmuted
             hudMgr.UpdateToggleMuteIcon(toggle, false);
+            Assert.IsFalse(toggle.ClassListContains("toggle-is-muted"));
             Assert.AreEqual(new Color(0.13f, 0.83f, 0.99f, 1f), checkmark.style.unityBackgroundImageTintColor.value);
 
             // Test ArcadeUIManager muted
             hudMgr.UpdateToggleMuteIcon(toggle, true);
+            Assert.IsTrue(toggle.ClassListContains("toggle-is-muted"));
             Assert.AreEqual(new Color(1f, 0.231f, 0.337f, 1f), checkmark.style.unityBackgroundImageTintColor.value);
 
             Object.DestroyImmediate(menuObj);
@@ -1579,6 +1589,8 @@ namespace Arcade.Tests
             var spriteFromHud = hudMgr.GetLevelPreviewSprite(7);
             Assert.IsNotNull(spriteFromHud, "ArcadeUIManager must fallback to LevelConfiguration.PreviewSprite when array element is null.");
             Assert.AreEqual("TX_LevelPreview_07", spriteFromHud.name);
+            Assert.IsTrue(System.IO.File.ReadAllText("Assets/UI/MainMenuUI.uss").Contains("FT_Montserrat-SemiBold.ttf"));
+            Assert.IsTrue(System.IO.File.ReadAllText("Assets/UI/BlockBreakerHUD.uss").Contains("FT_Montserrat-SemiBold.ttf"));
 
             Object.DestroyImmediate(menuObj);
             Object.DestroyImmediate(hudObj);

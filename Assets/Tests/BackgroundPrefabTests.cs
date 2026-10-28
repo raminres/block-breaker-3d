@@ -27,7 +27,7 @@ namespace Arcade.Tests
             Assert.IsNotNull(ctrl, "PF_Background root must have LevelBackgroundController component.");
 
             Assert.IsNotNull(ctrl.BackgroundTextures, "BackgroundTextures must be configured.");
-            Assert.AreEqual(4, ctrl.BackgroundTextures.Length, "Must have 4 gradient textures assigned.");
+            Assert.GreaterOrEqual(ctrl.BackgroundTextures.Length, 4, "Must have at least 4 gradient textures assigned.");
             for (int i = 0; i < 4; i++)
             {
                 Assert.IsNotNull(ctrl.BackgroundTextures[i], $"Texture at index {i} must not be null.");

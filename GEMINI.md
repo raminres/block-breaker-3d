@@ -26,5 +26,5 @@
   ```bash
   unity cmd recompile
   ```
-- **Active Branch**: `feature/bugfixes-and-visual-improvements-02` (Git LFS enabled).
+- **Active Branch**: `feature/ui-improvements` (Git LFS enabled).
 - **Engine / Pipeline**: Unity 6 (`6000.6.0f1`), Universal Render Pipeline (`URP 17.6.0`).

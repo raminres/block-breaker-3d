@@ -1887,6 +1887,7 @@ MonoBehaviour:
   paddleExpandSprite: {fileID: 21300000, guid: a78437860f4b9b54184a24a248743a7d, type: 3}
   multiplierSprite: {fileID: 21300000, guid: 1d8d97a548b3e734687c47462e523395, type: 3}
   laserSprite: {fileID: 21300000, guid: 820d572091b85c34bb7540e3cf8929a1, type: 3}
+  clutchLaserSprite: {fileID: 0}
   levelSettingsSprite: {fileID: 21300000, guid: 31f75bf5242ae5841843e322927f8164, type: 3}
   volumeMuteSprite: {fileID: 21300000, guid: 19323d3393a6acb4c9810de7a485552e, type: 3}
   volumeUpSprite: {fileID: 21300000, guid: 9b70a43178d3e484aaa75e906b4ade94, type: 3}

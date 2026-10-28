@@ -132,7 +132,7 @@ MonoBehaviour:
   idlePulseFrequency: 3
   warningThreshold: 2.5
   warningPulseFrequency: 12
-  shieldMaterial: {fileID: 2100000, guid: 83cba14502de43bf8da5b61e27a1998f, type: 2}
+  shieldMaterial: {fileID: 2100000, guid: 1aa8659c23bc19c4181398919fad3450, type: 2}
   meshRenderer: {fileID: 5854104466478364912}
   boxCollider: {fileID: 5781149854851436819}
   modelChild: {fileID: 7349220098492238104}
@@ -2502,7 +2502,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 83cba14502de43bf8da5b61e27a1998f, type: 2}
+  - {fileID: 2100000, guid: 1aa8659c23bc19c4181398919fad3450, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

@@ -256,6 +256,7 @@ namespace Arcade.UI
         [SerializeField] private Sprite paddleExpandSprite;
         [SerializeField] private Sprite multiplierSprite;
         [SerializeField] private Sprite laserSprite;
+        [SerializeField] private Sprite clutchLaserSprite;
 
         [Header("Quick Control Icons")]
         [SerializeField] private Sprite levelSettingsSprite;
@@ -344,6 +345,7 @@ namespace Arcade.UI
         public Sprite ShieldSprite => shieldSprite;
         public Sprite MultiBallSprite => multiBallSprite;
         public Sprite LaserSprite => laserSprite;
+        public Sprite ClutchLaserSprite => clutchLaserSprite;
         public Sprite HeartSprite => heartFillSprite;
         public VisualElement LevelClearBanner => levelClearBanner;
         public Label LevelClearBannerText => levelClearBannerText;
@@ -668,6 +670,7 @@ namespace Arcade.UI
                 if (paddleExpandSprite == null) paddleExpandSprite = iconSet.ExpanderSprite;
                 if (multiplierSprite == null) multiplierSprite = iconSet.MultiplierSprite;
                 if (laserSprite == null) laserSprite = iconSet.LaserSprite;
+                if (clutchLaserSprite == null) clutchLaserSprite = iconSet.ClutchLaserSprite;
             }
 
 #if UNITY_EDITOR
@@ -735,6 +738,10 @@ namespace Arcade.UI
                 }
                 laserSprite = gunSp;
             }
+            if (clutchLaserSprite == null)
+            {
+                clutchLaserSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/UI/Icons/TX_Powerup_Laser_Clutch.png");
+            }
             EnsurePreviewSprites();
 #endif
 
@@ -786,8 +793,9 @@ namespace Arcade.UI
                 iconLaser.style.backgroundImage = new StyleBackground(laserSprite);
 
             var iconClutch = root.Q<VisualElement>("clutch-status-icon");
-            if (iconClutch != null && laserSprite != null)
-                iconClutch.style.backgroundImage = new StyleBackground(laserSprite);
+            var targetClutchSprite = clutchLaserSprite != null ? clutchLaserSprite : laserSprite;
+            if (iconClutch != null && targetClutchSprite != null)
+                iconClutch.style.backgroundImage = new StyleBackground(targetClutchSprite);
 
             if (iconSet != null)
             {
@@ -1061,6 +1069,7 @@ namespace Arcade.UI
 
             if (sliderVolume != null)
             {
+                sliderVolume.fill = true;
                 sliderVolume.RegisterValueChangedCallback(evt =>
                 {
                     if (ArcadeAudioManager.Instance != null)
@@ -1080,6 +1089,7 @@ namespace Arcade.UI
 
             if (sliderMusicVolume != null)
             {
+                sliderMusicVolume.fill = true;
                 sliderMusicVolume.RegisterValueChangedCallback(evt =>
                 {
                     if (ArcadeAudioManager.Instance != null)
@@ -2069,8 +2079,8 @@ namespace Arcade.UI
             }
             else if (multiplier > 1)
             {
-                flyingLabel.text = $"+{points} x{multiplier}";
-                flyingLabel.AddToClassList("flying-score-combo");
+                flyingLabel.text = $"+{points} (x{multiplier})";
+                flyingLabel.AddToClassList(ArcadeGameManager.Instance != null && ArcadeGameManager.Instance.IsClutchModeActive ? "flying-score-clutch" : "flying-score-combo");
             }
             else
             {
@@ -2239,11 +2249,11 @@ namespace Arcade.UI
             {
                 text = type switch
                 {
-                    SpeedPopupType.ActiveStrike => LocalizationManager.Get("popup_strike", "STRIKE! +8%"),
-                    SpeedPopupType.Dampen => LocalizationManager.Get("popup_dampen", "-1.2 DAMPEN"),
-                    SpeedPopupType.Slowed => LocalizationManager.Get("popup_ball_slowed", "BALL SLOWED!"),
-                    SpeedPopupType.Turbo => LocalizationManager.Get("popup_turbo", "TURBO +10%"),
-                    SpeedPopupType.VolleyRamp => LocalizationManager.Get("popup_speed_up", "SPEED UP! +8%"),
+                    SpeedPopupType.ActiveStrike => "+0.1x",
+                    SpeedPopupType.Dampen => "-0.1x",
+                    SpeedPopupType.Slowed => "-0.3x",
+                    SpeedPopupType.Turbo => "+0.1x",
+                    SpeedPopupType.VolleyRamp => "+0.1x",
                     _ => string.Empty
                 };
             }
@@ -2525,6 +2535,7 @@ namespace Arcade.UI
         public void UpdateToggleMuteIcon(Toggle toggle, bool isMuted)
         {
             if (toggle == null) return;
+            if (isMuted) toggle.AddToClassList("toggle-is-muted"); else toggle.RemoveFromClassList("toggle-is-muted");
             var checkmark = toggle.Q(className: "unity-toggle__checkmark");
             if (checkmark != null)
             {
@@ -2532,12 +2543,14 @@ namespace Arcade.UI
                 {
                     if (volumeMuteSprite != null)
                         checkmark.style.backgroundImage = new StyleBackground(volumeMuteSprite);
+
                     checkmark.style.unityBackgroundImageTintColor = new StyleColor(new Color(1f, 0.231f, 0.337f, 1f)); // #ff3b56
                 }
                 else
                 {
                     if (volumeUpSprite != null)
                         checkmark.style.backgroundImage = new StyleBackground(volumeUpSprite);
+
                     checkmark.style.unityBackgroundImageTintColor = new StyleColor(new Color(0.13f, 0.83f, 0.99f, 1f)); // #21d4fd
                 }
             }
@@ -2867,8 +2880,8 @@ namespace Arcade.UI
                     hudLevelTabButtons[i].RemoveFromClassList("level-tab-active");
             }
 
-            if (levelNameLabel != null) levelNameLabel.text = activeEditableConfig.LevelName;
-            if (levelDescLabel != null) levelDescLabel.text = activeEditableConfig.Description;
+            if (levelNameLabel != null) levelNameLabel.text = string.Format(LocalizationManager.Get("level_tag_format", "LEVEL {0}"), lvl);
+            if (levelDescLabel != null) levelDescLabel.style.display = DisplayStyle.None;
 
             if (sliderColumns != null) sliderColumns.value = activeEditableConfig.Columns;
             if (valColumns != null) valColumns.text = activeEditableConfig.Columns.ToString();
@@ -3232,13 +3245,13 @@ namespace Arcade.UI
             LevelConfiguration config = levelGenerator != null ? levelGenerator.GetLevelConfig(levelNumber) : null;
             if (config != null)
             {
-                if (menuLevelName != null) menuLevelName.text = config.LevelName;
-                if (menuLevelDesc != null) menuLevelDesc.text = config.Description;
+                if (menuLevelName != null) menuLevelName.style.display = DisplayStyle.None;
+                if (menuLevelDesc != null) menuLevelDesc.style.display = DisplayStyle.None;
             }
             else
             {
-                if (menuLevelName != null) menuLevelName.text = $"Level {levelNumber}";
-                if (menuLevelDesc != null) menuLevelDesc.text = "Arcade block breaker challenge.";
+                if (menuLevelName != null) menuLevelName.style.display = DisplayStyle.None;
+                if (menuLevelDesc != null) menuLevelDesc.style.display = DisplayStyle.None;
             }
 
             if (menuLevelTag != null)

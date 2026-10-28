@@ -235,24 +235,22 @@
                     <ui:VisualElement name="level-preview-thumb" class="level-preview-thumb"/>
                     <ui:VisualElement class="preview-details">
                         <ui:Label name="menu-level-tag" text="LEVEL 1" class="preview-level-tag"/>
-                        <ui:Label name="menu-level-name" text="Level 1: Classic Inverted" class="preview-level-name" style="font-size: 32px;"/>
-                        <ui:Label name="menu-level-desc" text="Classic 3-tier block setup with Red on bottom, Green in middle, and Blue on top." class="preview-level-desc"/>
                         <ui:VisualElement class="preview-chips-row">
                             <ui:VisualElement class="preview-chip chip-diff">
-                                <ui:Label name="menu-level-diff" text="EASY" class="chip-val val-diff"/>
                                 <ui:Label name="label-diff-subtitle" text="DIFFICULTY" class="chip-label"/>
+                                <ui:Label name="menu-level-diff" text="EASY" class="chip-val val-diff"/>
                             </ui:VisualElement>
                             <ui:VisualElement class="preview-chip chip-stars">
+                                <ui:Label name="label-stars-subtitle" text="STARS" class="chip-label"/>
                                 <ui:VisualElement name="menu-level-stars" class="preview-stars-row">
                                     <ui:VisualElement class="preview-star star-filled"/>
                                     <ui:VisualElement class="preview-star star-filled"/>
                                     <ui:VisualElement class="preview-star star-filled"/>
                                 </ui:VisualElement>
-                                <ui:Label name="label-stars-subtitle" text="STARS" class="chip-label"/>
                             </ui:VisualElement>
                             <ui:VisualElement class="preview-chip chip-time">
-                                <ui:Label name="menu-level-best-time" text="BEST TIME: --:--" class="chip-val val-time"/>
                                 <ui:Label name="label-time-subtitle" text="BEST TIME" class="chip-label"/>
+                                <ui:Label name="menu-level-best-time" text="BEST TIME: --:--" class="chip-val val-time"/>
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
@@ -267,8 +265,7 @@
                 <ui:ScrollView class="level-tabs-scroll-view">
                     <ui:VisualElement name="level-tabs-container" class="level-tabs-container"/>
                 </ui:ScrollView>
-                <ui:Label name="level-name-label" text="Level 1: Classic Inverted" class="level-name-display"/>
-                <ui:Label name="level-desc-label" text="Classic 3-tier block setup with Red on bottom, Green in middle, and Blue on top." class="level-desc-display"/>
+                <ui:Label name="level-name-label" text="LEVEL 1" class="level-name-display"/>
                 <ui:VisualElement class="setting-row">
                     <ui:Label text="Columns" class="setting-label"/>
                     <ui:SliderInt name="slider-columns" low-value="4" high-value="12" value="8" class="setting-slider"/>
@@ -349,7 +346,7 @@
                 </ui:VisualElement>
                 <ui:VisualElement class="setting-row">
                     <ui:Label name="label-setting-sfx" text="SFX Volume" class="setting-label"/>
-                    <ui:Slider name="slider-volume" low-value="0" high-value="1" value="0.8" class="setting-slider"/>
+                    <ui:Slider name="slider-volume" low-value="0" high-value="1" value="0.8" fill="true" class="setting-slider"/>
                 </ui:VisualElement>
                 <ui:VisualElement class="setting-row">
                     <ui:Label name="label-setting-sfx-mute" text="Mute SFX" class="setting-label"/>
@@ -357,7 +354,7 @@
                 </ui:VisualElement>
                 <ui:VisualElement class="setting-row">
                     <ui:Label name="label-setting-music" text="Music Volume" class="setting-label"/>
-                    <ui:Slider name="slider-music-volume" low-value="0" high-value="1" value="0.7" class="setting-slider"/>
+                    <ui:Slider name="slider-music-volume" low-value="0" high-value="1" value="0.7" fill="true" class="setting-slider"/>
                 </ui:VisualElement>
                 <ui:VisualElement class="setting-row">
                     <ui:Label name="label-setting-music-mute" text="Mute Music" class="setting-label"/>

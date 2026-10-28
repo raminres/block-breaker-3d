@@ -424,6 +424,7 @@ namespace Arcade.UI
 
             if (sliderVolume != null)
             {
+                sliderVolume.fill = true;
                 sliderVolume.RegisterValueChangedCallback(evt =>
                 {
                     if (ArcadeAudioManager.Instance != null)
@@ -443,6 +444,7 @@ namespace Arcade.UI
 
             if (sliderMusicVolume != null)
             {
+                sliderMusicVolume.fill = true;
                 sliderMusicVolume.RegisterValueChangedCallback(evt =>
                 {
                     if (ArcadeAudioManager.Instance != null)
@@ -595,13 +597,13 @@ namespace Arcade.UI
             var config = GetLevelConfig(levelNumber);
             if (config != null)
             {
-                if (menuLevelName != null) menuLevelName.text = config.LevelName;
-                if (menuLevelDesc != null) menuLevelDesc.text = config.Description;
+                if (menuLevelName != null) menuLevelName.style.display = DisplayStyle.None;
+                if (menuLevelDesc != null) menuLevelDesc.style.display = DisplayStyle.None;
             }
             else
             {
-                if (menuLevelName != null) menuLevelName.text = $"Level {levelNumber}";
-                if (menuLevelDesc != null) menuLevelDesc.text = "Arcade block breaker challenge.";
+                if (menuLevelName != null) menuLevelName.style.display = DisplayStyle.None;
+                if (menuLevelDesc != null) menuLevelDesc.style.display = DisplayStyle.None;
             }
 
             if (menuLevelTag != null)
@@ -946,6 +948,7 @@ namespace Arcade.UI
         public void UpdateToggleMuteIcon(Toggle toggle, bool isMuted)
         {
             if (toggle == null) return;
+            if ( isMuted) toggle.AddToClassList("toggle-is-muted"); else toggle.RemoveFromClassList("toggle-is-muted");
             var checkmark = toggle.Q(className: "unity-toggle__checkmark");
             if (checkmark != null)
             {
@@ -953,12 +956,14 @@ namespace Arcade.UI
                 {
                     if (volumeMuteSprite != null)
                         checkmark.style.backgroundImage = new StyleBackground(volumeMuteSprite);
+
                     checkmark.style.unityBackgroundImageTintColor = new StyleColor(new Color(1f, 0.231f, 0.337f, 1f)); // #ff3b56
                 }
                 else
                 {
                     if (volumeUpSprite != null)
                         checkmark.style.backgroundImage = new StyleBackground(volumeUpSprite);
+
                     checkmark.style.unityBackgroundImageTintColor = new StyleColor(new Color(0.13f, 0.83f, 0.99f, 1f)); // #21d4fd
                 }
             }

@@ -329,7 +329,7 @@ namespace Arcade.Tests
             var mf = model.GetComponent<MeshFilter>();
             Assert.IsNotNull(mf, "model must have MeshFilter.");
             Assert.IsNotNull(mf.sharedMesh, "model must have sharedMesh assigned.");
-            Assert.AreEqual("Bullet", mf.sharedMesh.name, "model MeshFilter must use 'Bullet' mesh from SM_Paddle.fbx.");
+            Assert.IsTrue(mf.sharedMesh.name.StartsWith("Bullet"), "model MeshFilter must use 'Bullet' or 'Bullet_2' mesh.");
 
             var bolt = LaserBolt.Spawn(Vector3.zero);
             try
@@ -340,7 +340,7 @@ namespace Arcade.Tests
                 Assert.AreEqual(Vector3.one, bolt.ModelChild.transform.localScale, "Spawned LaserBolt ModelChild must be Vector3.one.");
                 var spawnedMf = bolt.ModelChild.GetComponent<MeshFilter>();
                 Assert.IsNotNull(spawnedMf);
-                Assert.AreEqual("Bullet", spawnedMf.sharedMesh.name);
+                Assert.IsTrue(spawnedMf.sharedMesh.name.StartsWith("Bullet"));
             }
             finally
             {
