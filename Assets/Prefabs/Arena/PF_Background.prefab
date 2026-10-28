@@ -46,10 +46,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Arcade.Gameplay::Arcade.BlockBreaker.LevelBackgroundController
   backgroundTextures:
-  - {fileID: 2800000, guid: e5d1b003d3b429c4399205eff98b0fec, type: 3}
-  - {fileID: 2800000, guid: 1975c7e08e70cb649b4d93fc6b46e363, type: 3}
-  - {fileID: 2800000, guid: 2feb33aa70941354a93f8a07e5cdc236, type: 3}
-  - {fileID: 2800000, guid: dec6b39bb0a9f9649a2a0b4fef2d2050, type: 3}
+  - {fileID: 2800000, guid: 459435928575e584a86eeb6b18b8f979, type: 3}
+  - {fileID: 2800000, guid: d4a8ee1e97f6c2d439b474de509a99c0, type: 3}
+  - {fileID: 2800000, guid: 2e2d9a3e3ceafd24895a09a73d4af5a3, type: 3}
+  - {fileID: 2800000, guid: 45c3494ec38cc874796e629b153e5b21, type: 3}
+  - {fileID: 2800000, guid: fbc4dea9197eb65439d88968622d6235, type: 3}
   meshRenderer: {fileID: 8199172585251596068}
   planeChild: {fileID: 3375346029438471569}
 --- !u!1 &3375346029438471569

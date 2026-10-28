@@ -18,6 +18,7 @@ namespace Arcade.BlockBreaker
         [SerializeField] private Sprite multiBallSprite;
         [SerializeField] private Sprite multiplierSprite;
         [SerializeField] private Sprite laserSprite;
+        [SerializeField] private Sprite clutchLaserSprite;
 
         [Header("Powerdown Sprites (Assigned in Unity UI)")]
         [SerializeField] private Sprite paddleShortenerSprite;
@@ -34,6 +35,7 @@ namespace Arcade.BlockBreaker
         public Sprite MultiBallSprite => multiBallSprite;
         public Sprite MultiplierSprite => multiplierSprite;
         public Sprite LaserSprite => laserSprite;
+        public Sprite ClutchLaserSprite => clutchLaserSprite;
 
         public Sprite PaddleShortenerSprite => paddleShortenerSprite;
         public Sprite PaddleSlowerSprite => paddleSlowerSprite;

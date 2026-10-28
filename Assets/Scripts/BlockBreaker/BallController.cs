@@ -213,13 +213,13 @@ namespace Arcade.BlockBreaker
             isBallSlowed = slowed;
             if (slowed)
             {
-                currentSpeed = Mathf.Min(currentSpeed, sluggishSpeed);
+                float prevSlowSpeed = Mathf.Max(currentSpeed, baseSpeed); currentSpeed = Mathf.Min(currentSpeed, sluggishSpeed);
                 if (rb != null && rb.linearVelocity.sqrMagnitude > 0.01f)
                 {
                     rb.linearVelocity = rb.linearVelocity.normalized * currentSpeed;
                 }
                 UpdateDynamicSpeedVisuals();
-                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, LocalizationManager.Get("popup_ball_slowed", "BALL SLOWED!"), UI.ArcadeUIManager.SpeedPopupType.Slowed);
+                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, FormatSpeedMultiplierDelta(prevSlowSpeed, currentSpeed), UI.ArcadeUIManager.SpeedPopupType.Slowed);
             }
             else
             {
@@ -237,6 +237,7 @@ namespace Arcade.BlockBreaker
 
         public void SetPaddleVelocityInfluenceForTesting(float val) => paddleVelocityInfluence = val;
         public void SetCurrentSpeedForTesting(float speed) => currentSpeed = speed;
+        public static string FormatSpeedMultiplierDelta(float prevSpeed, float newSpeed) => $"{(newSpeed >= prevSpeed ? "+" : "-")}{Mathf.Max(0.1f, Mathf.Abs(newSpeed - prevSpeed) / 14f).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}x";
         public int ConsecutiveSideWallBounces => consecutiveSideWallBounces;
         public void SetConsecutiveSideWallBouncesForTesting(int count) => consecutiveSideWallBounces = count;
         public int CurrentVolleyStreak => currentVolleyStreak;
@@ -541,11 +542,11 @@ namespace Arcade.BlockBreaker
             activeVolleyTime += dt;
             while (activeVolleyTime >= nextSpeedRampTime)
             {
-                float speedBoost = baseSpeed * speedRampStepMultiplier;
+                float prevRampSpeed = currentSpeed; float speedBoost = baseSpeed * speedRampStepMultiplier;
                 currentSpeed = Mathf.Min(currentSpeed + speedBoost, maxSpeed);
                 nextSpeedRampTime += speedRampInterval;
                 UpdateDynamicSpeedVisuals();
-                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, LocalizationManager.Get("popup_speed_up", "SPEED UP! +8%"), UI.ArcadeUIManager.SpeedPopupType.VolleyRamp);
+                if (currentSpeed > prevRampSpeed) UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, FormatSpeedMultiplierDelta(prevRampSpeed, currentSpeed), UI.ArcadeUIManager.SpeedPopupType.VolleyRamp);
             }
         }
 
@@ -942,7 +943,7 @@ namespace Arcade.BlockBreaker
                     if (currentSpeed < prevRedSpeed)
                     {
                         Vector3 popupPos = collision != null && collision.contacts.Length > 0 ? collision.contacts[0].point : transform.position;
-                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, LocalizationManager.Get("popup_dampen", "-1.2 DAMPEN"), UI.ArcadeUIManager.SpeedPopupType.Dampen);
+                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, FormatSpeedMultiplierDelta(prevRedSpeed, currentSpeed), UI.ArcadeUIManager.SpeedPopupType.Dampen);
                     }
                     break;
 
@@ -957,7 +958,7 @@ namespace Arcade.BlockBreaker
                     if (currentSpeed > prevGreenSpeed)
                     {
                         Vector3 popupPos = collision != null && collision.contacts.Length > 0 ? collision.contacts[0].point : transform.position;
-                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, LocalizationManager.Get("popup_turbo", "TURBO +10%"), UI.ArcadeUIManager.SpeedPopupType.Turbo);
+                        UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(popupPos, FormatSpeedMultiplierDelta(prevGreenSpeed, currentSpeed), UI.ArcadeUIManager.SpeedPopupType.Turbo);
                     }
                     break;
 
@@ -1084,7 +1085,7 @@ namespace Arcade.BlockBreaker
             {
                 currentSpeed = Mathf.Min(currentSpeed * activeSmashSpeedMultiplier, maxSpeed);
                 UpdateDynamicSpeedVisuals();
-                UI.ArcadeUIManager.Instance?.AnimateSpeedPopup(transform.position, LocalizationManager.Get("popup_strike", "STRIKE! +8%"), UI.ArcadeUIManager.SpeedPopupType.ActiveStrike);
+                // Option B: Paddle smash uses spark VFX, audio pitch, and paddle recoil without a floating "STRIKE!" text popup.
             }
 
             if (rb != null)

@@ -74,8 +74,8 @@
 }
 
 .lives-compact-text {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 42px;
     -unity-font-style: bold;
     color: rgb(255, 255, 255);
@@ -188,8 +188,8 @@
 }
 
 .score-main {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 44px;
     -unity-font-style: bold;
     color: rgb(0, 240, 255);
@@ -223,8 +223,8 @@
 }
 
 .timer-main {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 38px;
     -unity-font-style: bold;
     color: rgb(0, 240, 255);
@@ -255,8 +255,8 @@
 }
 
 .speed-main {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 34px;
     -unity-font-style: bold;
     color: rgb(0, 240, 255);
@@ -778,8 +778,8 @@
 }
 
 .launch-text {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 32px;
     -unity-font-style: bold;
     color: rgb(0, 240, 255);
@@ -814,8 +814,8 @@
 }
 
 .level-clear-banner-text {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 64px;
     -unity-font-style: bold;
     color: rgb(255, 215, 0);
@@ -826,8 +826,8 @@
 }
 
 .level-clear-banner-subtext {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 32px;
     -unity-font-style: bold;
     color: rgb(0, 242, 254);
@@ -990,8 +990,8 @@
 }
 
 .modal-title {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 64px;
     -unity-font-style: bold;
     color: rgb(255, 255, 255);
@@ -1015,6 +1015,8 @@
 }
 
 .modal-score {
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 48px;
     -unity-font-style: bold;
     color: rgb(33, 212, 253);
@@ -1031,6 +1033,8 @@
 
 .arcade-btn,
 .arcade-button {
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     height: 112px;
     border-radius: 18px;
     border-top-left-radius: 18px;
@@ -1153,8 +1157,118 @@
     color: rgb(203, 213, 225);
 }
 
+#level-settings-modal .setting-slider {
+    width: 240px;
+}
+
+.setting-slider .unity-base-slider__input {
+    flex-grow: 1;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.setting-slider .unity-base-slider__drag-container {
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+}
+
+.setting-slider .unity-base-slider__tracker {
+    height: 26px;
+    top: 50%;
+    margin-top: -13px;
+    left: 0;
+    right: 0;
+    background-color: rgba(255, 255, 255, 0.14);
+    border-width: 2px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    border-color: rgba(255, 255, 255, 0.22);
+    border-radius: 13px;
+    border-top-left-radius: 13px;
+    border-top-right-radius: 13px;
+    border-bottom-right-radius: 13px;
+    border-bottom-left-radius: 13px;
+    overflow: hidden;
+}
+
+.setting-slider .unity-base-slider__fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    background-color: rgb(33, 212, 253);
+    border-width: 0;
+    border-radius: 11px;
+    border-top-left-radius: 11px;
+    border-bottom-left-radius: 11px;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.setting-slider:hover .unity-base-slider__fill {
+    background-color: rgb(72, 224, 255);
+}
+
+.setting-slider .unity-base-slider__dragger-border {
+    display: none;
+    border-width: 0;
+    width: 0;
+    height: 0;
+}
+
+.setting-slider .unity-base-slider__dragger {
+    width: 52px;
+    height: 52px;
+    top: 50%;
+    margin-top: -26px;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    border-radius: 26px;
+    border-top-left-radius: 26px;
+    border-top-right-radius: 26px;
+    border-bottom-right-radius: 26px;
+    border-bottom-left-radius: 26px;
+    background-color: rgb(255, 255, 255);
+    border-top-width: 2px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 4px;
+    border-top-color: rgb(255, 255, 255);
+    border-left-color: rgb(215, 228, 242);
+    border-right-color: rgb(215, 228, 242);
+    border-bottom-color: rgba(10, 16, 30, 0.55);
+    scale: 1 1;
+    transition-property: scale, border-color, background-color;
+    transition-duration: 0.14s, 0.14s, 0.14s;
+    transition-timing-function: ease-out-back, ease-out, ease-out;
+}
+
+.setting-slider .unity-base-slider__dragger:hover {
+    scale: 1.1 1.1;
+    border-top-color: rgb(33, 212, 253);
+    border-left-color: rgb(33, 212, 253);
+    border-right-color: rgb(33, 212, 253);
+    border-bottom-color: rgb(0, 168, 210);
+}
+
+.setting-slider .unity-base-slider__dragger:active {
+    scale: 0.95 0.95;
+    background-color: rgb(240, 249, 255);
+}
+
 .setting-slider {
-    width: 210px;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    justify-content: center;
+    width: 340px;
     height: 64px;
 }
 
@@ -1231,54 +1345,107 @@
 }
 
 .setting-toggle {
-    height: 102px;
+    width: 152px;
+    height: 88px;
+    padding: 8px;
     margin-right: 0;
     margin-top: 0;
     margin-bottom: 0;
     justify-content: center;
+    align-items: center;
+    overflow: visible;
 }
 
 .setting-toggle .unity-toggle__input {
-    justify-content: flex-end;
+    min-width: 136px;
+    max-width: 136px;
+    flex-basis: 136px;
+    min-height: 68px;
+    max-height: 68px;
+    width: 136px;
+    height: 68px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-direction: row;
+    justify-content: flex-start;
     align-items: center;
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-radius: 34px;
+    border-top-left-radius: 34px;
+    border-top-right-radius: 34px;
+    border-bottom-right-radius: 34px;
+    border-bottom-left-radius: 34px;
+    border-width: 2px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    border-color: rgba(33, 212, 253, 0.75);
+    background-color: rgba(33, 212, 253, 0.24);
+    overflow: visible;
+    transition-property: background-color, border-color;
+    transition-duration: 0.22s, 0.22s;
+    transition-timing-function: ease-out, ease-out;
+}
+
+.setting-toggle:checked .unity-toggle__input,
+.setting-toggle > .unity-toggle__input:checked,
+.setting-toggle.toggle-is-muted .unity-toggle__input {
+    border-color: rgba(255, 59, 86, 0.65);
+    background-color: rgba(255, 59, 86, 0.16);
 }
 
 .setting-toggle .unity-toggle__checkmark {
-    width: 68px;
-    height: 68px;
-    border-radius: 14px;
+    width: 54px;
+    height: 54px;
+    border-radius: 27px;
+    border-top-left-radius: 27px;
+    border-top-right-radius: 27px;
+    border-bottom-right-radius: 27px;
+    border-bottom-left-radius: 27px;
     border-width: 2px;
-    border-color: rgba(33, 212, 253, 0.45);
-    background-color: rgba(33, 212, 253, 0.12);
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 3px;
+    border-left-width: 2px;
+    border-color: rgb(33, 212, 253);
+    background-color: rgb(14, 22, 40);
     -unity-background-scale-mode: scale-to-fit;
     background-image: url("project://database/Assets/UI/Icons/TX_Volume_Up.png?fileID=21300000&guid=9b70a43178d3e484aaa75e906b4ade94&type=3#TX_Volume_Up");
     -unity-background-image-tint-color: rgb(33, 212, 253);
+    translate: 66px 0;
     scale: 1 1;
-    transition-property: scale, background-color, border-color, -unity-background-image-tint-color;
-    transition-duration: 0.2s, 0.15s, 0.15s, 0.2s;
-    transition-timing-function: ease-out-back;
+    transition-property: translate, scale, background-color, border-color, -unity-background-image-tint-color;
+    transition-duration: 0.22s, 0.18s, 0.18s, 0.18s, 0.18s;
+    transition-timing-function: ease-out-back, ease-out-back, ease-out, ease-out, ease-out;
 }
 
 .setting-toggle:hover .unity-toggle__checkmark,
 .setting-toggle > .unity-toggle__input:hover > .unity-toggle__checkmark {
-    scale: 1.1 1.1;
-    border-color: rgb(33, 212, 253);
-    background-color: rgba(33, 212, 253, 0.25);
+    scale: 1.08 1.08;
+    border-color: rgb(110, 235, 255);
+    background-color: rgb(20, 32, 58);
 }
 
 .setting-toggle:checked .unity-toggle__checkmark,
-.setting-toggle > .unity-toggle__input:checked > .unity-toggle__checkmark {
-    border-color: rgba(255, 59, 86, 0.55);
-    background-color: rgba(255, 59, 86, 0.16);
+.setting-toggle > .unity-toggle__input:checked > .unity-toggle__checkmark,
+.setting-toggle.toggle-is-muted .unity-toggle__checkmark {
+    translate: 0 0;
+    border-color: rgb(255, 59, 86);
+    background-color: rgb(26, 14, 24);
     background-image: url("project://database/Assets/UI/Icons/TX_Volume_Mute.png?fileID=21300000&guid=19323d3393a6acb4c9810de7a485552e&type=3#TX_Volume_Mute");
     -unity-background-image-tint-color: rgb(255, 59, 86);
 }
 
 .setting-toggle:checked:hover .unity-toggle__checkmark,
-.setting-toggle > .unity-toggle__input:checked:hover > .unity-toggle__checkmark {
-    scale: 1.1 1.1;
-    border-color: rgb(255, 84, 108);
-    background-color: rgba(255, 59, 86, 0.3);
+.setting-toggle > .unity-toggle__input:checked:hover > .unity-toggle__checkmark,
+.setting-toggle.toggle-is-muted:hover .unity-toggle__checkmark {
+    scale: 1.08 1.08;
+    border-color: rgb(255, 105, 125);
+    background-color: rgb(40, 18, 32);
     -unity-background-image-tint-color: rgb(255, 110, 130);
 }
 
@@ -1383,8 +1550,8 @@
 }
 
 .level-name-display {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 21px;
     -unity-font-style: bold;
     color: rgb(33, 212, 253);
@@ -1448,6 +1615,8 @@
 }
 
 .pause-card .arcade-btn {
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     height: 112px;
     border-radius: 18px;
     border-top-left-radius: 18px;
@@ -1618,6 +1787,8 @@
 }
 
 .rank-label {
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 32px;
     -unity-font-style: bold;
 }
@@ -1635,6 +1806,8 @@
 }
 
 .rank-num-label {
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     width: 78px;
     font-size: 36px;
     -unity-font-style: bold;
@@ -1642,8 +1815,8 @@
 }
 
 .score-row-value {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 36px;
     -unity-font-style: bold;
     color: rgb(255, 255, 255);
@@ -1776,8 +1949,8 @@
 }
 
 .guide-heading {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 32px;
     -unity-font-style: bold;
     color: rgb(33, 212, 253);
@@ -1820,8 +1993,8 @@
 }
 
 .timer-main {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 32px;
     -unity-font-style: bold;
     color: rgb(255, 255, 255);
@@ -1853,8 +2026,8 @@
 
 .flying-score {
     position: absolute;
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 15px;
     -unity-font-style: bold;
     color: rgb(255, 215, 0);
@@ -1894,8 +2067,8 @@
 
 .speed-popup {
     position: absolute;
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 18px;
     -unity-font-style: bold;
     padding: 4px 12px;
@@ -2011,6 +2184,8 @@
 }
 
 .scorecard-title {
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 26px;
     color: rgb(33, 212, 253);
     letter-spacing: 2px;
@@ -2124,6 +2299,8 @@
 }
 
 .scorecard-total-label {
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 32px;
     -unity-font-style: bold;
     color: rgb(255, 255, 255);
@@ -2131,6 +2308,8 @@
 }
 
 .scorecard-total-val {
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 44px;
     -unity-font-style: bold;
     color: rgb(255, 215, 0);
@@ -2192,8 +2371,8 @@
 }
 
 .credit-highlight {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 24px;
     -unity-font-style: bold;
     color: rgb(255, 59, 86);
@@ -2218,6 +2397,8 @@
 }
 
 .credit-author {
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 32px;
     -unity-font-style: bold;
     color: rgb(33, 212, 253);
@@ -2331,6 +2512,8 @@
 }
 
 .level-modal-title {
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 52px;
     color: rgb(255, 255, 255);
     letter-spacing: 3px;
@@ -2412,8 +2595,8 @@
 }
 
 .level-card-num {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 36px;
     -unity-font-style: bold;
     color: rgb(255, 255, 255);
@@ -2440,7 +2623,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    margin-bottom: 6px;
+    margin-bottom: 0;
 }
 
 .preview-star {
@@ -2530,10 +2713,13 @@
 .preview-details {
     flex-grow: 1;
     flex-direction: column;
+    justify-content: center;
 }
 
 .preview-level-tag {
-    font-size: 20px;
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    font-size: 32px;
     letter-spacing: 1.5px;
     color: rgb(126, 143, 168);
     -unity-font-style: bold;
@@ -2541,8 +2727,8 @@
 }
 
 .preview-level-name {
-    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
-    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat.ttf?fileID=12800000&guid=a40a993daa5255e4e87cad89b720cf04&type=3#FT_Montserrat");
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 16px;
     -unity-font-style: bold;
     color: rgb(255, 255, 255);
@@ -2560,13 +2746,13 @@
 .preview-chips-row {
     flex-direction: row;
     justify-content: space-between;
-    margin-top: auto;
+    margin-top: 8px;
 }
 
 .preview-chip {
     flex-grow: 1;
     margin: 0 3px;
-    height: 144px;
+    height: 256px;
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 8px;
     border-width: 1px;
@@ -2589,6 +2775,8 @@
 }
 
 .chip-val {
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     font-size: 20px;
     -unity-font-style: bold;
 }
@@ -2606,12 +2794,17 @@
 }
 
 .chip-label {
-    font-size: 16px;
-    color: rgb(100, 116, 139);
-    letter-spacing: 0.5px;
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    font-size: 24px;
+    color: rgb(148, 163, 184);
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
 }
 
 .level-play-action-btn {
+    -unity-font: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/FT_Montserrat-SemiBold.ttf?fileID=12800000&guid=b88a8aba82c9b5e419a0996a9420ab4e&type=3#FT_Montserrat-SemiBold");
     height: 128px;
     border-radius: 26px;
     background-color: rgb(255, 59, 119);

@@ -206,12 +206,14 @@ namespace Arcade.BlockBreaker
                 }
             }
 
+            if (meshRenderer != null && meshRenderer.sharedMaterial != null) { shieldMaterial = meshRenderer.sharedMaterial; return; }
             if (shieldMaterial == null)
             {
 #if UNITY_EDITOR
                 shieldMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/BlockBreaker/MI_ShieldWall.mat");
 #endif
-                if (shieldMaterial == null)
+                // If prefab already has a material assigned on its MeshRenderer, preserve it without overwriting
+            if (shieldMaterial == null)
                 {
                     Shader urpShader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Universal Render Pipeline/Unlit");
                     if (urpShader != null)
@@ -266,7 +268,8 @@ namespace Arcade.BlockBreaker
         {
             if (meshRenderer == null) return;
 
-            float freq = isWarningActive ? warningPulseFrequency : idlePulseFrequency;
+            if (!isWarningActive) { meshRenderer.SetPropertyBlock(null); return; }
+            float freq = warningPulseFrequency;
             float pulse = Mathf.Sin(Time.time * freq * Mathf.PI * 2f);
 
             Color currentGlow;
@@ -274,7 +277,8 @@ namespace Arcade.BlockBreaker
             {
                 // Rapid on/off blink warning
                 float blinkAlpha = pulse > 0f ? 1.0f : 0.25f;
-                currentGlow = GlowCyan * (blinkAlpha * 2.5f);
+                Color baseEmission = (meshRenderer.sharedMaterial != null && meshRenderer.sharedMaterial.HasProperty(EmissionColorId)) ? meshRenderer.sharedMaterial.GetColor(EmissionColorId) : GlowCyan;
+                currentGlow = baseEmission * (pulse > 0f ? 1.0f : 0.25f);
             }
             else
             {
