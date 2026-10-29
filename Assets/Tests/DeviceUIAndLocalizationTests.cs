@@ -416,6 +416,64 @@ namespace Arcade.Tests
         }
 
         [Test]
+        public void ArcadeAudioManager_AudioFiles_ImportSettings_AreOptimizedForWebGL()
+        {
+            // Background music WebGL settings: CompressedInMemory to prevent excessive RAM allocations in browser
+            string bgmPath = "Assets/Audio/AU_Music_Background.wav";
+            var bgmImporter = AssetImporter.GetAtPath(bgmPath) as AudioImporter;
+            Assert.IsNotNull(bgmImporter, $"AudioImporter for {bgmPath} must exist.");
+            Assert.IsTrue(bgmImporter.ContainsSampleSettingsOverride("WebGL"), "AU_Music_Background must have WebGL platform override.");
+            var bgmSettings = bgmImporter.GetOverrideSampleSettings("WebGL");
+            Assert.AreEqual(AudioClipLoadType.CompressedInMemory, bgmSettings.loadType, "WebGL BGM must be CompressedInMemory to avoid ~40MB PCM RAM overhead.");
+            Assert.AreEqual(AudioCompressionFormat.Vorbis, bgmSettings.compressionFormat, "WebGL BGM must use Vorbis compression.");
+            Assert.AreEqual(0.5f, bgmSettings.quality, 0.05f, "WebGL BGM must be compressed at ~0.5 quality for compact download.");
+            Assert.IsTrue(bgmSettings.preloadAudioData, "WebGL BGM must preload audio data.");
+
+            // Gameplay SFX WebGL settings: DecompressOnLoad to eliminate on-the-fly WASM decoding hitches and latency
+            string[] sfxPaths = new string[]
+            {
+                "Assets/Audio/AU_Pop.mp3",
+                "Assets/Audio/AU_Break.mp3",
+                "Assets/Audio/AU_Bomb_Explosion.mp3",
+                "Assets/Audio/AU_Button_Press.mp3",
+                "Assets/Audio/AU_Glass_Break.mp3",
+                "Assets/Audio/AU_Powerup_Laser.mp3",
+                "Assets/Audio/AU_Powerup_Shield.mp3",
+                "Assets/Audio/AU_Powerup.mp3"
+            };
+
+            foreach (var sfxPath in sfxPaths)
+            {
+                var sfxImporter = AssetImporter.GetAtPath(sfxPath) as AudioImporter;
+                Assert.IsNotNull(sfxImporter, $"AudioImporter for {sfxPath} must exist.");
+                Assert.IsTrue(sfxImporter.ContainsSampleSettingsOverride("WebGL"), $"Missing WebGL platform override on {sfxPath}");
+                var sfxSettings = sfxImporter.GetOverrideSampleSettings("WebGL");
+                Assert.AreEqual(AudioClipLoadType.DecompressOnLoad, sfxSettings.loadType, $"WebGL SFX {sfxPath} must be DecompressOnLoad.");
+                Assert.AreEqual(AudioCompressionFormat.Vorbis, sfxSettings.compressionFormat, $"WebGL SFX {sfxPath} must use Vorbis.");
+                Assert.IsTrue(sfxSettings.preloadAudioData, $"WebGL SFX {sfxPath} must preload audio data.");
+            }
+        }
+
+        [Test]
+        public void SafeAreaController_WebSettings_HasDefaultsAndAllowsCustomization()
+        {
+            var go = new GameObject("TestSafeAreaWeb", typeof(PanelRenderer), typeof(SafeAreaController));
+            var controller = go.GetComponent<SafeAreaController>();
+
+            Assert.IsNotNull(controller);
+            Assert.IsTrue(controller.EnableWebOptimizations, "Web optimizations must be enabled by default.");
+            Assert.AreEqual(0.5f, controller.WebExtraTopPercent, 0.01f, "Web extra top percent should default to 0.5%.");
+            Assert.AreEqual(0f, controller.WebTopBarOffsetPixels, 0.01f, "Web top bar offset pixels should default to 0.");
+
+            controller.WebExtraTopPercent = 1.0f;
+            controller.WebTopBarOffsetPixels = -6f;
+            Assert.AreEqual(1.0f, controller.WebExtraTopPercent, 0.01f);
+            Assert.AreEqual(-6f, controller.WebTopBarOffsetPixels, 0.01f);
+
+            Object.DestroyImmediate(go);
+        }
+
+        [Test]
         public void BlockBreakerHUD_UXML_WrapsTopBarInSafeAreaContent()
         {
             var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/BlockBreakerHUD.uxml");
@@ -1594,6 +1652,162 @@ namespace Arcade.Tests
 
             Object.DestroyImmediate(menuObj);
             Object.DestroyImmediate(hudObj);
+        }
+
+        [Test]
+        public void BlockVFXManager_Prewarm_AvoidsGlobalWarmupAllShaders_AndPrePopulatesSecondaryPools()
+        {
+            string source = System.IO.File.ReadAllText("Assets/Scripts/BlockBreaker/BlockVFXManager.cs");
+            Assert.IsFalse(source.Contains("Shader.WarmupAllShaders"), "BlockVFXManager must not call global Shader.WarmupAllShaders(), which stalls WebGL and iOS startup.");
+
+            var vfxObj = new GameObject("TestBlockVFXManager", typeof(BlockVFXManager));
+            var vfx = vfxObj.GetComponent<BlockVFXManager>();
+            try
+            {
+                vfx.EnsureReferences();
+                vfx.InitializePool();
+                vfx.Prewarm();
+
+                Assert.Greater(vfx.AvailableVfxCount, 0, "Shatter pool must be pre-populated.");
+                Assert.AreEqual(0, vfx.ActiveDebrisCount, "Prewarm must keep ActiveDebrisCount at 0.");
+                Assert.AreEqual(0, vfx.ActiveVfxCount, "Prewarm must keep ActiveVfxCount at 0.");
+
+                var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+                var collectPool = typeof(BlockVFXManager).GetField("powerupCollectPool", flags)?.GetValue(vfx) as System.Collections.ICollection;
+                var sparkPool = typeof(BlockVFXManager).GetField("paddleSparkPool", flags)?.GetValue(vfx) as System.Collections.ICollection;
+                var bombPool = typeof(BlockVFXManager).GetField("bombExplosionPool", flags)?.GetValue(vfx) as System.Collections.ICollection;
+
+                Assert.IsNotNull(collectPool);
+                Assert.IsNotNull(sparkPool);
+                Assert.IsNotNull(bombPool);
+                Assert.Greater(collectPool.Count, 0, "Powerup collect pool must be pre-populated to avoid first-pickup Instantiate.");
+                Assert.Greater(sparkPool.Count, 0, "Paddle spark pool must be pre-populated to avoid first-strike Instantiate.");
+                Assert.Greater(bombPool.Count, 0, "Bomb explosion pool must be pre-populated to avoid first-bomb Instantiate.");
+            }
+            finally
+            {
+                BlockVFXManager.SetInstanceForTesting(null);
+                Object.DestroyImmediate(vfxObj);
+            }
+        }
+
+        [Test]
+        public void BlockBadge_SetupBeforeActivation_ConfiguresSinglePassWithoutPanelToggle()
+        {
+            string source = System.IO.File.ReadAllText("Assets/Scripts/BlockBreaker/BlockBadge.cs");
+            Assert.IsFalse(source.Contains("panelRenderer.enabled = false"), "BlockBadge.Setup must not toggle PanelRenderer off/on.");
+
+            var rootObj = new GameObject("TestBlockRoot");
+            var specialObj = new GameObject("brick special", typeof(PanelRenderer), typeof(BlockBadge));
+            specialObj.transform.SetParent(rootObj.transform);
+            specialObj.SetActive(false);
+
+            try
+            {
+                var badge = specialObj.GetComponent<BlockBadge>();
+                badge.Setup(BlockSpecialType.Bomb, null, null);
+                specialObj.SetActive(true);
+
+                Assert.AreEqual(BlockSpecialType.Bomb, badge.SpecialType);
+                Assert.AreEqual(new Vector2(0.80f, 0.80f), badge.WorldSpaceSize);
+            }
+            finally
+            {
+                Object.DestroyImmediate(rootObj);
+            }
+        }
+
+        [Test]
+        public void UI_LazyLevelGrids_DeferPopulationUntilModalOpened()
+        {
+            var hudUxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/BlockBreakerHUD.uxml");
+            Assert.IsNotNull(hudUxml);
+            var hudRoot = hudUxml.CloneTree();
+
+            var hudObj = new GameObject("TestLazyHudMgr", typeof(PanelRenderer), typeof(ArcadeUIManager));
+            var hudMgr = hudObj.GetComponent<ArcadeUIManager>();
+
+            var menuUxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MainMenuUI.uxml");
+            Assert.IsNotNull(menuUxml);
+            var menuRoot = menuUxml.CloneTree();
+
+            var menuObj = new GameObject("TestLazyMenuMgr", typeof(PanelRenderer), typeof(MainMenuUIManager));
+            var menuMgr = menuObj.GetComponent<MainMenuUIManager>();
+
+            try
+            {
+                var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+                typeof(ArcadeUIManager).GetField("root", flags)?.SetValue(hudMgr, hudRoot);
+                typeof(ArcadeUIManager).GetMethod("BindElements", flags)?.Invoke(hudMgr, null);
+
+                var hudLevelModal = hudRoot.Q<VisualElement>("level-modal");
+                var hudGrid = hudLevelModal?.Q<VisualElement>(className: "level-grid-container");
+                var hudSettingsModal = hudRoot.Q<VisualElement>("level-settings-modal");
+                var hudTabs = hudSettingsModal?.Q<VisualElement>(className: "level-tabs-container");
+
+                Assert.IsNotNull(hudGrid);
+                Assert.IsNotNull(hudTabs);
+                Assert.AreEqual(0, hudGrid.childCount, "HUD Level Select grid must not build 30 cards on startup before modal opens.");
+                Assert.AreEqual(0, hudTabs.childCount, "HUD Level Settings tabs must not build 30 buttons on startup before modal opens.");
+
+                hudMgr.ShowLevelModal();
+                Assert.AreEqual(30, hudGrid.childCount, "HUD Level Select grid must populate all 30 cards when ShowLevelModal is called.");
+
+                hudMgr.ShowLevelSettings();
+                Assert.AreEqual(30, hudTabs.childCount, "HUD Level Settings tabs must populate all 30 tabs when ShowLevelSettings is called.");
+
+                typeof(MainMenuUIManager).GetField("root", flags)?.SetValue(menuMgr, menuRoot);
+                typeof(MainMenuUIManager).GetMethod("BindElements", flags)?.Invoke(menuMgr, null);
+
+                var menuGrid = menuRoot.Q<VisualElement>(className: "level-grid-container") ?? menuRoot.Q<VisualElement>(className: "level-tabs-container");
+                Assert.IsNotNull(menuGrid);
+                Assert.AreEqual(0, menuGrid.childCount, "Main Menu Level Select grid must defer card creation until ShowLevelModal opens.");
+
+                typeof(MainMenuUIManager).GetMethod("ShowLevelModal", flags)?.Invoke(menuMgr, null);
+                Assert.AreEqual(30, menuGrid.childCount, "Main Menu Level Select grid must populate all 30 cards when ShowLevelModal opens.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(hudObj);
+                Object.DestroyImmediate(menuObj);
+            }
+        }
+
+        [Test]
+        public void ArcadeGameManager_StartNewRunAtLevel_ResetsStateInMemoryWithoutSceneReload()
+        {
+            int prevSelected = PlayerPrefs.GetInt(LevelGenerator.PREF_SELECTED_LEVEL, 1);
+            var gmObj = new GameObject("TestGM_InMemoryRun", typeof(ArcadeGameManager));
+            var gm = gmObj.GetComponent<ArcadeGameManager>();
+            ArcadeGameManager.SetInstanceForTesting(gm);
+
+            var lgObj = new GameObject("TestLG_InMemoryRun", typeof(LevelGenerator));
+            var lg = lgObj.GetComponent<LevelGenerator>();
+
+            try
+            {
+                gm.PauseGame();
+                Assert.AreEqual(GameState.Paused, gm.State);
+
+                gm.StartNewRunAtLevel(3);
+
+                Assert.AreEqual(1f, Time.timeScale, 0.001f);
+                Assert.AreEqual(GameState.ReadyToLaunch, gm.State);
+                Assert.AreEqual(0, gm.Score);
+                Assert.AreEqual(3, gm.CurrentLevel);
+                Assert.Greater(gm.RemainingBlocks, 0, "Level 3 blocks must be generated in-memory.");
+                Assert.IsNotNull(lg.CurrentConfig);
+                Assert.AreEqual(3, lg.CurrentConfig.LevelNumber);
+            }
+            finally
+            {
+                Time.timeScale = 1f;
+                PlayerPrefs.SetInt(LevelGenerator.PREF_SELECTED_LEVEL, prevSelected);
+                PlayerPrefs.Save();
+                ArcadeGameManager.SetInstanceForTesting(null);
+                Object.DestroyImmediate(lgObj);
+                Object.DestroyImmediate(gmObj);
+            }
         }
     }
 }

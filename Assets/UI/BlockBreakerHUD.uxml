@@ -92,15 +92,15 @@
         </ui:VisualElement>
         <ui:VisualElement name="pause-modal" class="modal-backdrop modal-hidden">
             <ui:VisualElement class="modal-card pause-card">
-                <ui:Label name="modal-title-pause" text="PAUSED" class="modal-title"/>
-                <ui:Button name="btn-resume" text="RESUME" class="arcade-btn btn-primary"/>
-                <ui:Button name="btn-level-select-pause" text="SELECT LEVEL" class="arcade-btn btn-secondary"/>
+                <ui:Label name="modal-title-pause" text="PAUSED" class="modal-title" style="align-self: stretch; -unity-text-align: upper-center;"/>
+                <ui:Button name="btn-resume" text="RESUME" class="arcade-btn btn-secondary"/>
+                <ui:Button name="btn-restart-pause" text="RESTART LEVEL" class="arcade-btn primary-btn"/>
+                <ui:Button name="btn-menu-pause" text="MAIN MENU" class="arcade-btn btn-default"/>
+                <ui:Button name="btn-level-select-pause" text="SELECT LEVEL" class="arcade-btn btn-default"/>
                 <ui:Button name="btn-options-pause" text="OPTIONS" class="arcade-btn btn-default"/>
                 <ui:Button name="btn-highscores-pause" text="HIGH SCORES" class="arcade-btn btn-default"/>
                 <ui:Button name="btn-how-to-play-pause" text="HOW TO PLAY" class="arcade-btn btn-default"/>
                 <ui:Button name="btn-credits-pause" text="CREDITS" class="arcade-btn btn-default"/>
-                <ui:Button name="btn-restart-pause" text="RESTART LEVEL" class="arcade-btn btn-default"/>
-                <ui:Button name="btn-menu-pause" text="MAIN MENU" class="arcade-btn btn-default"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="highscores-modal" class="modal-backdrop modal-hidden">

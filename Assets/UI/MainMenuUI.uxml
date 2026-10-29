@@ -10,8 +10,8 @@
                 <ui:Button name="btn-level-select" text="SELECT LEVEL" class="arcade-button secondary-btn"/>
                 <ui:Button name="btn-continue" text="CONTINUE" class="arcade-button default-btn"/>
                 <ui:Button name="btn-highscores" text="HIGH SCORES" class="arcade-button default-btn"/>
-                <ui:Button name="btn-how-to-play" text="HOW TO PLAY" class="arcade-button default-btn"/>
                 <ui:Button name="btn-options" text="OPTIONS" class="arcade-button default-btn"/>
+                <ui:Button name="btn-how-to-play" text="HOW TO PLAY" class="arcade-button default-btn"/>
                 <ui:Button name="btn-credits" text="CREDITS" class="arcade-button default-btn"/>
             </ui:VisualElement>
         </ui:VisualElement>

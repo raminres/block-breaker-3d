@@ -649,7 +649,7 @@ MonoBehaviour:
   sfxVolume: 0.8
   isMuted: 0
   musicVolume: 0.7
-  isMusicMuted: 0
+  isMusicMuted: 1
   clipPop: {fileID: 8300000, guid: 72579e2a14739d64383c79e6c4f9045b, type: 3}
   clipBreak: {fileID: 8300000, guid: 28f9da65d6050544381fd13055535cb7, type: 3}
   clipPowerup: {fileID: 8300000, guid: b28e8ebbc8f9a7742905b4feb2e680f0, type: 3}
@@ -1862,6 +1862,9 @@ MonoBehaviour:
   extraTopPercent: 3.5
   extraBottomPercent: 2.5
   extraSidePercent: 2
+  enableWebOptimizations: 1
+  webExtraTopPercent: 0.5
+  webTopBarOffsetPixels: 0
   simulateInEditor: 1
   forceEditorSimulation: 0
   simulatedTopInsetPixels: 160
@@ -2288,7 +2291,7 @@ Transform:
   m_GameObject: {fileID: 1730726417}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 8.5, z: -78.56263}
+  m_LocalPosition: {x: 0, y: 8.5, z: -64.53802}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

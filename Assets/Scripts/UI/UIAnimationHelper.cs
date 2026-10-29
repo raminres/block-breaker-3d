@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 namespace Arcade.UI
@@ -23,6 +24,16 @@ namespace Arcade.UI
         public const string ClassLaunchFingerRight = "launch-finger-swipe-right";
 
         private static readonly Dictionary<VisualElement, Coroutine> activeCoroutines = new Dictionary<VisualElement, Coroutine>();
+
+        /// <summary>
+        /// True when an async scene transition faded to dark and the newly loaded scene should fade in.
+        /// </summary>
+        public static bool PendingSceneFadeIn { get; set; }
+
+        /// <summary>
+        /// True while an async scene transition is actively fading out or loading.
+        /// </summary>
+        public static bool IsSceneTransitioning { get; private set; }
 
         /// <summary>
         /// Plays a subsequent top-to-bottom scaling pop-in on a list of elements (e.g. buttons).
@@ -167,6 +178,15 @@ namespace Arcade.UI
 
             modalBackdrop.RemoveFromClassList("modal-hidden");
             modalBackdrop.pickingMode = PickingMode.Position;
+
+            if (modalCard != null)
+            {
+                var title = modalCard.Q<Label>(className: "modal-title");
+                if (title != null)
+                {
+                    AutoFitTextToWidth(title);
+                }
+            }
 
             if (!Application.isPlaying || host == null || !host.gameObject.activeInHierarchy)
             {
@@ -439,6 +459,239 @@ namespace Arcade.UI
                 if (host != null) host.StopCoroutine(running);
                 activeCoroutines.Remove(element);
             }
+        }
+
+        /// <summary>
+        /// Automatically adjusts a label's font size so that its text fits cleanly within
+        /// its parent VisualElement width without overflowing or clipping.
+        /// </summary>
+        /// <param name="label">The UI Toolkit label to adjust.</param>
+        /// <param name="maxFontSize">The base / default maximum font size (default: 64px).</param>
+        /// <param name="minFontSize">The lowest allowed font size before clipping (default: 28px).</param>
+        /// <param name="paddingBuffer">Additional horizontal safety padding inside parent (default: 48px).</param>
+        public static float AutoFitTextToWidth(
+            Label label,
+            float maxFontSize = 64f,
+            float minFontSize = 28f,
+            float paddingBuffer = 48f)
+        {
+            if (label == null || string.IsNullOrEmpty(label.text))
+                return maxFontSize;
+
+            float targetWidth = 0f;
+            var parent = label.parent;
+            if (parent != null)
+            {
+                if (parent.contentRect.width > 0f)
+                {
+                    targetWidth = parent.contentRect.width - paddingBuffer;
+                }
+                else if (parent.resolvedStyle.width > 0f)
+                {
+                    float pad = parent.resolvedStyle.paddingLeft + parent.resolvedStyle.paddingRight;
+                    targetWidth = parent.resolvedStyle.width - pad - paddingBuffer;
+                }
+                else if (parent.style.width.keyword == StyleKeyword.Undefined && parent.style.width.value.value > 0f)
+                {
+                    float pad = (parent.style.paddingLeft.keyword == StyleKeyword.Undefined ? parent.style.paddingLeft.value.value : 0f)
+                              + (parent.style.paddingRight.keyword == StyleKeyword.Undefined ? parent.style.paddingRight.value.value : 0f);
+                    targetWidth = parent.style.width.value.value - pad - paddingBuffer;
+                }
+            }
+
+            // Fallback for standard modal card width (840px - 56px padding - 48px buffer = 736px)
+            if (targetWidth <= 0f)
+            {
+                targetWidth = 736f;
+            }
+
+            label.style.fontSize = maxFontSize;
+            Vector2 measured = label.MeasureTextSize(
+                label.text,
+                0,
+                VisualElement.MeasureMode.Undefined,
+                0,
+                VisualElement.MeasureMode.Undefined);
+
+            float fittedSize = maxFontSize;
+            if (measured.x > targetWidth && targetWidth > 0f)
+            {
+                float ratio = targetWidth / measured.x;
+                fittedSize = Mathf.Clamp(Mathf.Floor(maxFontSize * ratio), minFontSize, maxFontSize);
+                label.style.fontSize = fittedSize;
+
+                measured = label.MeasureTextSize(
+                    label.text,
+                    0,
+                    VisualElement.MeasureMode.Undefined,
+                    0,
+                    VisualElement.MeasureMode.Undefined);
+
+                while (measured.x > targetWidth && fittedSize > minFontSize)
+                {
+                    fittedSize -= 1f;
+                    label.style.fontSize = fittedSize;
+                    measured = label.MeasureTextSize(
+                        label.text,
+                        0,
+                        VisualElement.MeasureMode.Undefined,
+                        0,
+                        VisualElement.MeasureMode.Undefined);
+                }
+            }
+            else
+            {
+                label.style.fontSize = maxFontSize;
+            }
+
+            return fittedSize;
+        }
+
+        /// <summary>
+        /// Registers geometry change callbacks on both the label and its parent container
+        /// to ensure the label font size dynamically adapts whenever layouts or dimensions shift.
+        /// </summary>
+        public static void EnableAutoFit(
+            Label label,
+            float maxFontSize = 64f,
+            float minFontSize = 28f,
+            float paddingBuffer = 48f)
+        {
+            if (label == null) return;
+
+            AutoFitTextToWidth(label, maxFontSize, minFontSize, paddingBuffer);
+
+            label.RegisterCallback<GeometryChangedEvent>(evt =>
+            {
+                if (Mathf.Abs(evt.oldRect.width - evt.newRect.width) > 1f)
+                {
+                    AutoFitTextToWidth(label, maxFontSize, minFontSize, paddingBuffer);
+                }
+            });
+
+            if (label.parent != null)
+            {
+                label.parent.RegisterCallback<GeometryChangedEvent>(evt =>
+                {
+                    if (Mathf.Abs(evt.oldRect.width - evt.newRect.width) > 1f)
+                    {
+                        AutoFitTextToWidth(label, maxFontSize, minFontSize, paddingBuffer);
+                    }
+                });
+            }
+        }
+
+        /// <summary>
+        /// Smoothly fades out the current UI screen over a brief interval (allowing button punch/audio feedback to render)
+        /// and loads the target scene asynchronously via LoadSceneAsync to avoid raw freeze frames on WebGL and iOS.
+        /// </summary>
+        public static Coroutine TransitionToSceneAsync(
+            MonoBehaviour host,
+            VisualElement root,
+            string sceneName,
+            float fadeOutDuration = 0.12f)
+        {
+            if (!Application.isPlaying || host == null || !host.gameObject.activeInHierarchy || root == null)
+            {
+                IsSceneTransitioning = false;
+                PendingSceneFadeIn = false;
+                SceneManager.LoadScene(sceneName);
+                return null;
+            }
+
+            if (IsSceneTransitioning)
+            {
+                return null;
+            }
+
+            IsSceneTransitioning = true;
+            PendingSceneFadeIn = true;
+            return host.StartCoroutine(DoTransitionToSceneAsync(root, sceneName, fadeOutDuration));
+        }
+
+        private static IEnumerator DoTransitionToSceneAsync(VisualElement root, string sceneName, float fadeOutDuration)
+        {
+            VisualElement overlay = CreateTransitionOverlay(0f, PickingMode.Position);
+            root.Add(overlay);
+
+            float elapsed = 0f;
+            float dur = Mathf.Max(0.01f, fadeOutDuration);
+            while (elapsed < dur)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                overlay.style.opacity = Mathf.Clamp01(elapsed / dur);
+                yield return null;
+            }
+
+            overlay.style.opacity = 1f;
+            // Render one full opaque frame before starting scene load
+            yield return null;
+
+            AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
+            while (op != null && !op.isDone)
+            {
+                yield return null;
+            }
+
+            IsSceneTransitioning = false;
+        }
+
+        /// <summary>
+        /// If arriving from TransitionToSceneAsync, holds an opaque dark veil for 1 rendered frame (masking frame-1 GPU PSO prewarm)
+        /// and smoothly fades into the newly initialized scene.
+        /// </summary>
+        public static Coroutine PlayPendingSceneFadeIn(
+            MonoBehaviour host,
+            VisualElement root,
+            float fadeInDuration = 0.18f)
+        {
+            IsSceneTransitioning = false;
+
+            if (!PendingSceneFadeIn || !Application.isPlaying || host == null || !host.gameObject.activeInHierarchy || root == null)
+            {
+                PendingSceneFadeIn = false;
+                return null;
+            }
+
+            PendingSceneFadeIn = false;
+            return host.StartCoroutine(DoSceneFadeIn(root, fadeInDuration));
+        }
+
+        private static IEnumerator DoSceneFadeIn(VisualElement root, float fadeInDuration)
+        {
+            VisualElement overlay = CreateTransitionOverlay(1f, PickingMode.Ignore);
+            root.Add(overlay);
+
+            // Hold 1 rendered frame so targeted in-frustum VFX PSO warmup completes invisibly
+            yield return null;
+
+            float elapsed = 0f;
+            float dur = Mathf.Max(0.01f, fadeInDuration);
+            while (elapsed < dur)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                overlay.style.opacity = 1f - Mathf.Clamp01(elapsed / dur);
+                yield return null;
+            }
+
+            if (overlay.parent != null)
+            {
+                overlay.RemoveFromHierarchy();
+            }
+        }
+
+        private static VisualElement CreateTransitionOverlay(float initialOpacity, PickingMode picking)
+        {
+            var overlay = new VisualElement { name = "scene-transition-overlay" };
+            overlay.pickingMode = picking;
+            overlay.style.position = Position.Absolute;
+            overlay.style.left = 0f;
+            overlay.style.right = 0f;
+            overlay.style.top = 0f;
+            overlay.style.bottom = 0f;
+            overlay.style.backgroundColor = new StyleColor(new Color(0.02f, 0.03f, 0.07f, 1f));
+            overlay.style.opacity = initialOpacity;
+            return overlay;
         }
     }
 }

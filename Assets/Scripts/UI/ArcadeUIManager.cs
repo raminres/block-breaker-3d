@@ -17,6 +17,7 @@ namespace Arcade.UI
     {
         private PanelRenderer panelRenderer;
         private VisualElement root;
+        private VisualElement boundRoot;
 
         // Top bar elements
         private Label scoreLabel;
@@ -493,7 +494,7 @@ namespace Arcade.UI
 
         private void OnUIReload(PanelRenderer renderer, VisualElement newRoot, int version)
         {
-            if (newRoot == null) return;
+            if (newRoot == null || newRoot == boundRoot) return;
             UnbindElements();
             root = newRoot;
             BindElements();
@@ -593,6 +594,7 @@ namespace Arcade.UI
             btnApplyLevel = null;
             btnCloseLevelSettings = null;
 
+            boundRoot = null;
             root = null;
             scoreLabel = null;
             scoreContainer = null;
@@ -889,55 +891,6 @@ namespace Arcade.UI
             btnCreditGithub = root.Q<Button>("btn-credit-github");
 
             menuLevelTabButtons.Clear();
-            var levelGridContainer = levelModal != null ? levelModal.Q<VisualElement>(className: "level-grid-container") : null;
-            if (levelGridContainer != null)
-            {
-                levelGridContainer.Clear();
-                if (levelGenerator == null) levelGenerator = FindAnyObjectByType<LevelGenerator>();
-                int totalLevels = levelGenerator != null ? levelGenerator.TotalLevels : 30;
-                for (int i = 0; i < totalLevels; i++)
-                {
-                    int lvlNum = i + 1;
-                    int stars = HighScoreManager.GetLevelStars(lvlNum);
-                    float bestTime = HighScoreManager.GetLevelBestTime(lvlNum);
-
-                    var cardBtn = new Button();
-                    cardBtn.AddToClassList("level-grid-card");
-                    cardBtn.AddToClassList("level-tab-btn");
-
-                    var numLbl = new Label(lvlNum.ToString());
-                    numLbl.AddToClassList("level-card-num");
-                    numLbl.pickingMode = PickingMode.Ignore;
-                    cardBtn.Add(numLbl);
-
-                    var starsRow = new VisualElement();
-                    starsRow.AddToClassList("level-card-stars-row");
-                    starsRow.pickingMode = PickingMode.Ignore;
-                    for (int s = 0; s < 3; s++)
-                    {
-                        var star = new VisualElement();
-                        star.AddToClassList("card-star");
-                        star.AddToClassList(s < stars ? "star-active" : "star-inactive");
-                        star.pickingMode = PickingMode.Ignore;
-                        starsRow.Add(star);
-                    }
-                    cardBtn.Add(starsRow);
-
-                    var timeLbl = new Label(bestTime > 0f ? HighScoreManager.FormatTime(bestTime) : "--:--");
-                    timeLbl.AddToClassList("level-card-time");
-                    timeLbl.pickingMode = PickingMode.Ignore;
-                    cardBtn.Add(timeLbl);
-
-                    levelGridContainer.Add(cardBtn);
-                    menuLevelTabButtons.Add(cardBtn);
-                    int captureLvl = lvlNum;
-                    cardBtn.clicked += () =>
-                    {
-                        UIAnimationHelper.PunchElement(this, cardBtn, "ui-punch-pop", 0.10f);
-                        SelectLevel(captureLvl);
-                    };
-                }
-            }
 
             menuLevelTag = root.Q<Label>("menu-level-tag");
             menuLevelDiff = root.Q<Label>("menu-level-diff");
@@ -1112,28 +1065,8 @@ namespace Arcade.UI
 
             if (btnFps != null) btnFps.clicked += ToggleFpsSetting;
 
-            // Level settings wiring
+            // Level settings tabs are lazily populated when ShowLevelSettings() opens
             hudLevelTabButtons.Clear();
-            if (levelSettingsModal != null)
-            {
-                var tabsContainer = levelSettingsModal.Q<VisualElement>(className: "level-tabs-container");
-                if (tabsContainer != null)
-                {
-                    tabsContainer.Clear();
-                    int totalLevels = levelGenerator != null ? levelGenerator.TotalLevels : 30;
-                    for (int i = 0; i < totalLevels; i++)
-                    {
-                        int lvlNum = i + 1;
-                        int stars = HighScoreManager.GetLevelStars(lvlNum);
-                        string starSuffix = stars > 0 ? $" ({stars}★)" : "";
-                        var btn = new Button { text = $"LVL {lvlNum}{starSuffix}" };
-                        btn.AddToClassList("level-tab-btn");
-                        tabsContainer.Add(btn);
-                        hudLevelTabButtons.Add(btn);
-                        btn.clicked += () => SelectLevelTab(lvlNum);
-                    }
-                }
-            }
 
             if (sliderColumns != null)
             {
@@ -1245,6 +1178,124 @@ namespace Arcade.UI
 
             if (btnApplyLevel != null) btnApplyLevel.clicked += ApplyLevelSettingsAndRestart;
             if (btnCloseLevelSettings != null) btnCloseLevelSettings.clicked += HideLevelSettings;
+            boundRoot = root;
+        }
+
+        private void EnsureLevelSelectGridPopulated()
+        {
+            var levelGridContainer = levelModal != null ? levelModal.Q<VisualElement>(className: "level-grid-container") : null;
+            if (levelGridContainer == null) return;
+
+            if (menuLevelTabButtons.Count > 0)
+            {
+                for (int i = 0; i < menuLevelTabButtons.Count; i++)
+                {
+                    int lvlNum = i + 1;
+                    int stars = HighScoreManager.GetLevelStars(lvlNum);
+                    float bestTime = HighScoreManager.GetLevelBestTime(lvlNum);
+                    var cardBtn = menuLevelTabButtons[i];
+
+                    var starsRow = cardBtn.Q<VisualElement>(className: "level-card-stars-row");
+                    if (starsRow != null)
+                    {
+                        for (int s = 0; s < starsRow.childCount; s++)
+                        {
+                            var star = starsRow[s];
+                            star.RemoveFromClassList("star-active");
+                            star.RemoveFromClassList("star-inactive");
+                            star.AddToClassList(s < stars ? "star-active" : "star-inactive");
+                        }
+                    }
+
+                    var timeLbl = cardBtn.Q<Label>(className: "level-card-time");
+                    if (timeLbl != null)
+                    {
+                        timeLbl.text = bestTime > 0f ? HighScoreManager.FormatTime(bestTime) : "--:--";
+                    }
+                }
+                return;
+            }
+
+            levelGridContainer.Clear();
+            if (levelGenerator == null) levelGenerator = FindAnyObjectByType<LevelGenerator>();
+            int totalLevels = levelGenerator != null ? levelGenerator.TotalLevels : 30;
+            for (int i = 0; i < totalLevels; i++)
+            {
+                int lvlNum = i + 1;
+                int stars = HighScoreManager.GetLevelStars(lvlNum);
+                float bestTime = HighScoreManager.GetLevelBestTime(lvlNum);
+
+                var cardBtn = new Button();
+                cardBtn.AddToClassList("level-grid-card");
+                cardBtn.AddToClassList("level-tab-btn");
+
+                var numLbl = new Label(lvlNum.ToString());
+                numLbl.AddToClassList("level-card-num");
+                numLbl.pickingMode = PickingMode.Ignore;
+                cardBtn.Add(numLbl);
+
+                var starsRow = new VisualElement();
+                starsRow.AddToClassList("level-card-stars-row");
+                starsRow.pickingMode = PickingMode.Ignore;
+                for (int s = 0; s < 3; s++)
+                {
+                    var star = new VisualElement();
+                    star.AddToClassList("card-star");
+                    star.AddToClassList(s < stars ? "star-active" : "star-inactive");
+                    star.pickingMode = PickingMode.Ignore;
+                    starsRow.Add(star);
+                }
+                cardBtn.Add(starsRow);
+
+                var timeLbl = new Label(bestTime > 0f ? HighScoreManager.FormatTime(bestTime) : "--:--");
+                timeLbl.AddToClassList("level-card-time");
+                timeLbl.pickingMode = PickingMode.Ignore;
+                cardBtn.Add(timeLbl);
+
+                levelGridContainer.Add(cardBtn);
+                menuLevelTabButtons.Add(cardBtn);
+                int captureLvl = lvlNum;
+                cardBtn.clicked += () =>
+                {
+                    UIAnimationHelper.PunchElement(this, cardBtn, "ui-punch-pop", 0.10f);
+                    SelectLevel(captureLvl);
+                };
+            }
+        }
+
+        private void EnsureLevelSettingsTabsPopulated()
+        {
+            if (levelSettingsModal == null) return;
+            var tabsContainer = levelSettingsModal.Q<VisualElement>(className: "level-tabs-container");
+            if (tabsContainer == null) return;
+
+            if (hudLevelTabButtons.Count > 0)
+            {
+                for (int i = 0; i < hudLevelTabButtons.Count; i++)
+                {
+                    int lvlNum = i + 1;
+                    int stars = HighScoreManager.GetLevelStars(lvlNum);
+                    string starSuffix = stars > 0 ? $" ({stars}★)" : "";
+                    hudLevelTabButtons[i].text = $"LVL {lvlNum}{starSuffix}";
+                }
+                return;
+            }
+
+            tabsContainer.Clear();
+            if (levelGenerator == null) levelGenerator = FindAnyObjectByType<LevelGenerator>();
+            int totalLevels = levelGenerator != null ? levelGenerator.TotalLevels : 30;
+            for (int i = 0; i < totalLevels; i++)
+            {
+                int lvlNum = i + 1;
+                int stars = HighScoreManager.GetLevelStars(lvlNum);
+                string starSuffix = stars > 0 ? $" ({stars}★)" : "";
+                var btn = new Button { text = $"LVL {lvlNum}{starSuffix}" };
+                btn.AddToClassList("level-tab-btn");
+                tabsContainer.Add(btn);
+                hudLevelTabButtons.Add(btn);
+                int captureLvl = lvlNum;
+                btn.clicked += () => SelectLevelTab(captureLvl);
+            }
         }
 
         private void SubscribeEvents()
@@ -1358,6 +1409,8 @@ namespace Arcade.UI
             {
                 levelClearBanner.AddToClassList("level-clear-banner-hidden");
             }
+
+            UIAnimationHelper.PlayPendingSceneFadeIn(this, root);
         }
 
         private void SetLanguage(GameLanguage lang)
@@ -1586,13 +1639,13 @@ namespace Arcade.UI
         {
             var list = new System.Collections.Generic.List<VisualElement>();
             if (btnResume != null) list.Add(btnResume);
+            if (btnRestartPause != null) list.Add(btnRestartPause);
+            if (btnMenuPause != null) list.Add(btnMenuPause);
             if (btnLevelSelectPause != null) list.Add(btnLevelSelectPause);
             if (btnOptionsPause != null) list.Add(btnOptionsPause);
             if (btnHighscoresPause != null) list.Add(btnHighscoresPause);
             if (btnHowToPlayPause != null) list.Add(btnHowToPlayPause);
             if (btnCreditsPause != null) list.Add(btnCreditsPause);
-            if (btnRestartPause != null) list.Add(btnRestartPause);
-            if (btnMenuPause != null) list.Add(btnMenuPause);
             return list;
         }
 
@@ -2646,6 +2699,13 @@ namespace Arcade.UI
             UIAnimationHelper.PunchButton(this, btnRestartPause);
             UIAnimationHelper.PunchButton(this, btnRetry);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
+            wasPausedByOptions = false;
+            wasPausedByLevelSettings = false;
+            if (Arcade.Input.ArcadeInputHandler.Instance != null)
+            {
+                Arcade.Input.ArcadeInputHandler.Instance.SuppressLaunch(0.35f);
+                Arcade.Input.ArcadeInputHandler.Instance.ResetTouchState();
+            }
             if (ArcadeGameManager.Instance != null)
             {
                 ArcadeGameManager.Instance.RestartGame();
@@ -2683,14 +2743,17 @@ namespace Arcade.UI
 
         private void HandleMenuClicked()
         {
+            if (UIAnimationHelper.IsSceneTransitioning) return;
             UIAnimationHelper.PunchButton(this, btnMenuPause);
             UIAnimationHelper.PunchButton(this, btnClearMenu);
             UIAnimationHelper.PunchButton(this, btnOverMenu);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
+            Time.timeScale = 1f;
             if (ArcadeGameManager.Instance != null)
             {
-                ArcadeGameManager.Instance.LoadMainMenu();
+                ArcadeGameManager.Instance.SaveCurrentGameSession();
             }
+            UIAnimationHelper.TransitionToSceneAsync(this, root, "LV_BlockBreaker_MainMenu");
         }
 
         public void ShowOptions()
@@ -2791,6 +2854,7 @@ namespace Arcade.UI
             }
 
             if (levelGenerator == null) levelGenerator = FindAnyObjectByType<LevelGenerator>();
+            EnsureLevelSettingsTabsPopulated();
 
             if (levelGenerator != null && levelGenerator.CurrentConfig != null)
             {
@@ -3162,6 +3226,7 @@ namespace Arcade.UI
             UIAnimationHelper.PunchButton(this, btnQuickLevels);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             if (levelGenerator == null) levelGenerator = FindAnyObjectByType<LevelGenerator>();
+            EnsureLevelSelectGridPopulated();
 
             int currentLvl = 1;
             if (ArcadeGameManager.Instance != null)
@@ -3359,11 +3424,26 @@ namespace Arcade.UI
 
         private void HandleStartSelectedLevel()
         {
+            UIAnimationHelper.PunchButton(this, btnStartSelectedLevel);
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
+            wasPausedByOptions = false;
+            wasPausedByLevelSettings = false;
+            if (levelModal != null) levelModal.AddToClassList("modal-hidden");
+            if (pauseModal != null) pauseModal.AddToClassList("modal-hidden");
+            if (Arcade.Input.ArcadeInputHandler.Instance != null)
+            {
+                Arcade.Input.ArcadeInputHandler.Instance.SuppressLaunch(0.35f);
+                Arcade.Input.ArcadeInputHandler.Instance.ResetTouchState();
+            }
+            if (ArcadeGameManager.Instance != null)
+            {
+                ArcadeGameManager.Instance.StartNewRunAtLevel(selectedLevelNumber);
+                return;
+            }
+
             Time.timeScale = 1f;
             PlayerPrefs.SetInt("Arcade_LoadSavedGameOnStart", 0);
             PlayerPrefs.SetInt("Arcade_SelectedLevel", selectedLevelNumber);
-            PlayerPrefs.Save();
             ArcadeGameManager.ClearSavedGame();
             UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
         }

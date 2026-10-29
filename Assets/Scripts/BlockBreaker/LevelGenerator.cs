@@ -177,10 +177,13 @@ namespace Arcade.BlockBreaker
             return null;
         }
 
-        public void SelectAndLoadLevel(int levelNumber)
+        public void SelectAndLoadLevel(int levelNumber, bool savePrefs = true)
         {
             PlayerPrefs.SetInt(PREF_SELECTED_LEVEL, levelNumber);
-            PlayerPrefs.Save();
+            if (savePrefs)
+            {
+                PlayerPrefs.Save();
+            }
 
             LevelConfiguration baseConfig = GetLevelConfig(levelNumber);
             if (baseConfig != null)
@@ -407,13 +410,13 @@ namespace Arcade.BlockBreaker
                     {
                         if (blockComp.BrickSpecial != null)
                         {
-                            blockComp.BrickSpecial.SetActive(true);
                             var badge = blockComp.BrickSpecial.GetComponent<BlockBadge>();
                             if (badge != null)
                             {
                                 Sprite badgeSprite = iconSet != null ? iconSet.GetSprite(special) : null;
                                 badge.Setup(special, badgePanelSettings, badgeVisualTreeAsset, badgeSprite);
                             }
+                            blockComp.BrickSpecial.SetActive(true);
                         }
                         else if (badgePanelSettings != null && badgeVisualTreeAsset != null)
                         {
