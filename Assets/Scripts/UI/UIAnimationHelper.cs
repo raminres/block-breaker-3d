@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 namespace Arcade.UI
@@ -23,6 +24,16 @@ namespace Arcade.UI
         public const string ClassLaunchFingerRight = "launch-finger-swipe-right";
 
         private static readonly Dictionary<VisualElement, Coroutine> activeCoroutines = new Dictionary<VisualElement, Coroutine>();
+
+        /// <summary>
+        /// True when an async scene transition faded to dark and the newly loaded scene should fade in.
+        /// </summary>
+        public static bool PendingSceneFadeIn { get; set; }
+
+        /// <summary>
+        /// True while an async scene transition is actively fading out or loading.
+        /// </summary>
+        public static bool IsSceneTransitioning { get; private set; }
 
         /// <summary>
         /// Plays a subsequent top-to-bottom scaling pop-in on a list of elements (e.g. buttons).
@@ -568,6 +579,119 @@ namespace Arcade.UI
                     }
                 });
             }
+        }
+
+        /// <summary>
+        /// Smoothly fades out the current UI screen over a brief interval (allowing button punch/audio feedback to render)
+        /// and loads the target scene asynchronously via LoadSceneAsync to avoid raw freeze frames on WebGL and iOS.
+        /// </summary>
+        public static Coroutine TransitionToSceneAsync(
+            MonoBehaviour host,
+            VisualElement root,
+            string sceneName,
+            float fadeOutDuration = 0.12f)
+        {
+            if (!Application.isPlaying || host == null || !host.gameObject.activeInHierarchy || root == null)
+            {
+                IsSceneTransitioning = false;
+                PendingSceneFadeIn = false;
+                SceneManager.LoadScene(sceneName);
+                return null;
+            }
+
+            if (IsSceneTransitioning)
+            {
+                return null;
+            }
+
+            IsSceneTransitioning = true;
+            PendingSceneFadeIn = true;
+            return host.StartCoroutine(DoTransitionToSceneAsync(root, sceneName, fadeOutDuration));
+        }
+
+        private static IEnumerator DoTransitionToSceneAsync(VisualElement root, string sceneName, float fadeOutDuration)
+        {
+            VisualElement overlay = CreateTransitionOverlay(0f, PickingMode.Position);
+            root.Add(overlay);
+
+            float elapsed = 0f;
+            float dur = Mathf.Max(0.01f, fadeOutDuration);
+            while (elapsed < dur)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                overlay.style.opacity = Mathf.Clamp01(elapsed / dur);
+                yield return null;
+            }
+
+            overlay.style.opacity = 1f;
+            // Render one full opaque frame before starting scene load
+            yield return null;
+
+            AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
+            while (op != null && !op.isDone)
+            {
+                yield return null;
+            }
+
+            IsSceneTransitioning = false;
+        }
+
+        /// <summary>
+        /// If arriving from TransitionToSceneAsync, holds an opaque dark veil for 1 rendered frame (masking frame-1 GPU PSO prewarm)
+        /// and smoothly fades into the newly initialized scene.
+        /// </summary>
+        public static Coroutine PlayPendingSceneFadeIn(
+            MonoBehaviour host,
+            VisualElement root,
+            float fadeInDuration = 0.18f)
+        {
+            IsSceneTransitioning = false;
+
+            if (!PendingSceneFadeIn || !Application.isPlaying || host == null || !host.gameObject.activeInHierarchy || root == null)
+            {
+                PendingSceneFadeIn = false;
+                return null;
+            }
+
+            PendingSceneFadeIn = false;
+            return host.StartCoroutine(DoSceneFadeIn(root, fadeInDuration));
+        }
+
+        private static IEnumerator DoSceneFadeIn(VisualElement root, float fadeInDuration)
+        {
+            VisualElement overlay = CreateTransitionOverlay(1f, PickingMode.Ignore);
+            root.Add(overlay);
+
+            // Hold 1 rendered frame so targeted in-frustum VFX PSO warmup completes invisibly
+            yield return null;
+
+            float elapsed = 0f;
+            float dur = Mathf.Max(0.01f, fadeInDuration);
+            while (elapsed < dur)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                overlay.style.opacity = 1f - Mathf.Clamp01(elapsed / dur);
+                yield return null;
+            }
+
+            if (overlay.parent != null)
+            {
+                overlay.RemoveFromHierarchy();
+            }
+        }
+
+        private static VisualElement CreateTransitionOverlay(float initialOpacity, PickingMode picking)
+        {
+            var overlay = new VisualElement { name = "scene-transition-overlay" };
+            overlay.pickingMode = picking;
+            overlay.style.position = Position.Absolute;
+            overlay.style.left = 0f;
+            overlay.style.right = 0f;
+            overlay.style.top = 0f;
+            overlay.style.bottom = 0f;
+            overlay.style.backgroundColor = new StyleColor(new Color(0.02f, 0.03f, 0.07f, 1f));
+            overlay.style.opacity = initialOpacity;
+            return overlay;
         }
     }
 }

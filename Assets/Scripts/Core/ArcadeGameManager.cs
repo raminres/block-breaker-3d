@@ -1519,9 +1519,62 @@ namespace Arcade.Core
             }
         }
 
+        /// <summary>
+        /// Starts a fresh arcade run at the specified level directly in-memory without tearing down
+        /// and reloading the entire gameplay scene.
+        /// </summary>
+        public void StartNewRunAtLevel(int levelNumber)
+        {
+            Time.timeScale = 1f;
+            BlockBreaker.PowerupCapsule.ClearAllFallingCapsules();
+            BlockBreaker.LaserBolt.ClearAllActiveBolts();
+            BlockBreaker.BlockVFXManager.Instance?.ClearAllActive();
+            ClearExtraBalls();
+            DeactivateShield();
+            DeactivatePaddleExpander();
+            DeactivateScoreMultiplier();
+            DeactivateLaserPowerup();
+            EndClutchMode();
+            ClearActivePowerdowns();
+
+            currentScore = 0;
+            remainingLives = startingLives;
+            totalRunElapsedTime = 0f;
+            currentSessionId = System.Guid.NewGuid().ToString("N");
+            currentLevel = levelNumber;
+
+            ClearSavedGame(false);
+            PlayerPrefs.SetInt("Arcade_LoadSavedGameOnStart", 0);
+            PlayerPrefs.SetInt(BlockBreaker.LevelGenerator.PREF_SELECTED_LEVEL, levelNumber);
+            PlayerPrefs.Save();
+
+            var generator = FindAnyObjectByType<BlockBreaker.LevelGenerator>();
+            if (generator != null)
+            {
+                generator.SelectAndLoadLevel(levelNumber, false);
+            }
+            else
+            {
+                ResetLevelSessionStats();
+            }
+
+            currentState = GameState.ReadyToLaunch;
+            OnScoreChanged?.Invoke(currentScore, 0);
+            OnLivesChanged?.Invoke(remainingLives);
+            OnPauseToggled?.Invoke(false);
+            OnStateChanged?.Invoke(currentState);
+        }
+
         public void RestartGame()
         {
             Time.timeScale = 1f;
+            var generator = FindAnyObjectByType<BlockBreaker.LevelGenerator>();
+            if (generator != null)
+            {
+                StartNewRunAtLevel(currentLevel);
+                return;
+            }
+
             ClearSavedGame();
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
@@ -1549,7 +1602,7 @@ namespace Arcade.Core
             PlayerPrefs.Save();
         }
 
-        public static void ClearSavedGame()
+        public static void ClearSavedGame(bool saveImmediately = true)
         {
             PlayerPrefs.DeleteKey(PREF_SAVED_SCORE);
             PlayerPrefs.DeleteKey(PREF_SAVED_LIVES);
@@ -1557,7 +1610,10 @@ namespace Arcade.Core
             PlayerPrefs.DeleteKey(PREF_SAVED_RUN_TIME);
             PlayerPrefs.DeleteKey(PREF_SAVED_SESSION_ID);
             PlayerPrefs.SetInt(PREF_HAS_SAVED_GAME, 0);
-            PlayerPrefs.Save();
+            if (saveImmediately)
+            {
+                PlayerPrefs.Save();
+            }
         }
     }
 }

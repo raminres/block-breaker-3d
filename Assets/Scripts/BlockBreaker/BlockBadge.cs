@@ -10,9 +10,17 @@ namespace Arcade.BlockBreaker
     [RequireComponent(typeof(PanelRenderer))]
     public class BlockBadge : MonoBehaviour
     {
+        private static readonly System.Reflection.PropertyInfo RootVisualElementProp =
+            typeof(PanelRenderer).GetProperty(
+                "rootVisualElement",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
         [SerializeField] private PanelRenderer panelRenderer;
         [SerializeField] private BlockSpecialType specialType = BlockSpecialType.ScoreMultiplier2x;
         [SerializeField] private Sprite iconSprite;
+
+        private VisualElement cachedRoot;
+        private bool isCallbackRegistered;
 
         public BlockSpecialType SpecialType => specialType;
         public Sprite IconSprite => iconSprite;
@@ -20,43 +28,60 @@ namespace Arcade.BlockBreaker
 
         public void SetSprite(Sprite sprite) => iconSprite = sprite;
 
-        private void Awake()
+        private void EnsureCallbackRegistered()
         {
             if (panelRenderer == null) panelRenderer = GetComponent<PanelRenderer>();
-            if (panelRenderer != null)
+            if (panelRenderer != null && !isCallbackRegistered)
             {
                 panelRenderer.RegisterUIReloadCallback(OnUIReload);
+                isCallbackRegistered = true;
             }
+        }
+
+        private void Awake()
+        {
+            EnsureCallbackRegistered();
+        }
+
+        private void OnEnable()
+        {
+            EnsureCallbackRegistered();
         }
 
         private void OnDestroy()
         {
-            if (panelRenderer != null)
+            if (panelRenderer != null && isCallbackRegistered)
             {
                 panelRenderer.UnregisterUIReloadCallback(OnUIReload);
+                isCallbackRegistered = false;
             }
+            cachedRoot = null;
         }
 
         public void Setup(BlockSpecialType type, PanelSettings settings, VisualTreeAsset asset, Sprite sprite = null)
         {
             specialType = type;
             if (sprite != null) iconSprite = sprite;
-            if (panelRenderer == null) panelRenderer = GetComponent<PanelRenderer>();
+            EnsureCallbackRegistered();
             if (panelRenderer != null)
             {
-                panelRenderer.panelSettings = settings;
-                panelRenderer.visualTreeAsset = asset;
+                if (settings != null && panelRenderer.panelSettings != settings)
+                {
+                    panelRenderer.panelSettings = settings;
+                }
+                if (asset != null && panelRenderer.visualTreeAsset != asset)
+                {
+                    panelRenderer.visualTreeAsset = asset;
+                }
                 panelRenderer.worldSpaceSizeMode = WorldSpaceSizeMode.Fixed;
                 panelRenderer.worldSpaceSize = new Vector2(0.80f, 0.80f);
                 panelRenderer.pivot = Pivot.Center;
 
-                // Toggle enable to force clean reinsertion in Unity 6
-                panelRenderer.enabled = false;
-                panelRenderer.enabled = true;
-
-                var prop = panelRenderer.GetType().GetProperty("rootVisualElement", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                var r = prop?.GetValue(panelRenderer) as VisualElement;
-                if (r != null) UpdateUI(r);
+                if (gameObject.activeInHierarchy)
+                {
+                    var r = cachedRoot ?? (RootVisualElementProp?.GetValue(panelRenderer) as VisualElement);
+                    if (r != null) UpdateUI(r);
+                }
             }
         }
 
@@ -68,6 +93,7 @@ namespace Arcade.BlockBreaker
         private void OnUIReload(PanelRenderer renderer, VisualElement root, int version)
         {
             if (root == null) return;
+            cachedRoot = root;
             var icon = root.Q<VisualElement>("badge-icon");
             var label = root.Q<Label>("badge-text");
             var plate = root.Q<VisualElement>("badge-plate");

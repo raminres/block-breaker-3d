@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -87,6 +88,8 @@ namespace Arcade.BlockBreaker
         private readonly Queue<ShatterInstance> paddleSparkPool = new Queue<ShatterInstance>();
         private readonly Queue<ShatterInstance> bombExplosionPool = new Queue<ShatterInstance>();
         private readonly List<ShatterInstance> activeShatterList = new List<ShatterInstance>(32);
+        private readonly List<ShatterInstance> prewarmingInstances = new List<ShatterInstance>(4);
+        private Coroutine prewarmCoroutine;
         private int totalActiveDebrisCount = 0;
 
         private static readonly int BaseColorPropId = Shader.PropertyToID("_BaseColor");
@@ -127,6 +130,7 @@ namespace Arcade.BlockBreaker
             {
                 Instance = null;
             }
+            CleanupPrewarmingInstances();
             ClearAllActive();
         }
 
@@ -201,13 +205,40 @@ namespace Arcade.BlockBreaker
             var container = GetOrCreatePoolContainer();
             EnsureReferences();
 
-            for (int i = 0; i < poolSize; i++)
+            while (shatterPool.Count < poolSize)
             {
                 ShatterInstance inst = CreateShatterInstance();
                 inst.root.SetActive(false);
                 inst.root.transform.SetParent(container);
                 inst.root.transform.position = new Vector3(0f, -500f, 0f);
                 shatterPool.Enqueue(inst);
+            }
+
+            if (powerupCollectPool.Count == 0 && powerupCollectPrefab != null)
+            {
+                ShatterInstance inst = CreatePowerupCollectInstance();
+                inst.root.SetActive(false);
+                inst.root.transform.SetParent(container);
+                inst.root.transform.position = new Vector3(0f, -500f, 0f);
+                powerupCollectPool.Enqueue(inst);
+            }
+
+            if (paddleSparkPool.Count == 0 && paddleSparkPrefab != null)
+            {
+                ShatterInstance inst = CreatePaddleSparkInstance();
+                inst.root.SetActive(false);
+                inst.root.transform.SetParent(container);
+                inst.root.transform.position = new Vector3(0f, -500f, 0f);
+                paddleSparkPool.Enqueue(inst);
+            }
+
+            if (bombExplosionPool.Count == 0 && bombExplosionPrefab != null)
+            {
+                ShatterInstance inst = CreateBombExplosionInstance();
+                inst.root.SetActive(false);
+                inst.root.transform.SetParent(container);
+                inst.root.transform.position = new Vector3(0f, -500f, 0f);
+                bombExplosionPool.Enqueue(inst);
             }
         }
 
@@ -426,23 +457,103 @@ namespace Arcade.BlockBreaker
 
         public void Prewarm()
         {
-            if (!Application.isEditor)
-            {
-                Shader.WarmupAllShaders();
-            }
+            var baseMat = GetOrCreateParticleMaterial();
+            var debMat = GetOrCreateDebrisMaterial();
+            var glassMat = GetOrCreateGlassMaterial();
 
             if (shatterPool.Count > 0)
             {
                 var peek = shatterPool.Peek();
                 if (peek != null)
                 {
-                    var baseMat = GetOrCreateParticleMaterial();
                     if (peek.sparksPsr != null && baseMat != null) peek.sparksPsr.sharedMaterial = baseMat;
-                    var debMat = GetOrCreateDebrisMaterial();
                     if (peek.largePsr != null && debMat != null) peek.largePsr.sharedMaterial = debMat;
                     if (peek.smallPsr != null && debMat != null) peek.smallPsr.sharedMaterial = debMat;
+                    if (peek.frostPsr != null && glassMat != null) peek.frostPsr.sharedMaterial = glassMat;
                 }
             }
+
+            if (Application.isPlaying && isActiveAndEnabled)
+            {
+                if (prewarmCoroutine != null)
+                {
+                    StopCoroutine(prewarmCoroutine);
+                    prewarmCoroutine = null;
+                }
+                CleanupPrewarmingInstances();
+                prewarmCoroutine = StartCoroutine(PrewarmGpuPipelinesRoutine(baseMat, debMat, glassMat));
+            }
+        }
+
+        /// <summary>
+        /// Renders 1 sub-pixel particle from each pooled VFX prefab inside the camera frustum for 1 frame
+        /// so Metal (iOS) and WebGL2/ANGLE compile exact hardware PSOs without global shader warmup stalls.
+        /// </summary>
+        private IEnumerator PrewarmGpuPipelinesRoutine(Material baseMat, Material debMat, Material glassMat)
+        {
+            EnqueueForPrewarm(shatterPool, baseMat, debMat, glassMat);
+            EnqueueForPrewarm(bombExplosionPool, baseMat, debMat, glassMat);
+            EnqueueForPrewarm(paddleSparkPool, baseMat, debMat, glassMat);
+            EnqueueForPrewarm(powerupCollectPool, baseMat, debMat, glassMat);
+
+            if (prewarmingInstances.Count == 0)
+            {
+                prewarmCoroutine = null;
+                yield break;
+            }
+
+            yield return null;
+
+            CleanupPrewarmingInstances();
+            prewarmCoroutine = null;
+        }
+
+        private void EnqueueForPrewarm(Queue<ShatterInstance> pool, Material baseMat, Material debMat, Material glassMat)
+        {
+            if (pool == null || pool.Count == 0) return;
+
+            var inst = pool.Dequeue();
+            if (inst == null || inst.root == null) return;
+
+            if (inst.sparksPsr != null && baseMat != null && inst.sparksPsr.sharedMaterial == null)
+                inst.sparksPsr.sharedMaterial = baseMat;
+            if (inst.largePsr != null && debMat != null)
+                inst.largePsr.sharedMaterial = debMat;
+            if (inst.smallPsr != null && debMat != null)
+                inst.smallPsr.sharedMaterial = debMat;
+            if (inst.frostPsr != null && glassMat != null)
+                inst.frostPsr.sharedMaterial = glassMat;
+
+            inst.root.transform.position = new Vector3(0f, 4f, 0f);
+            inst.root.transform.localScale = Vector3.one * 0.0005f;
+            inst.root.SetActive(true);
+
+            if (inst.allPs != null)
+            {
+                for (int i = 0; i < inst.allPs.Length; i++)
+                {
+                    var ps = inst.allPs[i];
+                    if (ps != null)
+                    {
+                        ps.Emit(1);
+                    }
+                }
+            }
+
+            prewarmingInstances.Add(inst);
+        }
+
+        private void CleanupPrewarmingInstances()
+        {
+            for (int i = 0; i < prewarmingInstances.Count; i++)
+            {
+                var inst = prewarmingInstances[i];
+                if (inst == null || inst.root == null) continue;
+
+                inst.root.transform.localScale = Vector3.one;
+                RecycleInstance(inst);
+            }
+            prewarmingInstances.Clear();
         }
 
         public Material GetOrCreateParticleMaterial()
@@ -957,6 +1068,12 @@ namespace Arcade.BlockBreaker
         /// </summary>
         public void ClearAllActive()
         {
+            if (prewarmCoroutine != null)
+            {
+                StopCoroutine(prewarmCoroutine);
+                prewarmCoroutine = null;
+            }
+            CleanupPrewarmingInstances();
             for (int i = activeShatterList.Count - 1; i >= 0; i--)
             {
                 RecycleInstance(activeShatterList[i]);
