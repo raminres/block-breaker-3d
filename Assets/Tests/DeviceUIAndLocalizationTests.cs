@@ -416,6 +416,25 @@ namespace Arcade.Tests
         }
 
         [Test]
+        public void SafeAreaController_WebSettings_HasDefaultsAndAllowsCustomization()
+        {
+            var go = new GameObject("TestSafeAreaWeb", typeof(PanelRenderer), typeof(SafeAreaController));
+            var controller = go.GetComponent<SafeAreaController>();
+
+            Assert.IsNotNull(controller);
+            Assert.IsTrue(controller.EnableWebOptimizations, "Web optimizations must be enabled by default.");
+            Assert.AreEqual(0.5f, controller.WebExtraTopPercent, 0.01f, "Web extra top percent should default to 0.5%.");
+            Assert.AreEqual(0f, controller.WebTopBarOffsetPixels, 0.01f, "Web top bar offset pixels should default to 0.");
+
+            controller.WebExtraTopPercent = 1.0f;
+            controller.WebTopBarOffsetPixels = -6f;
+            Assert.AreEqual(1.0f, controller.WebExtraTopPercent, 0.01f);
+            Assert.AreEqual(-6f, controller.WebTopBarOffsetPixels, 0.01f);
+
+            Object.DestroyImmediate(go);
+        }
+
+        [Test]
         public void BlockBreakerHUD_UXML_WrapsTopBarInSafeAreaContent()
         {
             var uxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/BlockBreakerHUD.uxml");

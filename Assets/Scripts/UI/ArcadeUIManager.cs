@@ -1586,13 +1586,13 @@ namespace Arcade.UI
         {
             var list = new System.Collections.Generic.List<VisualElement>();
             if (btnResume != null) list.Add(btnResume);
+            if (btnRestartPause != null) list.Add(btnRestartPause);
+            if (btnMenuPause != null) list.Add(btnMenuPause);
             if (btnLevelSelectPause != null) list.Add(btnLevelSelectPause);
             if (btnOptionsPause != null) list.Add(btnOptionsPause);
             if (btnHighscoresPause != null) list.Add(btnHighscoresPause);
             if (btnHowToPlayPause != null) list.Add(btnHowToPlayPause);
             if (btnCreditsPause != null) list.Add(btnCreditsPause);
-            if (btnRestartPause != null) list.Add(btnRestartPause);
-            if (btnMenuPause != null) list.Add(btnMenuPause);
             return list;
         }
 

@@ -22,9 +22,20 @@ namespace Arcade.UI
         [Range(0f, 15f)] [SerializeField] private float extraBottomPercent = 2.5f;
         [Range(0f, 15f)] [SerializeField] private float extraSidePercent = 2.0f;
 
+        [Header("Web / WebGL Settings")]
+        [Tooltip("When running in WebGL or targeting WebGL in Editor, overrides mobile safe margins and disables notch simulation.")]
+        [SerializeField] private bool enableWebOptimizations = true;
+        [Tooltip("Top padding percentage used specifically for Web / WebGL (default: 0.5%).")]
+        [Range(0f, 10f)] [SerializeField] private float webExtraTopPercent = 0.5f;
+        [Tooltip("Additional top-bar margin adjustment in pixels for Web (can be negative, e.g. -6 to move closer to edge).")]
+        [SerializeField] private float webTopBarOffsetPixels = 0f;
+
         public float ExtraTopPercent => extraTopPercent;
         public float ExtraBottomPercent => extraBottomPercent;
         public float ExtraSidePercent => extraSidePercent;
+        public float WebExtraTopPercent { get => webExtraTopPercent; set => webExtraTopPercent = value; }
+        public float WebTopBarOffsetPixels { get => webTopBarOffsetPixels; set => webTopBarOffsetPixels = value; }
+        public bool EnableWebOptimizations { get => enableWebOptimizations; set => enableWebOptimizations = value; }
 
         [Header("Editor Simulation")]
         [Tooltip("When true, simulates notches in standard Game View if no hardware/Device Simulator safe area exists.")]
@@ -141,8 +152,12 @@ namespace Arcade.UI
                                           (screenW - (safeArea.x + safeArea.width)) > 0.5f ||
                                           (screenH - (safeArea.y + safeArea.height)) > 0.5f;
 
+                bool isWeb = IsWebPlatform();
+                float effectiveExtraTop = (isWeb && enableWebOptimizations) ? webExtraTopPercent : extraTopPercent;
+
 #if UNITY_EDITOR
-                if (forceEditorSimulation || (!hasGenuineSafeArea && simulateInEditor))
+                bool shouldSimulateNotch = forceEditorSimulation || (!isWeb && !hasGenuineSafeArea && simulateInEditor);
+                if (shouldSimulateNotch)
                 {
                     safeArea = new Rect(
                         simulatedSideInsetPixels,
@@ -162,13 +177,26 @@ namespace Arcade.UI
                 // Calculate insets using Yoga width-relative CSS percentages:
                 // In CSS / Yoga Flexbox, all padding percentages (including top and bottom) are calculated relative to the containing element's WIDTH.
                 // Dividing by screenW guarantees the rendered pixel inset is mathematically 100% exact.
-                var (leftPct, rightPct, topPct, bottomPct) = CalculateYogaInsets(safeArea, screenW, screenH, extraSidePercent, extraTopPercent, extraBottomPercent);
+                var (leftPct, rightPct, topPct, bottomPct) = CalculateYogaInsets(safeArea, screenW, screenH, extraSidePercent, effectiveExtraTop, extraBottomPercent);
 
                 // Apply padding to target container element (e.g. safe-area-content)
                 targetElement.style.paddingLeft = Length.Percent(leftPct);
                 targetElement.style.paddingRight = Length.Percent(rightPct);
                 targetElement.style.paddingTop = Length.Percent(topPct);
                 targetElement.style.paddingBottom = Length.Percent(bottomPct);
+
+                var topBar = root.Q("top-bar");
+                if (topBar != null)
+                {
+                    if (isWeb && enableWebOptimizations && webTopBarOffsetPixels != 0f)
+                    {
+                        topBar.style.marginTop = Mathf.Max(0f, 12f + webTopBarOffsetPixels);
+                    }
+                    else
+                    {
+                        topBar.style.marginTop = StyleKeyword.Null;
+                    }
+                }
 
                 // If targetElement is a child of root, reset root's padding so layout isn't duplicated
                 // and root remains 100% full bleed for edge-to-edge modal backdrops
@@ -213,6 +241,20 @@ namespace Arcade.UI
             {
                 // VisualElement released during panel reload/teardown
             }
+        }
+
+        /// <summary>
+        /// Detects whether the current environment is WebGL (either in WebGL runtime or in Editor with WebGL target active).
+        /// </summary>
+        public static bool IsWebPlatform()
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            return true;
+#elif UNITY_EDITOR
+            return UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.WebGL;
+#else
+            return false;
+#endif
         }
 
         /// <summary>

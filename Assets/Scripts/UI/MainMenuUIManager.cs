@@ -733,8 +733,8 @@ namespace Arcade.UI
             if (btnLevelSelect != null) list.Add(btnLevelSelect);
             if (btnContinue != null && btnContinue.style.display != DisplayStyle.None) list.Add(btnContinue);
             if (btnHighscores != null) list.Add(btnHighscores);
-            if (btnHowToPlay != null) list.Add(btnHowToPlay);
             if (btnOptions != null) list.Add(btnOptions);
+            if (btnHowToPlay != null) list.Add(btnHowToPlay);
             if (btnCredits != null) list.Add(btnCredits);
             return list;
         }

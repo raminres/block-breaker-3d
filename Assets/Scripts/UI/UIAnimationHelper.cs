@@ -168,6 +168,15 @@ namespace Arcade.UI
             modalBackdrop.RemoveFromClassList("modal-hidden");
             modalBackdrop.pickingMode = PickingMode.Position;
 
+            if (modalCard != null)
+            {
+                var title = modalCard.Q<Label>(className: "modal-title");
+                if (title != null)
+                {
+                    AutoFitTextToWidth(title);
+                }
+            }
+
             if (!Application.isPlaying || host == null || !host.gameObject.activeInHierarchy)
             {
                 modalBackdrop.RemoveFromClassList(ClassModalBackdropHidden);
@@ -438,6 +447,126 @@ namespace Arcade.UI
             {
                 if (host != null) host.StopCoroutine(running);
                 activeCoroutines.Remove(element);
+            }
+        }
+
+        /// <summary>
+        /// Automatically adjusts a label's font size so that its text fits cleanly within
+        /// its parent VisualElement width without overflowing or clipping.
+        /// </summary>
+        /// <param name="label">The UI Toolkit label to adjust.</param>
+        /// <param name="maxFontSize">The base / default maximum font size (default: 64px).</param>
+        /// <param name="minFontSize">The lowest allowed font size before clipping (default: 28px).</param>
+        /// <param name="paddingBuffer">Additional horizontal safety padding inside parent (default: 48px).</param>
+        public static float AutoFitTextToWidth(
+            Label label,
+            float maxFontSize = 64f,
+            float minFontSize = 28f,
+            float paddingBuffer = 48f)
+        {
+            if (label == null || string.IsNullOrEmpty(label.text))
+                return maxFontSize;
+
+            float targetWidth = 0f;
+            var parent = label.parent;
+            if (parent != null)
+            {
+                if (parent.contentRect.width > 0f)
+                {
+                    targetWidth = parent.contentRect.width - paddingBuffer;
+                }
+                else if (parent.resolvedStyle.width > 0f)
+                {
+                    float pad = parent.resolvedStyle.paddingLeft + parent.resolvedStyle.paddingRight;
+                    targetWidth = parent.resolvedStyle.width - pad - paddingBuffer;
+                }
+                else if (parent.style.width.keyword == StyleKeyword.Undefined && parent.style.width.value.value > 0f)
+                {
+                    float pad = (parent.style.paddingLeft.keyword == StyleKeyword.Undefined ? parent.style.paddingLeft.value.value : 0f)
+                              + (parent.style.paddingRight.keyword == StyleKeyword.Undefined ? parent.style.paddingRight.value.value : 0f);
+                    targetWidth = parent.style.width.value.value - pad - paddingBuffer;
+                }
+            }
+
+            // Fallback for standard modal card width (840px - 56px padding - 48px buffer = 736px)
+            if (targetWidth <= 0f)
+            {
+                targetWidth = 736f;
+            }
+
+            label.style.fontSize = maxFontSize;
+            Vector2 measured = label.MeasureTextSize(
+                label.text,
+                0,
+                VisualElement.MeasureMode.Undefined,
+                0,
+                VisualElement.MeasureMode.Undefined);
+
+            float fittedSize = maxFontSize;
+            if (measured.x > targetWidth && targetWidth > 0f)
+            {
+                float ratio = targetWidth / measured.x;
+                fittedSize = Mathf.Clamp(Mathf.Floor(maxFontSize * ratio), minFontSize, maxFontSize);
+                label.style.fontSize = fittedSize;
+
+                measured = label.MeasureTextSize(
+                    label.text,
+                    0,
+                    VisualElement.MeasureMode.Undefined,
+                    0,
+                    VisualElement.MeasureMode.Undefined);
+
+                while (measured.x > targetWidth && fittedSize > minFontSize)
+                {
+                    fittedSize -= 1f;
+                    label.style.fontSize = fittedSize;
+                    measured = label.MeasureTextSize(
+                        label.text,
+                        0,
+                        VisualElement.MeasureMode.Undefined,
+                        0,
+                        VisualElement.MeasureMode.Undefined);
+                }
+            }
+            else
+            {
+                label.style.fontSize = maxFontSize;
+            }
+
+            return fittedSize;
+        }
+
+        /// <summary>
+        /// Registers geometry change callbacks on both the label and its parent container
+        /// to ensure the label font size dynamically adapts whenever layouts or dimensions shift.
+        /// </summary>
+        public static void EnableAutoFit(
+            Label label,
+            float maxFontSize = 64f,
+            float minFontSize = 28f,
+            float paddingBuffer = 48f)
+        {
+            if (label == null) return;
+
+            AutoFitTextToWidth(label, maxFontSize, minFontSize, paddingBuffer);
+
+            label.RegisterCallback<GeometryChangedEvent>(evt =>
+            {
+                if (Mathf.Abs(evt.oldRect.width - evt.newRect.width) > 1f)
+                {
+                    AutoFitTextToWidth(label, maxFontSize, minFontSize, paddingBuffer);
+                }
+            });
+
+            if (label.parent != null)
+            {
+                label.parent.RegisterCallback<GeometryChangedEvent>(evt =>
+                {
+                    if (Mathf.Abs(evt.oldRect.width - evt.newRect.width) > 1f)
+                    {
+                        AutoFitTextToWidth(label, maxFontSize, minFontSize, paddingBuffer);
+                    }
+                });
             }
         }
     }
