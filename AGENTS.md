@@ -7,7 +7,7 @@ High-density technical context, architectural rules, and subsystem specification
 ## 1. Project Specifications & Key Paths
 - **Product Name / Bundle ID**: `BlockBreaker` / `com.RaminRasulzade.BlockBreaker`
 - **Unity Version**: Unity 6 (`6000.6.0f1`), Universal Render Pipeline (`URP 17.6.0`)
-- **Active Branch**: `feature/ui-improvements` (Git LFS enabled)
+- **Active Branch**: `feature/webgl-build-and-fixes` (Git LFS enabled)
 - **Scenes**:
   1. `Assets/Scenes/LV_BlockBreaker_MainMenu.unity` (Build Index 0, Start Scene configured via [PlayModeSceneSetup.cs](Assets/Editor/PlayModeSceneSetup.cs))
   2. `Assets/Scenes/LV_BlockBreaker.unity` (Build Index 1, Primary Gameplay Arena)
@@ -173,11 +173,12 @@ High-density technical context, architectural rules, and subsystem specification
   ```bash
   unity cmd recompile
   ```
-- **Total EditMode Tests**: 331 / 331 passing (100%).
+- **Total EditMode Tests**: 332 / 332 passing (100%).
 
 ---
 
 ## 11. Engineering Milestones & Session Changelog
+- **WebGL Platform Optimizations & UI Polish (`feature/webgl-build-and-fixes`)**: Created branch `feature/webgl-build-and-fixes` for WebGL builds (itch.io and personal portfolio). Added Web-specific safe area handling in [SafeAreaController.cs](Assets/Scripts/UI/SafeAreaController.cs) via `IsWebPlatform()`, bypassing the 177px mobile simulated notch and adding a customizable `webExtraTopPercent` (0.5% default) slider and `webTopBarOffsetPixels`, elevating the HUD top bar on Web without breaking iOS or Desktop. Synchronized cascading animations in [ArcadeUIManager.cs](Assets/Scripts/UI/ArcadeUIManager.cs) (`GetPauseButtons`) and [MainMenuUIManager.cs](Assets/Scripts/UI/MainMenuUIManager.cs) (`GetMainMenuButtons`) with user-reordered buttons. Updated pause button styling in [BlockBreakerHUD.uxml](Assets/UI/BlockBreakerHUD.uxml) so Continue (`btn-resume`) and Restart (`btn-restart-pause`) are emerald green (`btn-secondary`) with all subsequent buttons titanium slate (`btn-default`). Added `Web - Desktop - Development` and `Release` build profiles, configured 256px maxTextureSize WebGL settings for level previews, and added NUnit test coverage (332 total passing tests).
 - **UI Overhaul, Typography & Universal Popups (`feature/ui-improvements`)**: Redesigned Options volume controls as iOS-style pill sliders (`26px` track, cyan fill bar, `52px` circular white thumb) and mute toggles as iOS-style pill switches (`136x68px` track in `152x88px` unclipped container; left crimson muted state, right cyan enabled state). Applied `FT_Montserrat-SemiBold.ttf` across Main Menu and HUD headers/buttons. Refined Turkish localization (`ArcadeTable_tr.asset`) with natural gaming terminology. Removed level names/descriptions from Level Select & Level Settings (preserving user-customized Level Select layouts). Replaced wordy localized ball speed popups with universal numeric multiplier deltas (`+0.1x`, `-0.1x`, `-0.3x`; removed `STRIKE!` popup on paddle smash) and simplified flying score labels to pure math (`+40 (x2)`). Fixed `ShieldWall.cs` to preserve prefab-authored `SM_ShieldWall.fbx` and `MI_Playfield_Border.mat` without runtime material/cyan emission overrides. Bound HUD Clutch Countdown icon (`clutch-status-icon`) to `TX_Powerup_Laser_Clutch.png` via `SO_PowerupIcons.asset` and `ArcadeUIManager.cs`.
 - **Background Music Integration & Mobile Import Optimization**: Integrated `AU_Music_Background.wav` looping soundtrack across Main Menu and Gameplay scenes via persistent `ArcadeAudioManager.cs`. Hosted `musicSource` on a dedicated `_MusicSource` child transform to prevent FMOD root voice-channel contention. Optimized audio import for mobile (`m_3D = false`, `loadType = CompressedInMemory`, `loadInBackground = true`, `preloadAudioData = true`, Vorbis 0.7 for Android/Standalone, MP3/AAC for iOS). Synchronized with Main Menu and in-game UI options (mute toggle and volume sliders). Added 2 new NUnit tests (331 total passing EditMode tests).
 - **Level Visualizer & Inspector EditorWindow**: Created [LevelVisualizerWindow.cs](Assets/Editor/LevelVisualizerWindow.cs) (`Tools > Arcade > Level Visualizer` / `Window > Arcade > Level Visualizer`) featuring interactive 2D grid matrix rendering, block tier & powerup/hazard distribution preview, real-time Scene View preview toggle, and full level configuration inspection and tuning.
