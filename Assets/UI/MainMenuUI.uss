@@ -1159,6 +1159,11 @@
     -unity-background-image-tint-color: rgb(33, 212, 253);
 }
 
+.icon-privacy {
+    background-image: url("project://database/Assets/UI/Icons/TX_Icon_Web.png?fileID=21300000&guid=baee02911da2ea94cab2866cf0239bef&type=3#TX_Icon_Web");
+    -unity-background-image-tint-color: rgb(33, 212, 253);
+}
+
 .credit-btn-text {
     color: rgb(255, 255, 255);
     font-size: 24px;

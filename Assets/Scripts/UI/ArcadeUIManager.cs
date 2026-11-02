@@ -109,6 +109,7 @@ namespace Arcade.UI
         private Button btnCreditWebsite;
         private Button btnCreditLinkedin;
         private Button btnCreditGithub;
+        private Button btnCreditPrivacy;
 
         // Level Select controls
         private readonly System.Collections.Generic.List<Button> menuLevelTabButtons = new System.Collections.Generic.List<Button>();
@@ -525,6 +526,7 @@ namespace Arcade.UI
             if (btnCreditWebsite != null) btnCreditWebsite.clicked -= OpenWebsite;
             if (btnCreditLinkedin != null) btnCreditLinkedin.clicked -= OpenLinkedIn;
             if (btnCreditGithub != null) btnCreditGithub.clicked -= OpenGitHub;
+            if (btnCreditPrivacy != null) btnCreditPrivacy.clicked -= OpenPrivacyPolicy;
             menuLevelTabButtons.Clear();
 
             if (btnNextLevel != null) btnNextLevel.clicked -= HandleNextLevelClicked;
@@ -580,6 +582,7 @@ namespace Arcade.UI
             btnCreditWebsite = null;
             btnCreditLinkedin = null;
             btnCreditGithub = null;
+            btnCreditPrivacy = null;
             btnNextLevel = null;
             btnClearMenu = null;
             btnReplayLevel = null;
@@ -889,6 +892,7 @@ namespace Arcade.UI
             btnCreditWebsite = root.Q<Button>("btn-credit-website");
             btnCreditLinkedin = root.Q<Button>("btn-credit-linkedin");
             btnCreditGithub = root.Q<Button>("btn-credit-github");
+            btnCreditPrivacy = root.Q<Button>("btn-credit-privacy");
 
             menuLevelTabButtons.Clear();
 
@@ -1004,6 +1008,7 @@ namespace Arcade.UI
             if (btnCreditWebsite != null) btnCreditWebsite.clicked += OpenWebsite;
             if (btnCreditLinkedin != null) btnCreditLinkedin.clicked += OpenLinkedIn;
             if (btnCreditGithub != null) btnCreditGithub.clicked += OpenGitHub;
+            if (btnCreditPrivacy != null) btnCreditPrivacy.clicked += OpenPrivacyPolicy;
 
             if (btnNextLevel != null) btnNextLevel.clicked += HandleNextLevelClicked;
             if (btnClearMenu != null) btnClearMenu.clicked += HandleMenuClicked;
@@ -3177,6 +3182,7 @@ namespace Arcade.UI
             if (btnCreditEmail != null) buttons.Add(btnCreditEmail);
             if (btnCreditLinkedin != null) buttons.Add(btnCreditLinkedin);
             if (btnCreditGithub != null) buttons.Add(btnCreditGithub);
+            if (btnCreditPrivacy != null) buttons.Add(btnCreditPrivacy);
             if (btnCloseCredits != null) buttons.Add(btnCloseCredits);
 
             if (pauseModal != null && !pauseModal.ClassListContains("modal-hidden"))
@@ -3452,6 +3458,7 @@ namespace Arcade.UI
         private void OpenWebsite() => Application.OpenURL("https://raminrasulzade.com");
         private void OpenLinkedIn() => Application.OpenURL("https://linkedin.com/in/ramin-rasulzade");
         private void OpenGitHub() => Application.OpenURL("https://github.com/raminres");
+        private void OpenPrivacyPolicy() => Application.OpenURL("https://raminrasulzade.com/block-breaker-3d/privacy-policy/");
 
         private bool IsModalOpen(VisualElement modal)
         {

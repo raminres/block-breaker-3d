@@ -577,8 +577,27 @@ namespace Arcade.Tests
             var creditsModal = root.Q<VisualElement>("credits-modal");
             Assert.IsNotNull(creditsModal, "credits-modal must exist in HUD.");
 
+            var btnCreditPrivacy = creditsModal.Q<Button>("btn-credit-privacy");
+            Assert.IsNotNull(btnCreditPrivacy, "credits-modal in HUD must contain btn-credit-privacy.");
+
             var levelModal = root.Q<VisualElement>("level-modal");
             Assert.IsNotNull(levelModal, "level-modal must exist in HUD.");
+        }
+
+        [Test]
+        public void CreditsModal_BothMenus_ContainPrivacyPolicyButton()
+        {
+            var hudUxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/BlockBreakerHUD.uxml");
+            Assert.IsNotNull(hudUxml);
+            var hudRoot = hudUxml.CloneTree();
+            var hudPrivacyBtn = hudRoot.Q<Button>("btn-credit-privacy");
+            Assert.IsNotNull(hudPrivacyBtn, "HUD credits modal must contain btn-credit-privacy.");
+
+            var menuUxml = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MainMenuUI.uxml");
+            Assert.IsNotNull(menuUxml);
+            var menuRoot = menuUxml.CloneTree();
+            var menuPrivacyBtn = menuRoot.Q<Button>("btn-credit-privacy");
+            Assert.IsNotNull(menuPrivacyBtn, "Main Menu credits modal must contain btn-credit-privacy.");
         }
 
         [Test]

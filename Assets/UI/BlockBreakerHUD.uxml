@@ -218,6 +218,10 @@
                         <ui:VisualElement picking-mode="Ignore" class="credit-icon icon-github"/>
                         <ui:Label text="github.com/raminres" picking-mode="Ignore" class="credit-btn-text"/>
                     </ui:Button>
+                    <ui:Button name="btn-credit-privacy" class="credit-link-btn">
+                        <ui:VisualElement picking-mode="Ignore" class="credit-icon icon-privacy icon-web"/>
+                        <ui:Label text="Privacy Policy" picking-mode="Ignore" class="credit-btn-text"/>
+                    </ui:Button>
                 </ui:VisualElement>
                 <ui:Label name="credit-footnote" text="Unity 6000.6 (URP) • Apple Metal • WebGPU" class="credit-footnote"/>
                 <ui:Button name="btn-close-credits" text="BACK" class="arcade-btn btn-primary modal-close-btn"/>

@@ -49,6 +49,7 @@ namespace Arcade.UI
         private Button btnCreditWebsite;
         private Button btnCreditLinkedin;
         private Button btnCreditGithub;
+        private Button btnCreditPrivacy;
 
         // Level Select controls
         private readonly System.Collections.Generic.List<Button> menuLevelTabButtons = new System.Collections.Generic.List<Button>();
@@ -243,6 +244,7 @@ namespace Arcade.UI
             if (btnCreditWebsite != null) btnCreditWebsite.clicked -= OpenWebsite;
             if (btnCreditLinkedin != null) btnCreditLinkedin.clicked -= OpenLinkedIn;
             if (btnCreditGithub != null) btnCreditGithub.clicked -= OpenGitHub;
+            if (btnCreditPrivacy != null) btnCreditPrivacy.clicked -= OpenPrivacyPolicy;
 
             if (btnToggleFps != null) btnToggleFps.clicked -= ToggleFpsSetting;
             if (btnLangEn != null) btnLangEn.clicked -= HandleLangEnClicked;
@@ -269,6 +271,7 @@ namespace Arcade.UI
             btnCreditWebsite = null;
             btnCreditLinkedin = null;
             btnCreditGithub = null;
+            btnCreditPrivacy = null;
             btnToggleFps = null;
             btnLangEn = null;
             btnLangTr = null;
@@ -306,6 +309,7 @@ namespace Arcade.UI
             btnCreditWebsite = root.Q<Button>("btn-credit-website");
             btnCreditLinkedin = root.Q<Button>("btn-credit-linkedin");
             btnCreditGithub = root.Q<Button>("btn-credit-github");
+            btnCreditPrivacy = root.Q<Button>("btn-credit-privacy");
 
             menuLevelTabButtons.Clear();
 
@@ -375,6 +379,7 @@ namespace Arcade.UI
             if (btnCreditWebsite != null) btnCreditWebsite.clicked += OpenWebsite;
             if (btnCreditLinkedin != null) btnCreditLinkedin.clicked += OpenLinkedIn;
             if (btnCreditGithub != null) btnCreditGithub.clicked += OpenGitHub;
+            if (btnCreditPrivacy != null) btnCreditPrivacy.clicked += OpenPrivacyPolicy;
 
             if (sliderVolume != null)
             {
@@ -866,6 +871,7 @@ namespace Arcade.UI
             if (btnCreditEmail != null) buttons.Add(btnCreditEmail);
             if (btnCreditLinkedin != null) buttons.Add(btnCreditLinkedin);
             if (btnCreditGithub != null) buttons.Add(btnCreditGithub);
+            if (btnCreditPrivacy != null) buttons.Add(btnCreditPrivacy);
             if (btnCloseCredits != null) buttons.Add(btnCloseCredits);
             UIAnimationHelper.ShowModal(this, creditsModal, card, buttons);
         }
@@ -977,6 +983,12 @@ namespace Arcade.UI
         {
             if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
             Application.OpenURL("https://github.com/raminres");
+        }
+
+        private void OpenPrivacyPolicy()
+        {
+            if (ArcadeAudioManager.Instance != null) ArcadeAudioManager.Instance.PlayButtonPress();
+            Application.OpenURL("https://raminrasulzade.com/block-breaker-3d/privacy-policy/");
         }
 
         private void ToggleFpsSetting()
