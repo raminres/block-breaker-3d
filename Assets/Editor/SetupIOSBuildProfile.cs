@@ -101,10 +101,35 @@ namespace Arcade.Editor
             return BuildVersionUtility.PrepareNextBuild(baseDirectory);
         }
 
-        [MenuItem("Tools/Arcade/Build Xcode Project")]
+        [MenuItem("Tools/Arcade/Build Xcode Project...", priority = 60)]
         public static void BuildXcode()
         {
+            BuildXcodeWindow.OpenWindow();
+        }
+
+        /// <summary>
+        /// Headless build method for CI or automated CLI build scripts.
+        /// </summary>
+        public static void BuildXcodeHeadless(string outPath = null, iOSSdkVersion? sdk = null, string versionOverride = null, string buildOverride = null)
+        {
             ApplySettings();
+
+            if (!string.IsNullOrEmpty(versionOverride))
+            {
+                PlayerSettings.bundleVersion = versionOverride;
+            }
+
+            if (!string.IsNullOrEmpty(buildOverride))
+            {
+                PlayerSettings.iOS.buildNumber = buildOverride;
+            }
+
+            if (sdk.HasValue)
+            {
+                PlayerSettings.iOS.sdkVersion = sdk.Value;
+            }
+
+            AssetDatabase.SaveAssets();
 
             if (Application.platform != RuntimePlatform.OSXEditor)
             {
@@ -118,8 +143,10 @@ namespace Arcade.Editor
                 return;
             }
 
-            // Advance version and create sequential subfolder (e.g. Builds/BlockBreakerBuilds/build_1)
-            string outPath = BuildVersionUtility.PrepareNextBuild(OutputBuildPath);
+            if (string.IsNullOrEmpty(outPath))
+            {
+                outPath = BuildVersionUtility.PrepareNextBuild(OutputBuildPath);
+            }
 
             var buildOptions = new BuildPlayerOptions
             {
@@ -130,7 +157,7 @@ namespace Arcade.Editor
                 options = BuildOptions.None
             };
 
-            Debug.Log($"[SetupIOSBuildProfile] Starting iOS build #{PlayerSettings.iOS.buildNumber} ({PlayerSettings.bundleVersion}) to: {outPath}...");
+            Debug.Log($"[SetupIOSBuildProfile] Starting headless iOS build #{PlayerSettings.iOS.buildNumber} ({PlayerSettings.bundleVersion}, SDK: {PlayerSettings.iOS.sdkVersion}) to: {outPath}...");
             var report = BuildPipeline.BuildPlayer(buildOptions);
             Debug.Log($"[SetupIOSBuildProfile] Build completed with result: {report.summary.result} ({report.summary.totalErrors} errors). Output directory: {outPath}");
         }
