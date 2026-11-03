@@ -154,6 +154,9 @@ MonoBehaviour:
   extraTopPercent: 3.5
   extraBottomPercent: 2.5
   extraSidePercent: 2
+  enableWebOptimizations: 1
+  webExtraTopPercent: 0.5
+  webTopBarOffsetPixels: 0
   simulateInEditor: 1
   forceEditorSimulation: 0
   simulatedTopInsetPixels: 160
@@ -783,7 +786,7 @@ Transform:
   m_GameObject: {fileID: 1935455850}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 8.5, z: -78.56263}
+  m_LocalPosition: {x: 0, y: 8.5, z: -78.56803}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

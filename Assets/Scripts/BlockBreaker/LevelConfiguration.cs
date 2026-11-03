@@ -491,6 +491,7 @@ namespace Arcade.BlockBreaker
             clone.horizontalSpacing = horizontalSpacing;
             clone.verticalSpacing = verticalSpacing;
             clone.startCenterY = startCenterY;
+            clone.includeSideFlanks = includeSideFlanks;
             clone.customLayout = customLayout;
             if (customLayoutRows != null)
             {
@@ -570,5 +571,14 @@ namespace Arcade.BlockBreaker
         public void SetParTime(float val) => parTime = Mathf.Max(5f, val);
         public void SetTimeBonusMax(int val) => timeBonusMax = Mathf.Max(0, val);
         public void SetStarThresholds(int[] thresholds) => starThresholds = thresholds;
+
+        public void SetIdentity(int number, string name, string description = "")
+        {
+            levelNumber = Mathf.Max(1, number);
+            levelName = name;
+            levelDescription = description;
+        }
+        public void SetIncludeSideFlanks(bool val) => includeSideFlanks = val;
+        public void SetStartCenterY(float val) => startCenterY = val;
     }
 }

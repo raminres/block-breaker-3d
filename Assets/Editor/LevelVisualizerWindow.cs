@@ -1,27 +1,59 @@
 using System.Collections.Generic;
+using System.IO;
 using Arcade.BlockBreaker;
 using Arcade.Core;
+using Arcade.UI;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Arcade.Editor
 {
     /// <summary>
-    /// Interactive EditorWindow for inspecting, editing, and visually verifying BlockBreaker level layouts,
-    /// block color tiers, power-up/hazard distributions, and managing level preview thumbnail sprites.
+    /// Interactive EditorWindow for inspecting, editing, creating, and visually verifying BlockBreaker level layouts,
+    /// block color tiers, power-up/hazard distributions, registering levels to scene generators, and managing level preview thumbnail sprites.
     /// </summary>
     public class LevelVisualizerWindow : EditorWindow
     {
-        private const int TOTAL_LEVELS = 30;
+        private const string LEVELS_DIR = "Assets/Settings/Levels";
+        private const string GAMEPLAY_SCENE_PATH = "Assets/Scenes/LV_BlockBreaker.unity";
+        private const string MAIN_MENU_SCENE_PATH = "Assets/Scenes/LV_BlockBreaker_MainMenu.unity";
 
         private int selectedLevelNumber = 1;
         private LevelConfiguration currentConfig;
         private SerializedObject serializedConfig;
 
+        private readonly List<LevelConfiguration> allConfigs = new List<LevelConfiguration>();
+        private string[] levelOptionNames = new string[0];
+
         private Vector2 scrollPosLeft;
         private Vector2 scrollPosRight;
         private bool liveScenePreview = false;
 
+        // Create New Level form state
+        private bool showCreatePanel = false;
+        public enum CreationTemplateMode
+        {
+            CloneSelected = 0,
+            CleanDefault = 1
+        }
+        private CreationTemplateMode creationMode = CreationTemplateMode.CloneSelected;
+        private int newLevelNumber = 31;
+        private string newLevelName = "Level 31: Custom Layout";
+        private string newLevelDescription = "";
+        private LevelLayoutType newLayoutType = LevelLayoutType.FullGrid;
+        private BlockColorPattern newColorPattern = BlockColorPattern.InvertedTiered;
+        private int newColumns = 10;
+        private int newRowsPerTier = 2;
+        private float newBlockSize = 1.0f;
+        private float newHorizontalSpacing = 1.25f;
+        private float newVerticalSpacing = 1.3f;
+        private bool autoRegisterToLevelGenerator = true;
+        private bool autoRegisterToMainMenu = true;
+        private bool autoCapturePreview = true;
+
+        // Inspector foldouts
         private bool foldoutIdentity = true;
         private bool foldoutGrid = true;
         private bool foldoutBalancing = true;
@@ -47,14 +79,103 @@ namespace Arcade.Editor
 
         private void OnEnable()
         {
+            RefreshLevelList();
+            if (allConfigs.Count > 0 && (selectedLevelNumber < 1 || selectedLevelNumber > GetMaxConfiguredLevelNumber()))
+            {
+                selectedLevelNumber = allConfigs[0].LevelNumber;
+            }
             LoadLevel(selectedLevelNumber);
+        }
+
+        public void RefreshLevelList()
+        {
+            allConfigs.Clear();
+            var guids = AssetDatabase.FindAssets("t:LevelConfiguration", new[] { LEVELS_DIR, "Assets/Settings" });
+            var dict = new SortedDictionary<int, LevelConfiguration>();
+
+            foreach (var guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var cfg = AssetDatabase.LoadAssetAtPath<LevelConfiguration>(path);
+                if (cfg != null && cfg.LevelNumber > 0 && !dict.ContainsKey(cfg.LevelNumber))
+                {
+                    dict[cfg.LevelNumber] = cfg;
+                }
+            }
+
+            foreach (var kvp in dict)
+            {
+                allConfigs.Add(kvp.Value);
+            }
+
+            levelOptionNames = new string[allConfigs.Count];
+            for (int i = 0; i < allConfigs.Count; i++)
+            {
+                var cfg = allConfigs[i];
+                levelOptionNames[i] = $"Level {cfg.LevelNumber:D2}: {cfg.LevelName}";
+            }
+        }
+
+        private int GetCurrentConfigIndex()
+        {
+            for (int i = 0; i < allConfigs.Count; i++)
+            {
+                if (allConfigs[i] != null && allConfigs[i].LevelNumber == selectedLevelNumber)
+                {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        private int GetMaxConfiguredLevelNumber()
+        {
+            int max = 0;
+            foreach (var c in allConfigs)
+            {
+                if (c != null && c.LevelNumber > max)
+                {
+                    max = c.LevelNumber;
+                }
+            }
+            return Mathf.Max(30, max);
+        }
+
+        private int GetNextAvailableLevelNumber()
+        {
+            int max = 0;
+            foreach (var c in allConfigs)
+            {
+                if (c != null && c.LevelNumber > max)
+                {
+                    max = c.LevelNumber;
+                }
+            }
+            return max + 1;
+        }
+
+        private void PrepareNewLevelDefaults()
+        {
+            newLevelNumber = GetNextAvailableLevelNumber();
+            newLevelName = $"Level {newLevelNumber}: Custom Layout";
+            newLevelDescription = $"Custom designed arcade stage {newLevelNumber}.";
         }
 
         private void LoadLevel(int levelNumber)
         {
-            selectedLevelNumber = Mathf.Clamp(levelNumber, 1, TOTAL_LEVELS);
-            string path = $"Assets/Settings/Levels/SO_Level_{selectedLevelNumber:D2}.asset";
+            selectedLevelNumber = levelNumber;
+            string path = $"{LEVELS_DIR}/SO_Level_{selectedLevelNumber:D2}.asset";
             currentConfig = AssetDatabase.LoadAssetAtPath<LevelConfiguration>(path);
+
+            if (currentConfig == null && allConfigs.Count > 0)
+            {
+                currentConfig = allConfigs.Find(c => c != null && c.LevelNumber == selectedLevelNumber);
+                if (currentConfig == null)
+                {
+                    currentConfig = allConfigs[0];
+                    selectedLevelNumber = currentConfig.LevelNumber;
+                }
+            }
 
             if (currentConfig != null)
             {
@@ -75,12 +196,18 @@ namespace Arcade.Editor
         {
             DrawTopToolbar();
 
+            if (showCreatePanel)
+            {
+                DrawCreateNewLevelPanel();
+            }
+
             if (currentConfig == null)
             {
-                EditorGUILayout.HelpBox($"Could not find LevelConfiguration at Assets/Settings/Levels/SO_Level_{selectedLevelNumber:D2}.asset", MessageType.Warning);
+                EditorGUILayout.HelpBox($"Could not find LevelConfiguration at {LEVELS_DIR}/SO_Level_{selectedLevelNumber:D2}.asset", MessageType.Warning);
                 if (GUILayout.Button("Create / Restore Default Level Presets", GUILayout.Height(30)))
                 {
                     SetupBlockBreakerScenes.CreateOrUpdateLevelPresets();
+                    RefreshLevelList();
                     LoadLevel(selectedLevelNumber);
                 }
                 return;
@@ -115,45 +242,64 @@ namespace Arcade.Editor
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 
+            int currentIndex = GetCurrentConfigIndex();
+
             // Previous button
-            GUI.enabled = selectedLevelNumber > 1;
+            GUI.enabled = currentIndex > 0;
             if (GUILayout.Button("◄ Prev", EditorStyles.toolbarButton, GUILayout.Width(60)))
             {
-                LoadLevel(selectedLevelNumber - 1);
+                LoadLevel(allConfigs[currentIndex - 1].LevelNumber);
             }
             GUI.enabled = true;
 
             // Level selector popup
-            string[] levelOptions = new string[TOTAL_LEVELS];
-            for (int i = 0; i < TOTAL_LEVELS; i++)
+            if (levelOptionNames != null && levelOptionNames.Length > 0)
             {
-                levelOptions[i] = $"Level {i + 1:D2}: {(currentConfig != null && selectedLevelNumber == i + 1 ? currentConfig.LevelName : $"Stage {i + 1}")}";
+                int safeIndex = Mathf.Clamp(currentIndex, 0, levelOptionNames.Length - 1);
+                int newSelected = EditorGUILayout.Popup(safeIndex, levelOptionNames, EditorStyles.toolbarPopup, GUILayout.Width(230));
+                if (newSelected != safeIndex && newSelected >= 0 && newSelected < allConfigs.Count)
+                {
+                    LoadLevel(allConfigs[newSelected].LevelNumber);
+                }
             }
-
-            int newSelected = EditorGUILayout.Popup(selectedLevelNumber - 1, levelOptions, EditorStyles.toolbarPopup, GUILayout.Width(220));
-            if (newSelected != selectedLevelNumber - 1)
+            else
             {
-                LoadLevel(newSelected + 1);
+                EditorGUILayout.LabelField("No Levels Found", EditorStyles.toolbarButton, GUILayout.Width(230));
             }
 
             // Next button
-            GUI.enabled = selectedLevelNumber < TOTAL_LEVELS;
+            GUI.enabled = currentIndex < allConfigs.Count - 1;
             if (GUILayout.Button("Next ►", EditorStyles.toolbarButton, GUILayout.Width(60)))
             {
-                LoadLevel(selectedLevelNumber + 1);
+                LoadLevel(allConfigs[currentIndex + 1].LevelNumber);
             }
             GUI.enabled = true;
 
-            GUILayout.Space(10);
+            GUILayout.Space(8);
 
             // Direct object field
-            var picked = (LevelConfiguration)EditorGUILayout.ObjectField(currentConfig, typeof(LevelConfiguration), false, GUILayout.Width(220));
+            var picked = (LevelConfiguration)EditorGUILayout.ObjectField(currentConfig, typeof(LevelConfiguration), false, GUILayout.Width(200));
             if (picked != null && picked != currentConfig)
             {
                 currentConfig = picked;
                 selectedLevelNumber = picked.LevelNumber;
                 serializedConfig = new SerializedObject(currentConfig);
+                RefreshLevelList();
             }
+
+            GUILayout.Space(6);
+
+            // + New Level Toggle Button
+            GUI.backgroundColor = showCreatePanel ? new Color(0.65f, 1f, 0.65f) : Color.white;
+            if (GUILayout.Button(showCreatePanel ? "✕ Close New Level" : "★ + New Level", EditorStyles.toolbarButton, GUILayout.Width(110)))
+            {
+                showCreatePanel = !showCreatePanel;
+                if (showCreatePanel)
+                {
+                    PrepareNewLevelDefaults();
+                }
+            }
+            GUI.backgroundColor = Color.white;
 
             GUILayout.FlexibleSpace();
 
@@ -168,10 +314,193 @@ namespace Arcade.Editor
             // Refresh / Reload button
             if (GUILayout.Button("Reload", EditorStyles.toolbarButton, GUILayout.Width(60)))
             {
+                RefreshLevelList();
                 LoadLevel(selectedLevelNumber);
             }
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawCreateNewLevelPanel()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("✨ Create & Author New Level", EditorStyles.boldLabel);
+            if (GUILayout.Button("✕", EditorStyles.miniButton, GUILayout.Width(24)))
+            {
+                showCreatePanel = false;
+            }
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space(4);
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Template Source", GUILayout.Width(130));
+            creationMode = (CreationTemplateMode)EditorGUILayout.EnumPopup(creationMode);
+            EditorGUILayout.EndHorizontal();
+
+            if (creationMode == CreationTemplateMode.CloneSelected && currentConfig != null)
+            {
+                EditorGUILayout.HelpBox($"Will clone all layout settings, block types, and dynamics from Level {currentConfig.LevelNumber} ({currentConfig.LevelName}).", MessageType.Info);
+            }
+            else if (creationMode == CreationTemplateMode.CloneSelected && currentConfig == null)
+            {
+                EditorGUILayout.HelpBox("No current level selected to clone from; falling back to clean template.", MessageType.Warning);
+            }
+
+            EditorGUILayout.Space(2);
+
+            newLevelNumber = EditorGUILayout.IntField("Level Number", newLevelNumber);
+            if (newLevelNumber < 1) newLevelNumber = 1;
+
+            newLevelName = EditorGUILayout.TextField("Level Name", newLevelName);
+            newLevelDescription = EditorGUILayout.TextField("Description", newLevelDescription);
+
+            if (creationMode == CreationTemplateMode.CleanDefault)
+            {
+                EditorGUILayout.Space(2);
+                EditorGUILayout.LabelField("Default Template Properties", EditorStyles.boldLabel);
+                newLayoutType = (LevelLayoutType)EditorGUILayout.EnumPopup("Layout Archetype", newLayoutType);
+                newColorPattern = (BlockColorPattern)EditorGUILayout.EnumPopup("Color Pattern", newColorPattern);
+                newColumns = EditorGUILayout.IntSlider("Columns", newColumns, 4, 14);
+                newRowsPerTier = EditorGUILayout.IntSlider("Rows Per Tier", newRowsPerTier, 1, 4);
+                newBlockSize = EditorGUILayout.Slider("Block Size", newBlockSize, 0.8f, 1.4f);
+                newHorizontalSpacing = EditorGUILayout.Slider("Horizontal Spacing", newHorizontalSpacing, 0.8f, 2.0f);
+                newVerticalSpacing = EditorGUILayout.Slider("Vertical Spacing", newVerticalSpacing, 0.8f, 2.0f);
+            }
+
+            EditorGUILayout.Space(4);
+            string targetPath = $"{LEVELS_DIR}/SO_Level_{newLevelNumber:D2}.asset";
+            bool fileExists = File.Exists(targetPath);
+            if (fileExists)
+            {
+                EditorGUILayout.HelpBox($"Target asset already exists at {targetPath}. Creating will overwrite it!", MessageType.Warning);
+            }
+            else
+            {
+                EditorGUILayout.LabelField($"Target Asset: {targetPath}", EditorStyles.miniLabel);
+            }
+
+            EditorGUILayout.Space(2);
+            EditorGUILayout.LabelField("Registration & Workflow Options", EditorStyles.boldLabel);
+            autoRegisterToLevelGenerator = EditorGUILayout.ToggleLeft("Register in LevelGenerator (LV_BlockBreaker.unity)", autoRegisterToLevelGenerator);
+            autoRegisterToMainMenu = EditorGUILayout.ToggleLeft("Register in MainMenuUIManager (LV_BlockBreaker_MainMenu.unity)", autoRegisterToMainMenu);
+            autoCapturePreview = EditorGUILayout.ToggleLeft("Generate Preview Thumbnail Sprite immediately", autoCapturePreview);
+
+            EditorGUILayout.Space(6);
+            EditorGUILayout.BeginHorizontal();
+
+            GUI.backgroundColor = new Color(0.3f, 0.85f, 0.4f);
+            if (GUILayout.Button("✔ Create & Author Level Asset", GUILayout.Height(30)))
+            {
+                CreateNewLevelAsset();
+            }
+            GUI.backgroundColor = Color.white;
+
+            if (GUILayout.Button("Cancel", GUILayout.Height(30), GUILayout.Width(100)))
+            {
+                showCreatePanel = false;
+            }
+
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.Space(4);
+        }
+
+        private void CreateNewLevelAsset()
+        {
+            if (!Directory.Exists(LEVELS_DIR))
+            {
+                Directory.CreateDirectory(LEVELS_DIR);
+                AssetDatabase.Refresh();
+            }
+
+            string targetPath = $"{LEVELS_DIR}/SO_Level_{newLevelNumber:D2}.asset";
+            if (File.Exists(targetPath))
+            {
+                if (!EditorUtility.DisplayDialog("Overwrite Level Asset?",
+                        $"An asset already exists at {targetPath}.\nDo you want to overwrite it with this new configuration?",
+                        "Yes, Overwrite", "Cancel"))
+                {
+                    return;
+                }
+            }
+
+            LevelConfiguration newConfig;
+            if (creationMode == CreationTemplateMode.CloneSelected && currentConfig != null)
+            {
+                newConfig = currentConfig.Clone();
+                newConfig.SetIdentity(newLevelNumber, newLevelName,
+                    string.IsNullOrEmpty(newLevelDescription) ? currentConfig.Description : newLevelDescription);
+            }
+            else
+            {
+                newConfig = ScriptableObject.CreateInstance<LevelConfiguration>();
+                newConfig.SetIdentity(newLevelNumber, newLevelName, newLevelDescription);
+                newConfig.SetLayoutType(newLayoutType);
+                newConfig.SetColorPattern(newColorPattern);
+                newConfig.SetColumns(newColumns);
+                newConfig.SetRowsPerTier(newRowsPerTier);
+                newConfig.SetBlockSize(newBlockSize);
+                newConfig.SetHorizontalSpacing(newHorizontalSpacing);
+                newConfig.SetVerticalSpacing(newVerticalSpacing);
+                newConfig.SetStartCenterY(15.5f);
+                newConfig.SetIncludeSideFlanks(true);
+                newConfig.SetBallSpeedMultiplier(1.0f);
+                newConfig.SetInitialPaddleWidth(5.0f);
+                newConfig.SetMultiplier2xCount(1);
+                newConfig.SetPaddleExpanderCount(1);
+                newConfig.SetParTime(40f);
+                newConfig.SetTimeBonusMax(3000);
+                newConfig.SetStarThresholds(new int[] { 500, 1000, 2000 });
+            }
+
+            if (File.Exists(targetPath))
+            {
+                AssetDatabase.DeleteAsset(targetPath);
+            }
+
+            AssetDatabase.CreateAsset(newConfig, targetPath);
+            EditorUtility.SetDirty(newConfig);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            if (autoRegisterToLevelGenerator || autoRegisterToMainMenu)
+            {
+                SyncAllLevelPresetsToScenes(autoRegisterToMainMenu);
+            }
+
+            if (autoCapturePreview)
+            {
+                LevelPreviewGenerator.GeneratePreview(newLevelNumber, newConfig);
+            }
+
+            RefreshLevelList();
+            LoadLevel(newLevelNumber);
+            showCreatePanel = false;
+
+            EditorGUIUtility.PingObject(newConfig);
+            Selection.activeObject = newConfig;
+
+            ShowNotification(new GUIContent($"Level {newLevelNumber} created & loaded!"));
+            Debug.Log($"<color=green>[LevelVisualizerWindow] Created Level {newLevelNumber} at {targetPath} and registered in scene presets.</color>");
+        }
+
+        private bool IsCurrentLevelInLevelGenerator()
+        {
+            if (currentConfig == null) return true;
+            var lg = Object.FindAnyObjectByType<LevelGenerator>();
+            if (lg != null && lg.LevelPresets != null)
+            {
+                for (int i = 0; i < lg.LevelPresets.Length; i++)
+                {
+                    if (lg.LevelPresets[i] == currentConfig) return true;
+                }
+                return false;
+            }
+            return true;
         }
 
         private void DrawLeftPane()
@@ -447,6 +776,20 @@ namespace Arcade.Editor
             EditorGUILayout.BeginVertical();
             scrollPosRight = EditorGUILayout.BeginScrollView(scrollPosRight);
 
+            // Level Generator preset status check
+            if (!IsCurrentLevelInLevelGenerator())
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.HelpBox($"Level {currentConfig.LevelNumber} ({currentConfig.LevelName}) is not currently in the LevelGenerator presets list!", MessageType.Warning);
+                if (GUILayout.Button($"➕ Register Level {currentConfig.LevelNumber} in LevelGenerator & MainMenu", GUILayout.Height(26)))
+                {
+                    int count = SyncAllLevelPresetsToScenes(true);
+                    ShowNotification(new GUIContent($"Registered all {count} levels in scene presets!"));
+                }
+                EditorGUILayout.EndVertical();
+                EditorGUILayout.Space(4);
+            }
+
             // Level Preview Thumbnail Section
             DrawPreviewThumbnailSection();
 
@@ -642,17 +985,224 @@ namespace Arcade.Editor
 
             if (GUILayout.Button("Revert to Disk", GUILayout.Height(30)))
             {
+                RefreshLevelList();
                 LoadLevel(selectedLevelNumber);
                 ShowNotification(new GUIContent("Reverted to saved asset"));
             }
 
-            if (GUILayout.Button("⚡ Generate All 30 Previews", GUILayout.Height(30)))
+            if (GUILayout.Button("➕ New Level...", GUILayout.Height(30)))
+            {
+                showCreatePanel = true;
+                PrepareNewLevelDefaults();
+            }
+
+            if (GUILayout.Button("🔗 Sync Levels to Scenes", GUILayout.Height(30)))
+            {
+                int count = SyncAllLevelPresetsToScenes(true);
+                ShowNotification(new GUIContent($"Synced {count} levels to scenes!"));
+            }
+
+            if (GUILayout.Button("⚡ Generate All Previews", GUILayout.Height(30)))
             {
                 LevelPreviewGenerator.GenerateAllPreviewsMenu();
+                RefreshLevelList();
                 LoadLevel(selectedLevelNumber);
             }
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        public static int SyncAllLevelPresetsToScenes(bool syncMainMenu = true)
+        {
+            var guids = AssetDatabase.FindAssets("t:LevelConfiguration", new[] { LEVELS_DIR, "Assets/Settings" });
+            var dict = new SortedDictionary<int, LevelConfiguration>();
+
+            foreach (var guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var cfg = AssetDatabase.LoadAssetAtPath<LevelConfiguration>(path);
+                if (cfg != null && cfg.LevelNumber > 0 && !dict.ContainsKey(cfg.LevelNumber))
+                {
+                    dict[cfg.LevelNumber] = cfg;
+                }
+            }
+
+            var list = new List<LevelConfiguration>(dict.Values);
+            if (list.Count == 0) return 0;
+
+            // 1. Sync to LV_BlockBreaker.unity (LevelGenerator and ArcadeUIManager)
+            SyncLevelsToGameplayScene(GAMEPLAY_SCENE_PATH, list);
+
+            // 2. Sync to LV_BlockBreaker_MainMenu.unity (MainMenuUIManager)
+            if (syncMainMenu)
+            {
+                SyncLevelsToMainMenuScene(MAIN_MENU_SCENE_PATH, list);
+            }
+
+            return list.Count;
+        }
+
+        public static void SyncLevelsToGameplayScene(string scenePath, List<LevelConfiguration> configs)
+        {
+            if (!File.Exists(scenePath) || configs == null || configs.Count == 0) return;
+
+            bool wasAlreadyOpen = false;
+            Scene targetScene = default;
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var s = SceneManager.GetSceneAt(i);
+                if (s.path == scenePath && s.isLoaded)
+                {
+                    wasAlreadyOpen = true;
+                    targetScene = s;
+                    break;
+                }
+            }
+
+            if (!wasAlreadyOpen)
+            {
+                targetScene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            }
+
+            var rootObjs = targetScene.GetRootGameObjects();
+            LevelGenerator lg = null;
+            ArcadeUIManager hud = null;
+
+            foreach (var root in rootObjs)
+            {
+                if (lg == null) lg = root.GetComponentInChildren<LevelGenerator>(true);
+                if (hud == null) hud = root.GetComponentInChildren<ArcadeUIManager>(true);
+            }
+
+            bool modified = false;
+
+            if (lg != null)
+            {
+                var so = new SerializedObject(lg);
+                var presetsProp = so.FindProperty("levelPresets");
+                if (presetsProp != null)
+                {
+                    presetsProp.arraySize = configs.Count;
+                    for (int i = 0; i < configs.Count; i++)
+                    {
+                        presetsProp.GetArrayElementAtIndex(i).objectReferenceValue = configs[i];
+                    }
+                    so.ApplyModifiedProperties();
+                    modified = true;
+                }
+            }
+
+            if (hud != null)
+            {
+                var so = new SerializedObject(hud);
+                var previewArrayProp = so.FindProperty("levelPreviewSprites");
+                if (previewArrayProp != null)
+                {
+                    previewArrayProp.arraySize = configs.Count;
+                    for (int i = 0; i < configs.Count; i++)
+                    {
+                        Sprite s = configs[i].PreviewSprite;
+                        if (s == null)
+                        {
+                            s = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/UI/LevelPreviews/TX_LevelPreview_{configs[i].LevelNumber:D2}.png");
+                        }
+                        previewArrayProp.GetArrayElementAtIndex(i).objectReferenceValue = s;
+                    }
+                    so.ApplyModifiedProperties();
+                    modified = true;
+                }
+            }
+
+            if (modified)
+            {
+                EditorSceneManager.MarkSceneDirty(targetScene);
+                EditorSceneManager.SaveScene(targetScene);
+            }
+
+            if (!wasAlreadyOpen)
+            {
+                EditorSceneManager.CloseScene(targetScene, true);
+            }
+        }
+
+        public static void SyncLevelsToMainMenuScene(string scenePath, List<LevelConfiguration> configs)
+        {
+            if (!File.Exists(scenePath) || configs == null || configs.Count == 0) return;
+
+            bool wasAlreadyOpen = false;
+            Scene targetScene = default;
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var s = SceneManager.GetSceneAt(i);
+                if (s.path == scenePath && s.isLoaded)
+                {
+                    wasAlreadyOpen = true;
+                    targetScene = s;
+                    break;
+                }
+            }
+
+            if (!wasAlreadyOpen)
+            {
+                targetScene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            }
+
+            var rootObjs = targetScene.GetRootGameObjects();
+            MainMenuUIManager mm = null;
+
+            foreach (var root in rootObjs)
+            {
+                if (mm == null) mm = root.GetComponentInChildren<MainMenuUIManager>(true);
+            }
+
+            bool modified = false;
+
+            if (mm != null)
+            {
+                var so = new SerializedObject(mm);
+                var presetsProp = so.FindProperty("levelPresets");
+                if (presetsProp != null)
+                {
+                    presetsProp.arraySize = configs.Count;
+                    for (int i = 0; i < configs.Count; i++)
+                    {
+                        presetsProp.GetArrayElementAtIndex(i).objectReferenceValue = configs[i];
+                    }
+                    modified = true;
+                }
+
+                var previewArrayProp = so.FindProperty("levelPreviewSprites");
+                if (previewArrayProp != null)
+                {
+                    previewArrayProp.arraySize = configs.Count;
+                    for (int i = 0; i < configs.Count; i++)
+                    {
+                        Sprite s = configs[i].PreviewSprite;
+                        if (s == null)
+                        {
+                            s = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/UI/LevelPreviews/TX_LevelPreview_{configs[i].LevelNumber:D2}.png");
+                        }
+                        previewArrayProp.GetArrayElementAtIndex(i).objectReferenceValue = s;
+                    }
+                    modified = true;
+                }
+
+                if (modified)
+                {
+                    so.ApplyModifiedProperties();
+                }
+            }
+
+            if (modified)
+            {
+                EditorSceneManager.MarkSceneDirty(targetScene);
+                EditorSceneManager.SaveScene(targetScene);
+            }
+
+            if (!wasAlreadyOpen)
+            {
+                EditorSceneManager.CloseScene(targetScene, true);
+            }
         }
 
         private void ApplyLiveScenePreview()

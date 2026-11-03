@@ -353,6 +353,32 @@ namespace Arcade.Tests
         }
 
         [Test]
+        public void LevelConfiguration_SetIdentityAndFlanks_ClonesCorrectly()
+        {
+            var config = ScriptableObject.CreateInstance<LevelConfiguration>();
+            config.SetIdentity(31, "Level 31: Test Level", "Test Description");
+            config.SetIncludeSideFlanks(false);
+            config.SetStartCenterY(16.2f);
+
+            Assert.AreEqual(31, config.LevelNumber);
+            Assert.AreEqual("Level 31: Test Level", config.LevelName);
+            Assert.AreEqual("Test Description", config.Description);
+            Assert.IsFalse(config.IncludeSideFlanks);
+            Assert.AreEqual(16.2f, config.StartCenterY, 0.001f);
+
+            var clone = config.Clone();
+            Assert.AreNotSame(config, clone);
+            Assert.AreEqual(31, clone.LevelNumber);
+            Assert.AreEqual("Level 31: Test Level", clone.LevelName);
+            Assert.AreEqual("Test Description", clone.Description);
+            Assert.IsFalse(clone.IncludeSideFlanks);
+            Assert.AreEqual(16.2f, clone.StartCenterY, 0.001f);
+
+            Object.DestroyImmediate(config);
+            Object.DestroyImmediate(clone);
+        }
+
+        [Test]
         public void LevelGenerator_InvertedRows_AssignsBlueAtTopAndRedAtBottom()
         {
             var genObj = new GameObject("TestGenerator");

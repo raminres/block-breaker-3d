@@ -196,10 +196,26 @@ namespace Arcade.Editor
         /// <summary>
         /// Batch renders all 30 levels and assigns their sprites.
         /// </summary>
+        public static int GetTotalConfiguredLevels()
+        {
+            int max = 30;
+            var guids = AssetDatabase.FindAssets("t:LevelConfiguration", new[] { "Assets/Settings/Levels", "Assets/Settings" });
+            foreach (var guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var config = AssetDatabase.LoadAssetAtPath<LevelConfiguration>(path);
+                if (config != null && config.LevelNumber > max)
+                {
+                    max = config.LevelNumber;
+                }
+            }
+            return max;
+        }
+
         public static int GenerateAllPreviews(System.Action<int, int> onProgress = null)
         {
             int successCount = 0;
-            const int totalLevels = 30;
+            int totalLevels = GetTotalConfiguredLevels();
 
             for (int lvl = 1; lvl <= totalLevels; lvl++)
             {
@@ -224,8 +240,10 @@ namespace Arcade.Editor
         {
             int count = 0;
 
+            int totalLevels = GetTotalConfiguredLevels();
+
             // 1. Assign to each LevelConfiguration asset
-            for (int lvl = 1; lvl <= 30; lvl++)
+            for (int lvl = 1; lvl <= totalLevels; lvl++)
             {
                 string spritePath = $"{PREVIEWS_DIR}/TX_LevelPreview_{lvl:D2}.png";
                 var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
