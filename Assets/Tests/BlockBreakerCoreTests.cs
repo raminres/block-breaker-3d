@@ -3814,6 +3814,87 @@ namespace Arcade.Tests
                 }
             }
         }
+
+        [Test]
+        public void SetupIOSBuildProfile_ApplySettings_PreservesCustomProductName()
+        {
+            var setupType = System.Type.GetType("Arcade.Editor.SetupIOSBuildProfile, Assembly-CSharp-Editor");
+            Assert.IsNotNull(setupType, "Arcade.Editor.SetupIOSBuildProfile type must exist.");
+            var applyMethod = setupType.GetMethod("ApplySettings", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            Assert.IsNotNull(applyMethod, "ApplySettings method must exist.");
+
+            string originalProductName = UnityEditor.PlayerSettings.productName;
+
+            try
+            {
+                UnityEditor.PlayerSettings.productName = "Custom Block Breaker Title";
+
+                applyMethod.Invoke(null, null);
+
+                Assert.AreEqual("Custom Block Breaker Title", UnityEditor.PlayerSettings.productName,
+                    "ApplySettings must preserve a user-configured non-empty PlayerSettings.productName.");
+                Assert.AreEqual("Custom Block Breaker Title", UnityEditor.PlayerSettings.iOS.applicationDisplayName,
+                    "ApplySettings must not override iOS.applicationDisplayName with hardcoded BlockBreaker.");
+            }
+            finally
+            {
+                UnityEditor.PlayerSettings.productName = originalProductName;
+                UnityEditor.AssetDatabase.SaveAssets();
+            }
+        }
+
+        [Test]
+        public void BuildXcodeWindow_OutputRootDirectory_PersistsAcrossReloads()
+        {
+            var windowType = System.Type.GetType("Arcade.Editor.BuildXcodeWindow, Assembly-CSharp-Editor");
+            Assert.IsNotNull(windowType, "Arcade.Editor.BuildXcodeWindow type must exist.");
+
+            var prefKeyProp = windowType.GetProperty("OutputRootPrefKey", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            var saveRootMethod = windowType.GetMethod("SaveOutputRootDirectory", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            var getRootMethod = windowType.GetMethod("GetSavedOutputRootDirectory", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            var loadSettingsMethod = windowType.GetMethod("LoadCurrentSettings", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            var outputRootField = windowType.GetField("outputRootDirectory", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            Assert.IsNotNull(prefKeyProp);
+            Assert.IsNotNull(saveRootMethod);
+            Assert.IsNotNull(getRootMethod);
+            Assert.IsNotNull(loadSettingsMethod);
+            Assert.IsNotNull(outputRootField);
+
+            string prefKey = (string)prefKeyProp.GetValue(null);
+            bool hadKey = UnityEditor.EditorPrefs.HasKey(prefKey);
+            string originalSavedRoot = hadKey ? UnityEditor.EditorPrefs.GetString(prefKey) : string.Empty;
+            ScriptableObject windowInstance = null;
+
+            try
+            {
+                saveRootMethod.Invoke(null, new object[] { "CustomExports/XcodeOut" });
+                Assert.AreEqual("CustomExports/XcodeOut", (string)getRootMethod.Invoke(null, null));
+
+                windowInstance = ScriptableObject.CreateInstance(windowType);
+                loadSettingsMethod.Invoke(windowInstance, null);
+
+                string loadedRoot = (string)outputRootField.GetValue(windowInstance);
+                Assert.AreEqual("CustomExports/XcodeOut", loadedRoot,
+                    "LoadCurrentSettings must preserve the custom Output Root instead of resetting to Builds/BlockBreakerBuilds.");
+            }
+            finally
+            {
+                if (windowInstance != null)
+                {
+                    Object.DestroyImmediate(windowInstance);
+                }
+
+                if (hadKey)
+                {
+                    UnityEditor.EditorPrefs.SetString(prefKey, originalSavedRoot);
+                }
+                else
+                {
+                    UnityEditor.EditorPrefs.DeleteKey(prefKey);
+                }
+            }
+        }
 #endif
 
         #endregion

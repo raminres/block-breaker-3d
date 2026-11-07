@@ -23,6 +23,26 @@ namespace Arcade.Editor
 
         private Vector2 scrollPosition;
 
+        public static string OutputRootPrefKey => $"Arcade.BuildXcodeWindow.OutputRoot.{Application.dataPath.GetHashCode():X8}";
+
+        public static string GetSavedOutputRootDirectory()
+        {
+            string saved = EditorPrefs.GetString(OutputRootPrefKey, string.Empty);
+            return string.IsNullOrWhiteSpace(saved) ? SetupIOSBuildProfile.OutputBuildPath : saved.Trim();
+        }
+
+        public static void SaveOutputRootDirectory(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                EditorPrefs.DeleteKey(OutputRootPrefKey);
+            }
+            else
+            {
+                EditorPrefs.SetString(OutputRootPrefKey, path.Trim());
+            }
+        }
+
         [MenuItem("Tools/Arcade/Build Xcode Project...", priority = 60)]
         [MenuItem("Window/Arcade/Build Xcode Project...", priority = 101)]
         public static void OpenWindow()
@@ -48,7 +68,7 @@ namespace Arcade.Editor
                 : PlayerSettings.iOS.buildNumber;
 
             sdkVersion = PlayerSettings.iOS.sdkVersion;
-            outputRootDirectory = SetupIOSBuildProfile.OutputBuildPath;
+            outputRootDirectory = GetSavedOutputRootDirectory();
         }
 
         public void SaveSettingsToProject()
@@ -57,8 +77,18 @@ namespace Arcade.Editor
             PlayerSettings.iOS.buildNumber = buildNumber.Trim();
             PlayerSettings.iOS.sdkVersion = sdkVersion;
 
+            if (string.IsNullOrWhiteSpace(outputRootDirectory))
+            {
+                outputRootDirectory = SetupIOSBuildProfile.OutputBuildPath;
+            }
+            else
+            {
+                outputRootDirectory = outputRootDirectory.Trim();
+            }
+            SaveOutputRootDirectory(outputRootDirectory);
+
             AssetDatabase.SaveAssets();
-            Debug.Log($"[BuildXcodeWindow] Saved Player Settings: Version = {PlayerSettings.bundleVersion}, iOS Build = #{PlayerSettings.iOS.buildNumber}, SDK = {PlayerSettings.iOS.sdkVersion}");
+            Debug.Log($"[BuildXcodeWindow] Saved Player Settings: Product = {PlayerSettings.productName}, Version = {PlayerSettings.bundleVersion}, iOS Build = #{PlayerSettings.iOS.buildNumber}, SDK = {PlayerSettings.iOS.sdkVersion}, OutputRoot = {outputRootDirectory}");
         }
 
         private void OnGUI()
@@ -111,6 +141,7 @@ namespace Arcade.Editor
             if (GUILayout.Button("+ Patch", GUILayout.Width(65)))
             {
                 versionString = BuildVersionUtility.IncrementVersionString(versionString);
+                GUI.FocusControl(null);
             }
             EditorGUILayout.EndHorizontal();
 
@@ -127,6 +158,7 @@ namespace Arcade.Editor
                 {
                     buildNumber = "1";
                 }
+                GUI.FocusControl(null);
             }
             EditorGUILayout.EndHorizontal();
 
@@ -166,33 +198,51 @@ namespace Arcade.Editor
             EditorGUILayout.LabelField("Destination Folder", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginHorizontal();
+            EditorGUI.BeginChangeCheck();
             outputRootDirectory = EditorGUILayout.TextField("Output Root", outputRootDirectory);
+            if (EditorGUI.EndChangeCheck())
+            {
+                SaveOutputRootDirectory(outputRootDirectory);
+            }
+
             if (GUILayout.Button("Browse...", GUILayout.Width(75)))
             {
-                string chosen = EditorUtility.OpenFolderPanel("Choose iOS Builds Root Folder", outputRootDirectory, "");
+                string initialFolder = Directory.Exists(outputRootDirectory) ? outputRootDirectory : string.Empty;
+                string chosen = EditorUtility.OpenFolderPanel("Choose iOS Builds Root Folder", initialFolder, string.Empty);
                 if (!string.IsNullOrEmpty(chosen))
                 {
-                    // Convert to relative path if within project
-                    string projectPath = Path.GetFullPath(".").Replace('\\', '/');
-                    chosen = chosen.Replace('\\', '/');
-                    if (chosen.StartsWith(projectPath, StringComparison.OrdinalIgnoreCase))
+                    // Convert to relative path only if genuinely inside the project directory
+                    string projectPath = Path.GetFullPath(".").Replace('\\', '/').TrimEnd('/');
+                    chosen = chosen.Replace('\\', '/').TrimEnd('/');
+                    if (chosen.Equals(projectPath, StringComparison.OrdinalIgnoreCase))
                     {
-                        chosen = chosen.Substring(projectPath.Length).TrimStart('/');
+                        chosen = ".";
                     }
+                    else if (chosen.StartsWith(projectPath + "/", StringComparison.OrdinalIgnoreCase))
+                    {
+                        chosen = chosen.Substring(projectPath.Length + 1);
+                    }
+
                     outputRootDirectory = chosen;
+                    SaveOutputRootDirectory(outputRootDirectory);
+                    GUI.FocusControl(null);
                 }
             }
             EditorGUILayout.EndHorizontal();
+
+            string effectiveRoot = string.IsNullOrWhiteSpace(outputRootDirectory)
+                ? SetupIOSBuildProfile.OutputBuildPath
+                : outputRootDirectory.Trim();
 
             // Calculate next folder name
             int parsedCurrent = 0;
             int.TryParse(buildNumber, out parsedCurrent);
             int nextNumber = autoIncrementBuild
-                ? BuildVersionUtility.GetNextBuildNumber(outputRootDirectory, parsedCurrent)
+                ? BuildVersionUtility.GetNextBuildNumber(effectiveRoot, parsedCurrent)
                 : Mathf.Max(1, parsedCurrent);
 
             string folderName = BuildVersionUtility.FormatBuildFolderName(nextNumber);
-            string destinationSubfolder = Path.Combine(outputRootDirectory, folderName).Replace('\\', '/');
+            string destinationSubfolder = Path.Combine(effectiveRoot, folderName).Replace('\\', '/');
 
             EditorGUILayout.LabelField("Predicted Destination:", destinationSubfolder, EditorStyles.miniLabel);
 
@@ -221,6 +271,7 @@ namespace Arcade.Editor
 
             if (GUILayout.Button("Apply Presets Now", GUILayout.Height(26)))
             {
+                SaveOutputRootDirectory(outputRootDirectory);
                 SetupIOSBuildProfile.ApplySettings();
                 LoadCurrentSettings();
                 ShowNotification(new GUIContent("Arcade iOS Presets Applied!"));
@@ -254,6 +305,11 @@ namespace Arcade.Editor
 
         private void ExecuteBuildFromWindow()
         {
+            outputRootDirectory = string.IsNullOrWhiteSpace(outputRootDirectory)
+                ? SetupIOSBuildProfile.OutputBuildPath
+                : outputRootDirectory.Trim();
+            SaveOutputRootDirectory(outputRootDirectory);
+
             if (applyStandardPresets)
             {
                 SetupIOSBuildProfile.ApplySettings();

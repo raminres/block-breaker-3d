@@ -30,22 +30,8 @@ namespace Arcade.Editor
         [MenuItem("Tools/Arcade/Setup iOS Build Profile & Player Settings")]
         public static void ApplySettings()
         {
-            // 1. Configure Player Settings
-            PlayerSettings.companyName = CompanyName;
-            PlayerSettings.productName = ProductName;
-            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, BundleIdentifier);
-            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Standalone, BundleIdentifier);
-            PlayerSettings.iOS.applicationDisplayName = ProductName;
-            PlayerSettings.iOS.targetOSVersionString = IosMinVersion;
-            PlayerSettings.xcodeProjectType = XcodeProjectType.Swift;
-
-            // iOS Size & Performance Optimizations
-            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.iOS, ManagedStrippingLevel.High);
-            PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.iOS, Il2CppCompilerConfiguration.Release);
-            PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.iOS, UnityEditor.Build.Il2CppCodeGeneration.OptimizeSize);
-            PlayerSettings.stripEngineCode = true;
-
-            // 2. Ensure folder exists
+            // 1. Ensure Build Profiles folder exists and activate iOS BuildProfile first
+            // so PlayerSettings queries/writes target the iOS/Global profile rather than any active Web/Desktop override profile.
             string folder = Path.GetDirectoryName(ProfilePath);
             if (!AssetDatabase.IsValidFolder(folder))
             {
@@ -53,7 +39,6 @@ namespace Arcade.Editor
                 AssetDatabase.Refresh();
             }
 
-            // 3. Load or create iOS BuildProfile
             var profile = AssetDatabase.LoadAssetAtPath<BuildProfile>(ProfilePath);
             if (profile == null)
             {
@@ -81,14 +66,40 @@ namespace Arcade.Editor
                 prop?.SetValue(null, profile);
             }
 
+            // 2. Configure Player Settings without overwriting user-authored product/company/bundle names
+            if (string.IsNullOrWhiteSpace(PlayerSettings.companyName))
+            {
+                PlayerSettings.companyName = CompanyName;
+            }
+            if (string.IsNullOrWhiteSpace(PlayerSettings.productName))
+            {
+                PlayerSettings.productName = ProductName;
+            }
+            if (string.IsNullOrWhiteSpace(PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.iOS)))
+            {
+                PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, BundleIdentifier);
+            }
+            if (string.IsNullOrWhiteSpace(PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.Standalone)))
+            {
+                PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Standalone, BundleIdentifier);
+            }
+            PlayerSettings.iOS.targetOSVersionString = IosMinVersion;
+            PlayerSettings.xcodeProjectType = XcodeProjectType.Swift;
+
+            // iOS Size & Performance Optimizations
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.iOS, ManagedStrippingLevel.High);
+            PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.iOS, Il2CppCompilerConfiguration.Release);
+            PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.iOS, UnityEditor.Build.Il2CppCodeGeneration.OptimizeSize);
+            PlayerSettings.stripEngineCode = true;
+
             AssetDatabase.SaveAssets();
-            Debug.Log($"[SetupIOSBuildProfile] Successfully applied iOS build profile & player settings for {ProductName} ({BundleIdentifier}).");
+            Debug.Log($"[SetupIOSBuildProfile] Successfully applied iOS build profile & player settings for {PlayerSettings.productName} ({PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.iOS)}).");
         }
 
         [MenuItem("Tools/Arcade/Prepare Next iOS Build Folder & Version")]
         public static string PrepareNextBuildFolderMenu()
         {
-            string path = BuildVersionUtility.PrepareNextBuild(OutputBuildPath);
+            string path = BuildVersionUtility.PrepareNextBuild(BuildXcodeWindow.GetSavedOutputRootDirectory());
             Debug.Log($"[SetupIOSBuildProfile] Prepared next iOS build folder: {path} (buildNumber: {PlayerSettings.iOS.buildNumber}, bundleVersion: {PlayerSettings.bundleVersion})");
             return path;
         }
@@ -145,7 +156,7 @@ namespace Arcade.Editor
 
             if (string.IsNullOrEmpty(outPath))
             {
-                outPath = BuildVersionUtility.PrepareNextBuild(OutputBuildPath);
+                outPath = BuildVersionUtility.PrepareNextBuild(BuildXcodeWindow.GetSavedOutputRootDirectory());
             }
 
             var buildOptions = new BuildPlayerOptions
