@@ -314,7 +314,28 @@ namespace Arcade.BlockBreaker
                 inst.sparksPsr = inst.allPsr.Length > 0 ? inst.allPsr[0] : null;
             }
 
+            ConfigureOneShotInstance(inst);
             return inst;
+        }
+
+        private static void ConfigureOneShotInstance(ShatterInstance inst)
+        {
+            if (inst?.allPs == null) return;
+            for (int i = 0; i < inst.allPs.Length; i++)
+            {
+                var ps = inst.allPs[i];
+                if (ps == null) continue;
+                ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                var main = ps.main;
+                main.loop = false;
+                main.playOnAwake = false;
+            }
+        }
+
+        private static void RestartBurst(ParticleSystem ps)
+        {
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            ps.Play(false);
         }
 
         private ShatterInstance CreatePowerupCollectInstance()
@@ -360,6 +381,7 @@ namespace Arcade.BlockBreaker
                 inst.sparksPsr = inst.allPsr.Length > 0 ? inst.allPsr[0] : null;
             }
 
+            ConfigureOneShotInstance(inst);
             return inst;
         }
 
@@ -406,6 +428,7 @@ namespace Arcade.BlockBreaker
                 inst.sparksPsr = inst.allPsr.Length > 0 ? inst.allPsr[0] : null;
             }
 
+            ConfigureOneShotInstance(inst);
             return inst;
         }
 
@@ -452,6 +475,7 @@ namespace Arcade.BlockBreaker
                 inst.sparksPsr = inst.allPsr.Length > 0 ? inst.allPsr[0] : null;
             }
 
+            ConfigureOneShotInstance(inst);
             return inst;
         }
 
@@ -682,8 +706,7 @@ namespace Arcade.BlockBreaker
                     int frostCount = 8;
                     if (inst.frostPs.emission.enabled && inst.frostPs.emission.burstCount > 0)
                     {
-                        inst.frostPs.Clear();
-                        inst.frostPs.Play();
+                        RestartBurst(inst.frostPs);
                     }
                     else
                     {
@@ -710,8 +733,7 @@ namespace Arcade.BlockBreaker
                     int largeCount = 3;
                     if (inst.largePs.emission.enabled && inst.largePs.emission.burstCount > 0)
                     {
-                        inst.largePs.Clear();
-                        inst.largePs.Play();
+                        RestartBurst(inst.largePs);
                     }
                     else
                     {
@@ -731,8 +753,7 @@ namespace Arcade.BlockBreaker
                     int smallCount = 5;
                     if (inst.smallPs.emission.enabled && inst.smallPs.emission.burstCount > 0)
                     {
-                        inst.smallPs.Clear();
-                        inst.smallPs.Play();
+                        RestartBurst(inst.smallPs);
                     }
                     else
                     {
@@ -757,8 +778,7 @@ namespace Arcade.BlockBreaker
                 {
                     var sm = inst.sparksPs.main;
                     sm.startColor = blockColor * 1.4f;
-                    inst.sparksPs.Clear();
-                    inst.sparksPs.Play();
+                    RestartBurst(inst.sparksPs);
                 }
                 else
                 {
@@ -829,8 +849,7 @@ namespace Arcade.BlockBreaker
 
                     if (ps.emission.enabled && ps.emission.burstCount > 0)
                     {
-                        ps.Clear();
-                        ps.Play();
+                        RestartBurst(ps);
                     }
                     else
                     {
@@ -859,8 +878,7 @@ namespace Arcade.BlockBreaker
                 {
                     var main = inst.sparksPs.main;
                     main.startColor = powerupColor * 1.5f;
-                    inst.sparksPs.Clear();
-                    inst.sparksPs.Play();
+                    RestartBurst(inst.sparksPs);
                 }
                 else
                 {
@@ -915,8 +933,7 @@ namespace Arcade.BlockBreaker
 
                     if (ps.emission.enabled && ps.emission.burstCount > 0)
                     {
-                        ps.Clear();
-                        ps.Play();
+                        RestartBurst(ps);
                     }
                     else
                     {
@@ -946,8 +963,7 @@ namespace Arcade.BlockBreaker
                     var main = inst.sparksPs.main;
                     main.startColor = sparkColor * 1.5f;
                     main.startLifetime = lifetime;
-                    inst.sparksPs.Clear();
-                    inst.sparksPs.Play();
+                    RestartBurst(inst.sparksPs);
                 }
                 else
                 {
@@ -986,8 +1002,7 @@ namespace Arcade.BlockBreaker
                     string n = ps.gameObject.name.ToLower();
                     if (ps.emission.enabled && ps.emission.burstCount > 0)
                     {
-                        ps.Clear();
-                        ps.Play();
+                        RestartBurst(ps);
                     }
                     else
                     {

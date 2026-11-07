@@ -1109,6 +1109,38 @@ namespace Arcade.Tests
         }
 
         [Test]
+        public void BlockShatter_RuntimePoolInstances_DisableLoopingToPreventDelayedSecondBurst_AndPrefabEmittersMatchDuration()
+        {
+            var shatterPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VFX/PF_VFX_BlockShatter.prefab");
+            Assert.IsNotNull(shatterPrefab, "PF_VFX_BlockShatter must exist.");
+            foreach (var ps in shatterPrefab.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                Assert.AreEqual(1.2f, ps.main.duration, 0.001f, $"Emitter {ps.name} in PF_VFX_BlockShatter must have duration 1.2s so all emitters sync in Editor preview.");
+                Assert.IsTrue(ps.main.loop, $"Prefab emitter {ps.name} must keep loop=true on asset.");
+            }
+
+            var vfxGo = new GameObject("TestVFXManager");
+            var vfx = vfxGo.AddComponent<BlockVFXManager>();
+            BlockVFXManager.SetInstanceForTesting(vfx);
+            try
+            {
+                vfx.PlayBlockShatter(Vector3.zero, Color.red, Vector3.up);
+                var activeSystems = vfxGo.GetComponentsInChildren<ParticleSystem>(false);
+                Assert.Greater(activeSystems.Length, 0, "Active shatter instance must contain ParticleSystems.");
+                foreach (var ps in activeSystems)
+                {
+                    Assert.IsFalse(ps.main.loop, $"Runtime pooled emitter {ps.name} must have loop=false so it never fires a delayed second burst.");
+                    Assert.IsFalse(ps.main.playOnAwake, $"Runtime pooled emitter {ps.name} must have playOnAwake=false so SetActive(true) does not prematurely trigger bursts.");
+                }
+            }
+            finally
+            {
+                vfx.ClearAllActive();
+                Object.DestroyImmediate(vfxGo);
+            }
+        }
+
+        [Test]
         public void BombExplosion_VFXPrefab_HasValidShockwaveMaterialAndTexture_NotFlatQuad()
         {
             var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VFX/PF_VFX_BombExplosion.prefab");
